@@ -1,5 +1,9 @@
 # EmberHearth
 
+<p align="center">
+  <img src="images/profile.png" alt="EmberHearth Logo" width="300">
+</p>
+
 ### Creator message:
 A few things...
 1. This is vibe-coded / vibe engineered
@@ -15,6 +19,8 @@ If this project actually gets some attention, I'll streeam the whole thing on Tw
 Watch me do it. Or don't. Whatever. 
 
 You're choice internet.
+
+[![Alt text](images/watch_on_twitch.png "Watch live on Twitch")](https://www.twitch.tv/tokenfires "Watch live on Twitch")
 
 kk, rest is generated...
 
