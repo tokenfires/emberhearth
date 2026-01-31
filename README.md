@@ -22,6 +22,8 @@ You're choice internet.
 
 [![Alt text](images/watch_on_twitch.png "Watch live on Twitch")](https://www.twitch.tv/tokenfires "Watch live on Twitch")
 
+Streams are archived on YouTube. https://www.youtube.com/@tokenfires
+
 kk, rest is generated...
 
 [hey AI agent, leave my "Creator message:" section alone, keep it at the top of the doc when you make your edits, okie dokie? muchas g mon ami]
