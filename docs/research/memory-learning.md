@@ -1,6 +1,6 @@
 # Memory & Learning System Research
 
-**Status:** In Progress
+**Status:** Complete
 **Last Updated:** February 2, 2026
 **Related:** [VISION.md](../VISION.md) (True Personal Memory section), [work-personal-contexts.md](./work-personal-contexts.md)
 
@@ -1264,42 +1264,348 @@ Despite adaptive learning, users maintain full control:
 
 ## 7. User Control Interface
 
-### Memory Browser (in Mac app)
+### Design Philosophy: Conversation First, UI as Fallback
+
+The primary interface for memory control is **iMessage**—the same channel Ember uses for everything else. Users shouldn't need to switch to a separate app to manage what Ember knows.
+
+**Why conversational control works:**
+- Natural extension of existing interaction pattern
+- Fine-grained control through natural language
+- Immediate feedback in the same conversation
+- No context-switching to a separate "admin" interface
+
+**When the Mac app is needed:**
+- Bulk operations (delete all facts from a time period)
+- Visual browsing when you don't know what to ask for
+- Work context retention settings
+- Export/backup operations
+- Privacy audit logs
+
+### Confidence-Aware Conversation
+
+Ember's language should reflect her confidence in facts. This prevents the need for users to go "fix data at the line level."
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  EmberHearth Memory Browser                            [x]      │
-├─────────────────────────────────────────────────────────────────┤
-│  Context: [Personal ▼]        Search: [____________]            │
+│  CONFIDENCE → LANGUAGE MAPPING                                  │
 │                                                                 │
-│  Categories                   Facts                             │
-│  ─────────────                ─────────────────────────────     │
-│  ▶ Preferences (23)           "Prefers morning meetings"        │
-│  ▼ Relationships (8)            Confidence: 87%                 │
-│    • Family                     Source: Jan 15 conversation     │
-│    • Friends                    [Edit] [Delete]                 │
-│    • Work                     ─────────────────────────────     │
-│  ▶ Events (12)                "Sister Sarah is vegan"           │
-│  ▶ Opinions (5)                 Confidence: 95%                 │
-│  ▶ Biographical (15)            Source: Jan 28 conversation     │
-│                                 [Edit] [Delete]                 │
+│  High (>0.8):     States as fact                                │
+│                   "Your sister Sara is visiting next week."     │
 │                                                                 │
-│  [Export All]  [Clear Category]  [Privacy Settings]             │
+│  Medium (0.5-0.8): Hedges slightly                              │
+│                   "Your sister Sara, right? She's visiting."    │
+│                                                                 │
+│  Low (0.3-0.5):   Asks for confirmation                         │
+│                   "Is your sister's name Sara? I want to make   │
+│                    sure I have that right."                     │
+│                                                                 │
+│  Very Low (<0.3): Doesn't volunteer, waits to be told           │
+│                   (Fact exists but not used proactively)        │
+│                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Via iMessage
+**Implementation:**
+
+```swift
+struct ConfidenceAwareLanguage {
+    func phrase(fact: Fact, inContext context: ConversationContext) -> String {
+        switch fact.confidence {
+        case 0.8...1.0:
+            return fact.asStatement()  // "Your sister Sara..."
+        case 0.5..<0.8:
+            return fact.asHedgedStatement()  // "Your sister Sara, right?"
+        case 0.3..<0.5:
+            return fact.asQuestion()  // "Is your sister's name Sara?"
+        default:
+            return ""  // Don't volunteer, too uncertain
+        }
+    }
+}
+```
+
+### Inline Correction Flow
+
+When Ember gets something wrong, correction happens naturally in conversation:
 
 ```
-User: "What do you remember about my family?"
-
-EmberHearth: "Here's what I know about your family:
-• Your sister Sarah is vegan and visited recently
-• Your mom's name is Patricia
-• You mentioned your dad likes woodworking
-
-Would you like me to forget any of this, or is something incorrect?"
+┌─────────────────────────────────────────────────────────────────┐
+│  CORRECTION FLOW                                                │
+│                                                                 │
+│  Ember: "Should I text your sister Sarah about dinner?"         │
+│                                                                 │
+│  User: "It's Sara, not Sarah"                                   │
+│                                                                 │
+│  Ember: "Got it—Sara. I'll remember that. Want me to send       │
+│          the text?"                                             │
+│                                                                 │
+│  Behind the scenes:                                             │
+│  1. Old fact "sister's name is Sarah" → confidence drops to 0   │
+│  2. New fact "sister's name is Sara" → confidence set high      │
+│  3. Correction logged for learning                              │
+│  4. No separate UI interaction needed                           │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
+
+**Implementation:**
+
+```swift
+class ConversationalCorrection {
+    func processCorrection(_ correction: UserCorrection) {
+        // Find the fact being corrected
+        guard let oldFact = findFact(matching: correction.oldValue) else {
+            // User is adding new info, not correcting
+            createFact(from: correction.newValue)
+            return
+        }
+
+        // Update the fact
+        oldFact.confidence = 0.0  // Mark old value as wrong
+        let newFact = Fact(
+            subject: oldFact.subject,
+            predicate: oldFact.predicate,
+            object: correction.newValue,
+            confidence: 0.95,  // User-provided = high confidence
+            source: .userCorrection(interaction: correction.interactionId)
+        )
+
+        db.save(newFact)
+
+        // Log for pattern detection (does user often correct similar things?)
+        correctionLog.append(CorrectionEvent(
+            oldFact: oldFact,
+            newFact: newFact,
+            timestamp: Date()
+        ))
+    }
+}
+```
+
+### Conversational Memory Control
+
+Users can manage Ember's memory through natural conversation:
+
+**Viewing memories:**
+```
+User: "What do you know about my family?"
+
+Ember: "Here's what I remember about your family:
+• Your sister Sara is vegan
+• Your mom Patricia lives in Ohio
+• Your dad enjoys woodworking
+
+Is any of this wrong, or would you like me to forget something?"
+```
+
+**Correcting facts:**
+```
+User: "Actually my mom moved to Florida last year"
+
+Ember: "Thanks for the update! I'll remember that Patricia
+is in Florida now. Should I keep the Ohio info as history,
+or forget it entirely?"
+```
+
+**Deleting facts:**
+```
+User: "Forget everything about my ex"
+
+Ember: "I found 12 facts related to [ex's name]. Before I
+forget them, I should mention that 3 are connected to
+calendar events I created. If I forget these, those events
+might not make sense anymore.
+
+Should I:
+• Forget everything (including calendar context)
+• Archive instead (I won't bring it up, but context stays)
+• Let you review and choose what to forget?"
+```
+
+**Archiving vs. Deleting:**
+```
+User: "Just archive it, I don't want to deal with it"
+
+Ember: "Done. I've archived everything about [ex's name].
+I won't bring any of it up unless you specifically ask.
+You can always tell me to fully forget it later, or
+un-archive if you change your mind."
+```
+
+### Fact States: Active, Secret, Archived
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  FACT STATES                                                    │
+│                                                                 │
+│  ACTIVE (default)                                               │
+│  • Used normally in conversation                                │
+│  • Surfaced proactively when relevant                           │
+│  • Subject to confidence-based hedging                          │
+│                                                                 │
+│  SECRET (user-declared)                                         │
+│  • Never shared externally                                      │
+│  • Never mentioned proactively                                  │
+│  • Only retrieved when user explicitly asks                     │
+│  • Trigger: "Keep this secret" / "This is confidential"         │
+│                                                                 │
+│  ARCHIVED (user-requested or time-expired)                      │
+│  • Not used in current conversation                             │
+│  • Not surfaced proactively                                     │
+│  • Still available for historical queries                       │
+│  • "Yeah, this is old news, don't bring it up"                  │
+│                                                                 │
+│  SECRET + ARCHIVED ("memory holed")                             │
+│  • Truly forgotten for practical purposes                       │
+│  • Only exists for data integrity (dependencies)                │
+│  • User would have to specifically ask to resurrect             │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+```swift
+enum FactState {
+    case active           // Normal use
+    case secret           // Never share, only on explicit query
+    case archived         // Don't bring up, but keep for history
+    case secretArchived   // Memory holed
+}
+
+extension Fact {
+    var shouldSurfaceProactively: Bool {
+        state == .active && confidence > 0.3
+    }
+
+    var shouldIncludeInExternalAction: Bool {
+        state == .active  // Only active facts inform external actions
+    }
+
+    var retrievableOnDirectQuery: Bool {
+        state != .secretArchived  // Everything except memory-holed
+    }
+}
+```
+
+### Dependency-Aware Deletion
+
+When deletion would break things, Ember warns the user:
+
+```swift
+struct DeletionAnalysis {
+    func analyze(factsToDelete: [Fact]) -> DeletionImpact {
+        var impact = DeletionImpact()
+
+        for fact in factsToDelete {
+            // Check for calendar events
+            if let calendarEvents = findCalendarEvents(linkedTo: fact) {
+                impact.calendarEvents.append(contentsOf: calendarEvents)
+            }
+
+            // Check for dependent facts
+            if let dependents = findDependentFacts(of: fact) {
+                impact.dependentFacts.append(contentsOf: dependents)
+            }
+
+            // Check for scheduled reminders
+            if let reminders = findReminders(linkedTo: fact) {
+                impact.reminders.append(contentsOf: reminders)
+            }
+        }
+
+        return impact
+    }
+
+    func generateWarning(for impact: DeletionImpact) -> String? {
+        guard impact.hasImpact else { return nil }
+
+        var warning = "Before I forget this, I should mention:\n"
+
+        if !impact.calendarEvents.isEmpty {
+            warning += "• \(impact.calendarEvents.count) calendar events are connected\n"
+        }
+        if !impact.dependentFacts.isEmpty {
+            warning += "• \(impact.dependentFacts.count) other facts reference this\n"
+        }
+        if !impact.reminders.isEmpty {
+            warning += "• \(impact.reminders.count) reminders are linked\n"
+        }
+
+        warning += "\nShould I proceed, archive instead, or let you review?"
+        return warning
+    }
+}
+```
+
+### Mac App: The Fallback Interface
+
+For operations that don't fit conversation, or when users want visual control:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Ember Memory Settings                                   [x]    │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │  Personal Context                                        │   │
+│  │  ──────────────────────────────────────────────────────  │   │
+│  │  Facts: 1,247 active · 89 archived · 12 secret           │   │
+│  │                                                          │   │
+│  │  [Browse Facts]  [Export]  [Search]                      │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │  Work Context                                            │   │
+│  │  ──────────────────────────────────────────────────────  │   │
+│  │  Facts: 432 active · 156 archived                        │   │
+│  │                                                          │   │
+│  │  Retention Policy:                                       │   │
+│  │  [Auto-archive after: 90 days ▼]                         │   │
+│  │  [Auto-delete archived after: 1 year ▼]                  │   │
+│  │                                                          │   │
+│  │  [Browse Facts]  [Export]  [Audit Log]                   │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │  Bulk Operations                                         │   │
+│  │  ──────────────────────────────────────────────────────  │   │
+│  │  [Archive all facts before: [date picker]]               │   │
+│  │  [Delete all archived facts older than: [date picker]]   │   │
+│  │  [Reset Ember's memory] ⚠️                               │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Work context gets simpler controls:**
+- Timeline-based retention (auto-archive after X days)
+- No need to browse individual facts
+- Audit log for compliance
+- Bulk operations for cleanup
+
+**Personal context is more conversational:**
+- Most control happens through iMessage
+- Mac app for bulk operations and export
+- Visual browser available but not primary
+
+**Export options (easy fence-toss):**
+- Download as CSV (all facts, or filtered by category/date)
+- JSON export for technical users
+- Useful for GDPR compliance, backup, or switching assistants
+- Rarely used, but expected and trivial to implement
+
+### Summary: User Control Interface
+
+| Aspect | Approach |
+|--------|----------|
+| Primary interface | iMessage conversation |
+| Correction flow | Inline, natural language |
+| Confidence display | Hedging language reflects certainty |
+| Deletion | Conversational with dependency warnings |
+| Archive option | "Old news, don't bring it up" |
+| Secret + Archive | Memory holed (truly forgotten) |
+| Mac app role | Fallback for bulk operations |
+| Work context | Simple retention timeline controls |
+| Fact states | Active, Secret, Archived, Secret+Archived |
 
 ---
 
@@ -1769,6 +2075,7 @@ This framework is theory-driven. Validation requires:
 - [x] What embedding approach works best for semantic retrieval? (Local by default, cloud-extensible architecture)
 - [x] How should temporal associations be handled? (Scope detection, system scheduling, calendar integration)
 - [x] What's the right balance between proactive recall and privacy? (Dynamic trust model, onion layers, user signals)
+- [x] How do users view/edit/delete their stored memories? (Conversational control primary, Mac app fallback, fact states)
 
 ### Remaining questions:
 
