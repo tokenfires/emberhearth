@@ -313,6 +313,88 @@ enum ContactResolution {
 
 ---
 
+## Work/Personal Context Routing
+
+**Related:** `docs/research/work-personal-contexts.md`
+
+Contacts are often inherently personal or work-related. Users map contact groups to contexts during onboarding.
+
+### Contact Group Mapping
+
+```swift
+// Configured during onboarding
+struct ContactContextMapping {
+    var personalGroups: Set<String>  // "Family", "Friends"
+    var workGroups: Set<String>      // "Company Directory", "Clients"
+    var askGroups: Set<String>       // "All Contacts" - prompt each time
+
+    func context(for contact: CNContact) -> Context? {
+        let groups = contactGroups(for: contact)
+
+        if groups.intersection(personalGroups).count > 0 {
+            return .personal
+        }
+        if groups.intersection(workGroups).count > 0 {
+            return .work
+        }
+        return nil  // Unknown - may need to ask
+    }
+}
+```
+
+### Context-Scoped Contact Search
+
+When searching for contacts, respect context boundaries:
+
+```swift
+func searchContacts(name: String, context: Context) -> [CNContact] {
+    let allMatches = contactStore.searchContacts(matching: name)
+
+    // Filter to current context
+    return allMatches.filter { contact in
+        if let contactContext = contextMapping.context(for: contact) {
+            return contactContext == context
+        }
+        // Unknown context contacts are included but logged
+        return true
+    }
+}
+```
+
+### Name Resolution Examples
+
+```
+Personal Context:
+User: "Text John about dinner"
+→ Searches personal groups first
+→ Finds "John Smith" in "Friends" group
+→ Sends message
+
+Work Context:
+User: "Text John about the meeting"
+→ Searches work groups first
+→ Finds "John Davis" in "Company Directory"
+→ Sends message
+```
+
+### Cross-Context Contact Warning
+
+If a contact is found but in the wrong context:
+
+```
+Work Context:
+User: "Email Mom about the birthday party"
+
+EmberHearth: "I found 'Mom' in your personal contacts.
+             This is currently a work conversation.
+             Would you like to:
+             1. Switch to personal context to send this
+             2. Send from your work email anyway
+             3. Cancel"
+```
+
+---
+
 ## Limitations
 
 | Limitation | Impact | Workaround |

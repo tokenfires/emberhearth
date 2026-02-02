@@ -2,7 +2,7 @@
 
 **Status:** Complete
 **Priority:** High (Phase 1)
-**Last Updated:** February 1, 2026
+**Last Updated:** February 2, 2026
 
 ---
 
@@ -650,6 +650,189 @@ Security-scoped bookmarks are useful for:
 
 ---
 
+## 9. Work/Personal Context Security
+
+**Related:** `docs/research/work-personal-contexts.md`
+
+EmberHearth maintains strict separation between work and personal contexts. This has significant security implications.
+
+### Dual Database Isolation
+
+Each context maintains a completely separate encrypted database:
+
+```swift
+// Separate storage paths
+let personalDBPath = "~/Library/Application Support/EmberHearth/personal/memory.db"
+let workDBPath = "~/Library/Application Support/EmberHearth/work/memory.db"
+
+// Separate encryption keys (both in Secure Enclave)
+let personalEncryptionKey = try SecureEnclave.P256.KeyAgreement.PrivateKey(
+    accessControl: .biometryCurrentSet
+)
+let workEncryptionKey = try SecureEnclave.P256.KeyAgreement.PrivateKey(
+    accessControl: .biometryCurrentSet
+)
+```
+
+**Critical:** Even if one context is compromised, the other remains protected with a different key.
+
+### Separate Keychain Access Groups
+
+Use Keychain access groups to isolate credentials per context:
+
+```swift
+// Personal context credentials
+let personalKeychainQuery: [String: Any] = [
+    kSecClass as String: kSecClassGenericPassword,
+    kSecAttrService as String: "com.emberhearth.personal",
+    kSecAttrAccessGroup as String: "TEAM_ID.com.emberhearth.personal",
+    // ...
+]
+
+// Work context credentials
+let workKeychainQuery: [String: Any] = [
+    kSecClass as String: kSecClassGenericPassword,
+    kSecAttrService as String: "com.emberhearth.work",
+    kSecAttrAccessGroup as String: "TEAM_ID.com.emberhearth.work",
+    // ...
+]
+```
+
+This prevents accidental cross-context credential access and provides cleaner audit boundaries.
+
+### Per-Context LLM API Keys
+
+Users may have different API configurations per context:
+
+| Context | Typical Configuration |
+|---------|----------------------|
+| Personal | Claude API with user's personal key |
+| Work | Local-only (corporate policy) or company-provided API key |
+
+```swift
+struct ContextLLMConfig {
+    var context: Context
+    var provider: LLMProvider
+    var apiKey: String?  // nil for local-only
+    var allowCloudAPI: Bool
+    var localModelPath: String?
+}
+
+// Stored separately in respective Keychain access groups
+let personalLLMKey = Keychain.get(service: "com.emberhearth.personal.llm")
+let workLLMKey = Keychain.get(service: "com.emberhearth.work.llm")
+```
+
+### Audit Logging (Work Context)
+
+Work context may require audit trails for compliance:
+
+```swift
+struct AuditLog {
+    let context: Context = .work  // Only for work
+    let dbPath: String
+
+    func log(action: AuditAction) {
+        // Append-only log, signed for integrity
+        let entry = AuditEntry(
+            timestamp: Date(),
+            action: action.type,
+            summary: action.sanitizedSummary,  // No sensitive content
+            dataCategories: action.dataCategories,
+            llmProvider: action.llmProvider
+        )
+
+        // Sign entry for tamper detection
+        let signature = try signWithAuditKey(entry)
+        appendToLog(entry, signature: signature)
+    }
+}
+
+// Personal context does NOT log by default (privacy)
+```
+
+### Cross-Context Security Rules
+
+| Rule | Enforcement |
+|------|-------------|
+| No cross-context database queries | Code architecture (separate DB connections) |
+| No cross-context memory access | Context parameter required on all memory APIs |
+| No cross-context LLM calls | Context determines which API key is used |
+| Explicit confirmation for cross-context actions | UI prompt with what will be shared |
+
+```swift
+// Example: Cross-context action requires explicit user approval
+func requestCrossContextAction(_ action: CrossContextAction) async -> Bool {
+    let confirmation = await showConfirmationDialog(
+        title: "Share to \(action.targetContext)?",
+        message: "Only this will be shared:\n\(action.sanitizedSummary)",
+        destructive: false
+    )
+
+    if confirmation {
+        auditLog?.log(action: .crossContextShare(action))
+    }
+
+    return confirmation
+}
+```
+
+### Work Context Policy Enforcement
+
+Work context may have stricter security requirements:
+
+```swift
+struct WorkSecurityPolicy: Codable {
+    // LLM restrictions
+    var requireLocalLLM: Bool = true          // No cloud APIs
+    var allowedProviders: [LLMProvider] = [.localMLX]
+
+    // Data restrictions
+    var maxRetentionDays: Int? = 90           // Auto-delete after 90 days
+    var requireAuditLog: Bool = true          // Mandatory audit trail
+    var allowExport: Bool = false             // Cannot export work data
+
+    // Session restrictions
+    var autoLockMinutes: Int? = 15            // Lock after inactivity
+    var requireBiometricUnlock: Bool = true   // Biometric to access
+
+    // Future: Admin-managed policies
+    // var policyURL: URL?                    // Remote policy fetch
+    // var policySignature: Data?             // Verify policy authenticity
+}
+```
+
+### XPC Service Context Awareness
+
+XPC services must be context-aware:
+
+```swift
+// MessageService.xpc
+@objc protocol MessageServiceProtocol {
+    func sendMessage(_ text: String,
+                     to recipient: String,
+                     context: String,  // "personal" or "work"
+                     reply: @escaping (Bool, Error?) -> Void)
+
+    func getNewMessages(since: Date,
+                        context: String,  // Filters by phone number
+                        reply: @escaping ([Message]?, Error?) -> Void)
+}
+
+// MemoryService.xpc
+@objc protocol MemoryServiceProtocol {
+    func storeMemory(_ memory: MemoryData,
+                     context: String,  // Determines which DB
+                     reply: @escaping (Bool, Error?) -> Void)
+
+    func retrieveMemories(query: String,
+                          context: String,  // Only searches one DB
+                          reply: @escaping ([MemoryData]?, Error?) -> Void)
+}
+```
+
+---
+
 ## Recommended Security Architecture for EmberHearth
 
 ### Distribution Strategy
@@ -668,42 +851,65 @@ Still apply:
 ### Process Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    EmberHearth.app (Main Process)                │
-│  Entitlements:                                                   │
-│  - App Sandbox                                                   │
-│  - Network Client                                                │
-│  - Calendars, Contacts (as needed)                              │
-│                                                                  │
-│  Responsibilities:                                               │
-│  - UI rendering                                                  │
-│  - User interaction                                              │
-│  - Coordinate XPC services                                       │
-└────────────────┬───────────────────────┬────────────────────────┘
-                 │ XPC                   │ XPC
-                 ▼                       ▼
-┌────────────────────────────┐ ┌────────────────────────────────┐
-│   MessageService.xpc        │ │   MemoryService.xpc            │
-│                             │ │                                │
-│   Entitlements:             │ │   Entitlements:                │
-│   - Automation (AppleScript)│ │   - App Sandbox                │
-│   - (Inherits FDA from user)│ │                                │
-│                             │ │   Responsibilities:            │
-│   Responsibilities:         │ │   - SQLite database access     │
-│   - Read chat.db            │ │   - Encryption/decryption      │
-│   - Send via Messages.app   │ │   - Memory consolidation       │
-│   - Monitor for new msgs    │ │                                │
-└────────────────────────────┘ └────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────┐
+│                       EmberHearth.app (Main Process)                       │
+│  Entitlements:                                                             │
+│  - App Sandbox                                                             │
+│  - Network Client                                                          │
+│  - Calendars, Contacts (as needed)                                        │
+│                                                                            │
+│  Responsibilities:                                                         │
+│  - UI rendering                                                            │
+│  - User interaction                                                        │
+│  - Context routing (personal vs work)                                      │
+│  - Coordinate XPC services                                                 │
+└────────────────┬───────────────────────┬───────────────────────┬──────────┘
+                 │ XPC                   │ XPC                   │ XPC
+                 ▼                       ▼                       ▼
+┌────────────────────────┐ ┌────────────────────────┐ ┌─────────────────────┐
+│  MessageService.xpc     │ │  MemoryService.xpc     │ │  LLMService.xpc     │
+│                         │ │                        │ │                     │
+│  Entitlements:          │ │  Entitlements:         │ │  Entitlements:      │
+│  - Automation           │ │  - App Sandbox         │ │  - Network Client   │
+│  - (Inherits FDA)       │ │                        │ │  - App Sandbox      │
+│                         │ │  Responsibilities:     │ │                     │
+│  Responsibilities:      │ │  - Context-scoped DB   │ │  Responsibilities:  │
+│  - Read chat.db         │ │  - Personal memory.db  │ │  - Cloud API calls  │
+│  - Route by phone #     │ │  - Work memory.db      │ │  - Local MLX runtime│
+│  - Send via Messages    │ │  - Encryption per ctx  │ │  - Context routing  │
+│  - Detect context       │ │  - Audit log (work)    │ │  - Policy enforce   │
+└────────────────────────┘ └────────────────────────┘ └─────────────────────┘
+                                      │
+                    ┌─────────────────┴─────────────────┐
+                    ▼                                   ▼
+          ┌─────────────────────┐             ┌─────────────────────┐
+          │  personal/          │             │  work/              │
+          │  └── memory.db      │             │  └── memory.db      │
+          │  └── conversations  │             │  └── conversations  │
+          │  └── (Cloud OK)     │             │  └── audit.log      │
+          │                     │             │  └── (Local only?)  │
+          └─────────────────────┘             └─────────────────────┘
 ```
 
 ### Credential Storage Strategy
 
-| Credential | Storage Location | Accessibility |
-|------------|------------------|---------------|
-| LLM API Key | Keychain | `WhenPasscodeSetThisDeviceOnly` |
-| Memory DB Encryption Key | Secure Enclave | Biometric-protected |
-| User Preferences | UserDefaults | N/A (not sensitive) |
-| OAuth Tokens (if any) | Keychain | `AfterFirstUnlock` |
+**Per-Context Credential Isolation:**
+
+| Credential | Context | Storage Location | Accessibility |
+|------------|---------|------------------|---------------|
+| Personal LLM API Key | Personal | Keychain (personal group) | `WhenPasscodeSetThisDeviceOnly` |
+| Work LLM API Key | Work | Keychain (work group) | `WhenPasscodeSetThisDeviceOnly` |
+| Personal Memory DB Key | Personal | Secure Enclave | Biometric-protected |
+| Work Memory DB Key | Work | Secure Enclave | Biometric-protected |
+| User Preferences | Shared | UserDefaults | N/A (not sensitive) |
+| Work Audit Log Key | Work | Secure Enclave | Append-only signing |
+
+**Keychain Access Groups:**
+```
+TEAM_ID.com.emberhearth.personal  — Personal context credentials
+TEAM_ID.com.emberhearth.work      — Work context credentials
+TEAM_ID.com.emberhearth.shared    — Non-sensitive shared data
+```
 
 ### Onboarding Security Flow
 
@@ -711,17 +917,38 @@ Still apply:
 1. First Launch
    └── Check for passcode → Warn if not set (required for Keychain security)
 
-2. API Key Setup
-   └── Enter API key → Store in Keychain → Verify stored correctly
+2. Context Mode Selection
+   └── Choose: Personal only / Work only / Both (recommended)
+   └── If both: Explain two-session model
 
-3. Permissions Setup
+3. Phone Number Configuration (if both contexts)
+   └── Assign personal iMessage number
+   └── Assign work iMessage number
+   └── Verify both are reachable
+
+4. Account Mapping (if both contexts)
+   └── Map email accounts to contexts
+   └── Map calendars to contexts
+   └── Map contact groups to contexts
+
+5. API Key Setup (per context)
+   └── Personal: Enter API key → Store in personal Keychain group
+   └── Work: Enter API key OR select local-only → Store in work Keychain group
+
+6. Permissions Setup
    └── Request Full Disk Access → Guide user through System Settings
    └── Test Messages.app automation → Request Automation permission
 
-4. Database Setup
-   └── Generate encryption key in Secure Enclave
-   └── Create encrypted SQLite database
-   └── Store key reference in Keychain
+7. Database Setup (per context)
+   └── Generate encryption key in Secure Enclave (separate keys!)
+   └── Create personal/memory.db and work/memory.db
+   └── Store key references in respective Keychain groups
+   └── (Work) Initialize audit log if required by policy
+
+8. Work Policy Configuration (if work context enabled)
+   └── Configure retention period
+   └── Enable/disable audit logging
+   └── Set LLM restrictions (local-only, etc.)
 ```
 
 ---
@@ -735,6 +962,7 @@ Still apply:
 - [ ] Enable Hardened Runtime
 - [ ] Enable App Sandbox
 - [ ] Define minimal entitlements
+- [ ] Design Keychain access group structure (personal/work/shared)
 
 ### During Development
 
@@ -743,6 +971,19 @@ Still apply:
 - [ ] Validate all XPC connections via code signing
 - [ ] Handle all Keychain/Secure Enclave errors gracefully
 - [ ] Test with sandbox enabled (not just debug mode)
+- [ ] Ensure context isolation (no cross-context data access)
+- [ ] Pass context parameter to all memory/LLM operations
+- [ ] Implement separate encryption keys per context
+
+### Work/Personal Context Security
+
+- [ ] Create separate database paths per context
+- [ ] Generate separate Secure Enclave keys per context
+- [ ] Use separate Keychain access groups per context
+- [ ] Implement audit logging for work context
+- [ ] Enforce LLM routing policies per context
+- [ ] Require explicit confirmation for cross-context actions
+- [ ] Test context isolation (verify no data leakage)
 
 ### Before Release
 
@@ -752,6 +993,7 @@ Still apply:
 - [ ] Staple notarization ticket
 - [ ] Test on clean macOS installation
 - [ ] Verify Gatekeeper accepts the app
+- [ ] Test dual-context setup end-to-end
 
 ### Ongoing
 
@@ -759,6 +1001,8 @@ Still apply:
 - [ ] Update dependencies for security patches
 - [ ] Review entitlements periodically (remove unused)
 - [ ] Test permission flows after macOS updates
+- [ ] Verify work context audit logs are intact
+- [ ] Confirm retention policy enforcement (work context)
 
 ---
 

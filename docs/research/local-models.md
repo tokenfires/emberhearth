@@ -556,24 +556,41 @@ Not full sentiment analysis, but pattern recognition for frustration:
 
 ### Adaptive Routing Engine
 
+**Related:** `docs/research/work-personal-contexts.md`
+
+The routing engine must be context-aware. Work and personal contexts may have different routing policies.
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                    Adaptive Routing Engine                                  │
+│                    Context-Aware Adaptive Routing Engine                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│   User Query                                                                │
+│   User Query + Context                                                      │
+│        │                                                                    │
+│        ▼                                                                    │
+│   ┌─────────────────────────────────────────────────────────────────────┐  │
+│   │                     CONTEXT POLICY CHECK                             │  │
+│   │                                                                       │  │
+│   │   if context == .work && workPolicy.requireLocalOnly:               │  │
+│   │       → Force local routing (skip adaptive decision)                │  │
+│   │   else:                                                              │  │
+│   │       → Continue to adaptive routing                                 │  │
+│   │                                                                       │  │
+│   └─────────────────────────────────────────────────────────────────────┘  │
 │        │                                                                    │
 │        ▼                                                                    │
 │   ┌─────────────────────────────────────────────────────────────────────┐  │
 │   │                     ROUTING DECISION                                 │  │
 │   │                                                                       │  │
 │   │   Inputs:                                                            │  │
+│   │   ├── Context (.personal | .work)                 ← NEW             │  │
+│   │   ├── Context-specific policy constraints         ← NEW             │  │
 │   │   ├── Query complexity score (heuristic)                            │  │
 │   │   ├── Recent local model performance (rolling window)               │  │
-│   │   ├── Recent quality signals (last 24h)                             │  │
+│   │   ├── Recent quality signals (last 24h, per context)                │  │
 │   │   ├── Current system state (memory, thermal)                        │  │
-│   │   ├── User's configured preferences (privacy weight)                │  │
-│   │   └── Historical success rate for similar queries                   │  │
+│   │   ├── User's configured preferences (privacy weight, per context)  │  │
+│   │   └── Historical success rate for similar queries (per context)    │  │
 │   │                                                                       │  │
 │   │   Output: { route: "local" | "cloud" | "hybrid", confidence: 0-1 }  │  │
 │   └─────────────────────────────────────────────────────────────────────┘  │
@@ -588,12 +605,70 @@ Not full sentiment analysis, but pattern recognition for frustration:
 │        └──────────────────┴──────────────────┘                             │
 │                           │                                                │
 │                           ▼                                                │
-│                    Response + Feedback Loop                                │
-│                           │                                                │
-│                           ▼                                                │
-│                    Update Routing Weights                                  │
+│               Context-Scoped Feedback Loop                                 │
+│               (Learning is per-context, never crossed)                     │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Per-Context LLM Configuration
+
+Each context can have different LLM settings:
+
+```swift
+struct ContextLLMConfig {
+    var context: Context
+
+    // Provider settings
+    var cloudProvider: LLMProvider?     // nil = local only
+    var cloudAPIKey: String?
+    var localModelPath: String?
+
+    // Routing constraints
+    var allowCloudAPI: Bool             // false = local only (work policy)
+    var preferLocal: Bool               // Bias toward local even when cloud allowed
+
+    // Self-tuning
+    var performanceHistory: PerformanceHistory  // Per-context metrics
+    var qualitySignals: QualitySignals          // Per-context feedback
+}
+
+// Example configurations:
+let personalConfig = ContextLLMConfig(
+    context: .personal,
+    cloudProvider: .claude,
+    cloudAPIKey: "sk-...",
+    localModelPath: "/models/qwen2.5-14b",
+    allowCloudAPI: true,
+    preferLocal: false
+)
+
+let workConfig = ContextLLMConfig(
+    context: .work,
+    cloudProvider: nil,           // Local only - corporate policy
+    cloudAPIKey: nil,
+    localModelPath: "/models/qwen2.5-14b",
+    allowCloudAPI: false,         // Enforced by policy
+    preferLocal: true
+)
+```
+
+### Context Policy Enforcement
+
+Work context may have strict requirements that override self-tuning:
+
+```swift
+func route(query: Query, context: Context) -> LLMRoute {
+    let policy = getPolicy(for: context)
+
+    // Policy constraints override adaptive routing
+    if !policy.allowCloudAPI {
+        return .localOnly(reason: "Work policy requires local processing")
+    }
+
+    // Otherwise, adaptive routing proceeds
+    return adaptiveRouter.decide(query, context: context)
+}
 ```
 
 ### Self-Annealing Behavior

@@ -2,7 +2,7 @@
 
 **Status:** Complete
 **Priority:** High (Phase 1)
-**Last Updated:** January 31, 2026
+**Last Updated:** February 2, 2026
 
 ---
 
@@ -248,6 +248,171 @@ SMS messages appear in the same database with different `service` value.
    - Group chats (multiple handles)
    - Attachments (images, files)
    - Message reactions (if needed, may require Private API)
+
+---
+
+## Work/Personal Context Separation
+
+**Related:** `docs/research/work-personal-contexts.md`
+
+EmberHearth uses **two separate iMessage sessions** to maintain strict isolation between work and personal contexts. This is foundational to the privacy architecture.
+
+### Two-Session Model
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    iMessage Context Architecture                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   User's Phone                                                              │
+│   ┌───────────────────────┐     ┌───────────────────────┐                  │
+│   │ Personal iMessage     │     │ Work iMessage         │                  │
+│   │ +1-555-PERSONAL       │     │ +1-555-WORK           │                  │
+│   │ (personal Apple ID)   │     │ (work Apple ID)       │                  │
+│   └───────────┬───────────┘     └───────────┬───────────┘                  │
+│               │                             │                               │
+│               ▼                             ▼                               │
+│   ┌─────────────────────────────────────────────────────────────────────┐  │
+│   │                     EmberHearth MessageService                       │  │
+│   │                                                                       │  │
+│   │   MessageRouter                                                      │  │
+│   │   ├── detectContext(phoneNumber) → .personal | .work                │  │
+│   │   ├── routeToPersonalHandler()                                      │  │
+│   │   └── routeToWorkHandler()                                          │  │
+│   │                                                                       │  │
+│   └───────────────────────────┬─────────────────────────────────────────┘  │
+│                               │                                             │
+│               ┌───────────────┴───────────────┐                            │
+│               ▼                               ▼                            │
+│   ┌───────────────────────┐     ┌───────────────────────┐                  │
+│   │ Personal Context      │     │ Work Context          │                  │
+│   │                       │     │                       │                  │
+│   │ • Personal Memory DB  │     │ • Work Memory DB      │                  │
+│   │ • Personal LLM Config │     │ • Work LLM Config     │                  │
+│   │ • Personal Calendar   │     │ • Work Calendar       │                  │
+│   │ • Personal Contacts   │     │ • Work Contacts       │                  │
+│   │                       │     │                       │                  │
+│   │ Cloud API allowed     │     │ May require local-only│                  │
+│   └───────────────────────┘     └───────────────────────┘                  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Context Detection
+
+The primary signal for context is which phone number received the message:
+
+```swift
+struct MessageRouter {
+    let personalPhoneNumber: String  // Configured during onboarding
+    let workPhoneNumber: String      // Configured during onboarding
+
+    func detectContext(from message: IncomingMessage) -> Context {
+        // Primary: Check recipient phone number
+        if message.recipientNumber == personalPhoneNumber {
+            return .personal
+        } else if message.recipientNumber == workPhoneNumber {
+            return .work
+        }
+
+        // Fallback: Check thread history (shouldn't be needed with two numbers)
+        if let existingContext = threadContextCache[message.threadID] {
+            return existingContext
+        }
+
+        // Unknown: Log warning, default to personal (safer)
+        logger.warning("Unknown context for message, defaulting to personal")
+        return .personal
+    }
+}
+```
+
+### Response Routing
+
+When sending responses, the MessageSender must use the correct phone number:
+
+```swift
+func sendResponse(_ text: String, to recipient: String, context: Context) {
+    let senderNumber = context == .personal ? personalPhoneNumber : workPhoneNumber
+
+    let script = """
+    tell application "Messages"
+        set targetService to service id "\(senderNumber)"
+        set targetBuddy to buddy "\(recipient)" of targetService
+        send "\(text)" to targetBuddy
+    end tell
+    """
+
+    NSAppleScript(source: script)?.executeAndReturnError(nil)
+}
+```
+
+### Database Isolation
+
+Each context maintains separate conversation history:
+
+```swift
+// Conversation history is stored per-context, never merged
+let personalConversations = ConversationStore(
+    dbPath: "~/Library/Application Support/EmberHearth/personal/conversations.db"
+)
+
+let workConversations = ConversationStore(
+    dbPath: "~/Library/Application Support/EmberHearth/work/conversations.db"
+)
+
+// When processing an incoming message:
+func handleIncomingMessage(_ message: IncomingMessage) {
+    let context = router.detectContext(from: message)
+    let store = context == .personal ? personalConversations : workConversations
+
+    // Store and process in the appropriate context only
+    store.append(message)
+    processWithContext(message, context: context)
+}
+```
+
+### User Experience
+
+Users interact with EmberHearth through whichever phone number matches their current context:
+
+```
+Personal Assistant: +1-555-0001 (saved in contacts as "EmberHearth Personal")
+Work Assistant:     +1-555-0002 (saved in contacts as "EmberHearth Work")
+
+User messages personal number → Personal context handles it
+User messages work number → Work context handles it
+
+No commands needed. No mode switching. Context is implicit.
+```
+
+### Setup Requirements
+
+For the two-session model:
+
+1. **Two iMessage-capable phone numbers**
+   - Personal: User's existing phone or a dedicated number
+   - Work: Second number (Google Voice, second SIM, work phone)
+
+2. **Both numbers signed into Messages on the Mac**
+   - Messages → Settings → iMessage → Enable both accounts
+
+3. **Onboarding maps numbers to contexts**
+   - User explicitly assigns which number is personal vs work
+
+### Fallback: Single-Session Mode
+
+For users who only want one context (personal-only or work-only):
+
+```swift
+enum ContextMode {
+    case personalOnly      // Single iMessage session, personal context
+    case workOnly          // Single iMessage session, work context
+    case dualContext       // Two iMessage sessions, strict separation
+}
+```
+
+Single-session mode is simpler but loses the work/personal separation benefit.
 
 ---
 

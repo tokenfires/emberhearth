@@ -350,6 +350,76 @@ func generateMorningBriefing() async -> String {
 
 ---
 
+## Work/Personal Context Routing
+
+**Related:** `docs/research/work-personal-contexts.md`
+
+Calendar access must be context-aware. Users map their calendars to personal or work contexts during onboarding.
+
+### Calendar-to-Context Mapping
+
+```swift
+// Configured during onboarding
+struct CalendarContextMapping {
+    var personalCalendarIDs: Set<String>  // "Home", "Family", etc.
+    var workCalendarIDs: Set<String>      // "Work", "Project X", etc.
+
+    func calendars(for context: Context) -> [EKCalendar] {
+        let ids = context == .personal ? personalCalendarIDs : workCalendarIDs
+        return eventStore.calendars(for: .event).filter { ids.contains($0.calendarIdentifier) }
+    }
+}
+```
+
+### Context-Scoped Queries
+
+```swift
+// Always pass context - NEVER query all calendars
+func getEvents(for context: Context, dateRange: DateInterval) -> [EKEvent] {
+    let calendars = calendarMapping.calendars(for: context)
+    let predicate = eventStore.predicateForEvents(
+        withStart: dateRange.start,
+        end: dateRange.end,
+        calendars: calendars  // Scoped to context!
+    )
+    return eventStore.events(matching: predicate)
+}
+```
+
+### Event Creation
+
+When creating events, default to the current context:
+
+```swift
+func createEvent(title: String, start: Date, end: Date, context: Context) {
+    let event = EKEvent(eventStore: eventStore)
+    event.title = title
+    event.startDate = start
+    event.endDate = end
+
+    // Use the default calendar for the current context
+    event.calendar = defaultCalendar(for: context)
+
+    try eventStore.save(event, span: .thisEvent)
+}
+```
+
+### Cross-Context Time Blocking
+
+Users may want to block time on their work calendar for personal events without revealing details:
+
+```
+User (Personal): "Add my dentist appointment to my work calendar"
+
+EmberHearth: "I'll add a 'Personal Appointment' block to your work
+             calendar from 2-3pm. Only the time will be shared,
+             not the appointment details. [Confirm]"
+```
+
+This creates an event in the work context with generic title, no details from personal context.
+
+---
+
 ## Limitations
 
 | Limitation | Impact | Workaround |

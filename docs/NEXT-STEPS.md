@@ -137,7 +137,21 @@ emberhearth/
 
 **Deliverable:** `docs/research/local-models.md` with benchmarks and recommendations
 
-### 1.5 Memory & Learning System Research
+### 1.5 Work/Personal Context Separation ✅
+
+**Goal:** Design how EmberHearth maintains strict isolation between work and personal contexts.
+
+**Research Questions:**
+- [x] How to implement two separate iMessage sessions?
+- [x] How should accounts (email, calendar) map to contexts?
+- [x] What security implications does dual-context have?
+- [x] How should LLM routing differ per context?
+- [x] What data can cross contexts, if any?
+- [x] How do users configure and manage contexts?
+
+**Deliverable:** `docs/research/work-personal-contexts.md` with architecture proposal
+
+### 1.6 Memory & Learning System Research
 
 **Goal:** Design how EmberHearth learns about users and retains context over time.
 
@@ -151,7 +165,7 @@ emberhearth/
 
 **Deliverable:** `docs/research/memory-learning.md` with architecture proposal
 
-### 1.6 Conversation Design Research
+### 1.7 Conversation Design Research
 
 **Goal:** Define how EmberHearth should communicate with users.
 
@@ -165,7 +179,7 @@ emberhearth/
 
 **Deliverable:** `docs/research/conversation-design.md` with guidelines
 
-### 1.7 Onboarding UX Research
+### 1.8 Onboarding UX Research
 
 **Goal:** Design the first-time user experience for non-technical users.
 
@@ -434,7 +448,7 @@ The project is open source, but sustainability options should be considered:
 | Phase | Status | Notes |
 |-------|--------|-------|
 | Phase 0: Setup | ✅ Complete | Repo created, structure established |
-| Phase 1: Research | 🔄 In Progress | iMessage, Security, Integrations complete. Local Models, Memory, Conversation, Onboarding pending |
+| Phase 1: Research | 🔄 In Progress | iMessage, Security, Integrations, Local Models, Work/Personal complete. Memory, Conversation, Onboarding pending |
 | Phase 2: Prototype | Not Started | |
 | Phase 3: Architecture | Not Started | |
 | Phase 4: Memory | Not Started | |

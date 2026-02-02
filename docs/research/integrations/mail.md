@@ -194,6 +194,79 @@ EmberHearth should implement permission tiers for sending:
 
 ---
 
+## Work/Personal Context Routing
+
+**Related:** `docs/research/work-personal-contexts.md`
+
+Email access is highly context-sensitive. Users map their email accounts to personal or work contexts during onboarding.
+
+### Account-to-Context Mapping
+
+```swift
+// Configured during onboarding
+struct EmailContextMapping {
+    var personalAccounts: [String]  // "john@gmail.com", "john@icloud.com"
+    var workAccounts: [String]      // "john.doe@company.com"
+
+    func accounts(for context: Context) -> [String] {
+        return context == .personal ? personalAccounts : workAccounts
+    }
+}
+```
+
+### Context-Scoped Email Access
+
+```applescript
+-- Query only accounts for current context
+tell application "Mail"
+    set targetAccount to account "john@gmail.com"  -- Personal context
+    set recentMessages to (messages 1 thru 10 of inbox of targetAccount)
+    -- Process messages
+end tell
+```
+
+### Critical: Email Content Never Crosses Contexts
+
+- Work emails NEVER appear in personal context summaries
+- Personal emails NEVER appear in work context summaries
+- No "you have 5 work emails" notifications in personal context
+
+### Sending from Correct Account
+
+When composing email, always send from the current context's account:
+
+```applescript
+tell application "Mail"
+    set newMessage to make new outgoing message with properties {
+        subject: "Meeting Follow-up",
+        content: messageBody,
+        sender: "john.doe@company.com"  -- Work context account
+    }
+    -- ...
+end tell
+```
+
+### LLM Routing Implications
+
+Work email content may have stricter requirements:
+- **Local-only processing** for corporate policy compliance
+- **Audit logging** of email access and summaries
+- **No external API** if work policy requires it
+
+```swift
+func processEmail(_ email: Email, context: Context) {
+    if context == .work && workPolicy.requireLocalLLM {
+        // Route to local MLX model, never cloud
+        processWithLocalLLM(email)
+    } else {
+        // Use configured LLM (may be cloud)
+        processWithConfiguredLLM(email, context: context)
+    }
+}
+```
+
+---
+
 ## Limitations
 
 | Limitation | Impact | Workaround |

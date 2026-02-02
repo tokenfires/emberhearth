@@ -12,6 +12,46 @@ This document serves as an index to EmberHearth's integration research. Each app
 
 ---
 
+## Work/Personal Context Routing
+
+**Related:** `docs/research/work-personal-contexts.md`
+
+All integrations must be context-aware. During onboarding, users map their accounts/calendars to either personal or work context. The integration layer must route data appropriately.
+
+### Account Mapping Examples
+
+| Integration | Personal Context | Work Context |
+|-------------|------------------|--------------|
+| Calendar | "Home", "Family" calendars | "Work", "Project X" calendars |
+| Mail | john@gmail.com | john@company.com |
+| Contacts | "Family", "Friends" groups | "Company Directory" |
+| Notes | Personal folder | Work folder |
+
+### Implementation Pattern
+
+```swift
+// All integration APIs must accept context parameter
+protocol ContextAwareIntegration {
+    func fetchData(context: Context) async throws -> [DataItem]
+    func performAction(_ action: Action, context: Context) async throws
+}
+
+// Router determines which accounts to query based on context
+func getCalendarEvents(for context: Context) -> [Event] {
+    let calendars = accountMapping.calendars(for: context)
+    return eventStore.events(matching: predicate, calendars: calendars)
+}
+```
+
+### Context-Specific Restrictions
+
+| Context | May Restrict |
+|---------|-------------|
+| Personal | No restrictions (user preference) |
+| Work | May require local-only LLM, audit logging, data retention limits |
+
+---
+
 ## Quick Reference: Feasibility Matrix
 
 | Integration | Feasibility | API Type | Priority | Doc Link |
