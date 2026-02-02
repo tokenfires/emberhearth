@@ -941,12 +941,256 @@ export async function morning_briefing(api: EmberHearthAPI) {
 
 ---
 
+## Moltbot/OpenClaw Compatibility
+
+[Moltbot](https://molt.bot/) (formerly Clawdbot, now OpenClaw) is a popular open-source personal AI assistant with 565+ community skills. Supporting Moltbot skill compatibility would give EmberHearth access to a large existing ecosystem.
+
+### Moltbot Skill Format
+
+Moltbot skills use a **SKILL.md** format — markdown with YAML frontmatter:
+
+```yaml
+---
+name: travel-planner
+description: Help plan travel itineraries
+metadata: {"moltbot": {"nix": {"plugin": "..."}}}
+---
+
+## Instructions
+
+When the user asks to plan a trip:
+1. Ask for destination and dates
+2. Check weather for those dates
+3. Suggest activities based on conditions
+4. Offer to create calendar events
+```
+
+This format is part of the **AgentSkills spec**, an open standard adopted by Claude Code, Cursor, VS Code, GitHub Copilot, and others.
+
+### Compatibility Analysis
+
+| Moltbot Feature | EmberHearth Compatibility |
+|-----------------|---------------------------|
+| Pure instructions | ✅ Full — load as context |
+| Tool references (notion-cli, gh) | ⚠️ Partial — map to EmberHearth API |
+| Shell scripts | ❌ None — violates security model |
+| Nix plugin binaries | ❌ None — can't verify safety |
+
+### The Security Tension
+
+**Moltbot philosophy:** *"It's your computer, you control it."*
+- Skills can run arbitrary CLI tools
+- Direct system access
+- User assumes responsibility
+
+**EmberHearth philosophy:** *"Safe enough for your grandmother."*
+- No shell execution
+- Sandboxed plugins
+- Explicit permissions only
+
+**Resolution:** EmberHearth imports the *knowledge* from Moltbot skills but executes through its own *sandboxed APIs*.
+
+### Compatibility Layer Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                Moltbot Compatibility Layer                       │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  1. SKILL.md Parser                                             │
+│     └── Extract frontmatter, instructions, tool references      │
+│                                                                  │
+│  2. Skill Classifier                                            │
+│     ├── instruction-only → Load directly into LLM context       │
+│     ├── mapped-tools → Route through Tool Mapping Registry      │
+│     └── shell-required → Flag as incompatible                   │
+│                                                                  │
+│  3. Tool Mapping Registry                                       │
+│     ├── notion-cli    → api.notion.*                            │
+│     ├── todoist-cli   → todoist plugin                          │
+│     ├── caldav-cli    → api.calendar.*                          │
+│     ├── gh            → github plugin (via API, not shell)      │
+│     └── curl/wget     → api.fetch() with domain restrictions    │
+│                                                                  │
+│  4. Context Augmentation                                        │
+│     └── Inject compatible instructions into LLM system prompt   │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Import Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Import Moltbot Skill: "notion-tasks"                       │
+│                                                              │
+│  Source: molthub.com/skills/notion-tasks                    │
+│                                                              │
+│  Analysis:                                                   │
+│  ✅ Instructions for managing Notion tasks                  │
+│  ✅ Tool reference: notion-cli → mapped to Notion plugin    │
+│  ⚠️  1 shell command cannot be executed directly            │
+│                                                              │
+│  The skill will work with these adaptations:                │
+│  • notion-cli commands → EmberHearth Notion API             │
+│  • `echo` command → Skipped (display only)                  │
+│                                                              │
+│  [Import with Adaptations]  [View Details]  [Cancel]        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Implementation
+
+**Skill Parser:**
+```typescript
+interface MoltbotSkill {
+  name: string;
+  description: string;
+  metadata?: {
+    moltbot?: {
+      nix?: { plugin: string };
+    };
+  };
+  instructions: string;
+  toolReferences: string[];  // Extracted CLI tool names
+  shellCommands: string[];   // Extracted shell commands
+}
+
+function parseMoltbotSkill(skillMd: string): MoltbotSkill {
+  const { frontmatter, content } = parseYamlFrontmatter(skillMd);
+
+  return {
+    name: frontmatter.name,
+    description: frontmatter.description,
+    metadata: frontmatter.metadata,
+    instructions: content,
+    toolReferences: extractToolReferences(content),
+    shellCommands: extractShellCommands(content)
+  };
+}
+
+function classifySkill(skill: MoltbotSkill): SkillCompatibility {
+  const mappedTools = skill.toolReferences.filter(t => TOOL_MAPPING[t]);
+  const unmappedTools = skill.toolReferences.filter(t => !TOOL_MAPPING[t]);
+
+  return {
+    fullyCompatible: unmappedTools.length === 0 && skill.shellCommands.length === 0,
+    partiallyCompatible: mappedTools.length > 0,
+    incompatibleFeatures: [...unmappedTools, ...skill.shellCommands],
+    mappedFeatures: mappedTools.map(t => ({ from: t, to: TOOL_MAPPING[t] }))
+  };
+}
+```
+
+**Tool Mapping Registry:**
+```typescript
+const TOOL_MAPPING: Record<string, string> = {
+  // Productivity
+  'notion-cli': 'api.notion',
+  'todoist-cli': 'plugins.todoist',
+  'linear-cli': 'plugins.linear',
+
+  // Calendar
+  'caldav-cli': 'api.calendar',
+  'gcal': 'api.calendar',
+
+  // Communication
+  'slack-cli': 'plugins.slack',
+  'discord-cli': 'plugins.discord',
+
+  // Development (limited)
+  'gh': 'plugins.github',  // API only, no git operations
+
+  // Weather
+  'weather-cli': 'api.weather',
+  'wttr': 'api.weather',
+
+  // Network (restricted)
+  'curl': 'api.fetch',  // Domain-restricted
+  'wget': 'api.fetch',
+  'http': 'api.fetch',
+};
+```
+
+### MoltHub Integration
+
+Allow users to browse and install skills from MoltHub directly:
+
+```typescript
+// In EmberHearth settings
+async function browseMoltHub(query?: string): Promise<MoltbotSkill[]> {
+  const response = await fetch(`https://molthub.com/api/skills?q=${query}`);
+  const skills = await response.json();
+
+  // Annotate with compatibility info
+  return skills.map(skill => ({
+    ...skill,
+    compatibility: classifySkill(skill)
+  }));
+}
+```
+
+### What Gets Imported
+
+| Moltbot Skill Component | EmberHearth Handling |
+|-------------------------|----------------------|
+| Name, description | Metadata for discovery |
+| Instructions | Loaded into LLM context |
+| Mapped tool references | Routed through EmberHearth API |
+| Unmapped tool references | Flagged, skipped with warning |
+| Shell commands | Blocked (security) |
+| Nix plugins | Not supported |
+
+### Benefits of Compatibility
+
+1. **Instant ecosystem** — 565+ skills available at launch
+2. **Lower authoring barrier** — SKILL.md is simpler than TypeScript
+3. **Community bridge** — Moltbot users can migrate to EmberHearth
+4. **Skill portability** — AgentSkills spec is cross-platform
+
+### Limitations (Clearly Communicated)
+
+EmberHearth should be transparent with users:
+
+```
+EmberHearth supports Moltbot skills with some limitations:
+
+✅ What works:
+   • Instructional content and workflows
+   • Skills using supported tool mappings
+   • Pure LLM guidance skills
+
+❌ What doesn't work:
+   • Direct shell command execution
+   • Arbitrary CLI tools
+   • Nix-packaged binaries
+   • System automation scripts
+
+EmberHearth prioritizes security over capability.
+For full Moltbot features, use Moltbot directly.
+```
+
+### Implementation Priority
+
+| Phase | Moltbot Compatibility |
+|-------|----------------------|
+| v2.0 | Native EmberHearth plugins only |
+| v2.1 | Import instruction-only skills |
+| v2.2 | Tool mapping layer |
+| v2.3 | MoltHub browser integration |
+| v3.0 | Shortcuts bridge for safe shell execution |
+
+---
+
 ## Resources
 
 - [Model Context Protocol](https://modelcontextprotocol.io/) - Inspiration for tool definitions
 - [VS Code Extension API](https://code.visualstudio.com/api) - Plugin UX reference
 - [JavaScriptCore Framework](https://developer.apple.com/documentation/javascriptcore) - Runtime
 - [Deno Security Model](https://deno.land/manual/basics/permissions) - Permission patterns
+- [Moltbot Documentation](https://docs.molt.bot/) - Skill format reference
+- [MoltHub](https://molthub.com/) - Skill registry
+- [AgentSkills Spec](https://github.com/anthropics/agentskills) - Cross-platform skill standard
 
 ---
 
