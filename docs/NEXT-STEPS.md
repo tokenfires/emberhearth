@@ -201,19 +201,30 @@ emberhearth/
 - Apple fit: Privacy-first, accessible, polished, trustworthy—"what everyone wished Siri could be."
 - Female voice planned (trustworthiness studies). Name "Ember" evokes warmth, similar to "Amber."
 
-### 1.8 Onboarding UX Research
+### 1.8 Onboarding UX Research ✅
 
 **Goal:** Design the first-time user experience for non-technical users.
 
 **Research Questions:**
-- [ ] What permissions need to be requested and in what order?
-- [ ] How to explain security model without overwhelming users?
-- [ ] What's the minimum setup before first useful interaction?
-- [ ] How should LLM provider selection work?
-- [ ] How to handle users who don't have an LLM API key?
-- [ ] What tutorial or guided tour is needed?
+- [x] What permissions need to be requested and in what order?
+- [x] How to explain security model without overwhelming users?
+- [x] What's the minimum setup before first useful interaction?
+- [x] How should LLM provider selection work?
+- [x] How to handle users who don't have an LLM API key?
+- [x] What tutorial or guided tour is needed?
 
-**Deliverable:** `docs/research/onboarding-ux.md` with wireframes/flows
+**Deliverable:** `docs/research/onboarding-ux.md` with wireframes/flows ✅
+
+**Key Decisions:**
+- Permission tiers: Core (Full Disk, Automation, Notifications) upfront; Contacts, Calendar, Reminders when first needed; Location optional.
+- Progressive disclosure: Explain, then request. No feature tours on first launch.
+- Time to value target: <5 minutes with API key ready; <7 minutes if creating account.
+- LLM options: Claude (recommended), OpenAI, Local model, or Skip for later.
+- Security explanation: Three layers (one-liner → four points → full docs). Plain language, no jargon.
+- API key guidance: Step-by-step for non-technical users, with cost expectations ($5-20/month typical).
+- Edge cases: Graceful degradation if permissions denied, clear recovery paths.
+- Accessibility: Full VoiceOver, Dynamic Type, keyboard navigation, reduced motion support.
+- Post-onboarding: Gentle feature discovery over first week via natural conversation.
 
 ---
 
@@ -470,7 +481,7 @@ The project is open source, but sustainability options should be considered:
 | Phase | Status | Notes |
 |-------|--------|-------|
 | Phase 0: Setup | ✅ Complete | Repo created, structure established |
-| Phase 1: Research | 🔄 In Progress | iMessage, Security, Integrations, Local Models, Work/Personal, Memory, Conversation complete. Onboarding pending |
+| Phase 1: Research | ✅ Complete | All 8 research topics complete |
 | Phase 2: Prototype | Not Started | |
 | Phase 3: Architecture | Not Started | |
 | Phase 4: Memory | Not Started | |
