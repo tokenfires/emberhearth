@@ -491,6 +491,244 @@ EmberHearth's advantage: **Deep macOS integration** means local agents can acces
 
 ---
 
+## Self-Tuning Architecture
+
+**Problem:** Users configure their model preferences during onboarding, then forget about it. If local model performance degrades, quality drops, or latency becomes unacceptable, users may not realize the fix is in settings they configured months ago.
+
+**Solution:** EmberHearth should be **self-healing and self-annealing**—automatically adjusting the local/cloud balance based on observed performance and user satisfaction signals.
+
+### Performance Signals
+
+The system continuously monitors:
+
+```swift
+struct PerformanceSignals {
+    // Latency
+    var avgResponseTimeMs: Double
+    var p95ResponseTimeMs: Double
+    var timeoutsCount: Int
+
+    // Reliability
+    var localModelFailures: Int
+    var retryCount: Int
+    var fallbackToCloudCount: Int
+
+    // Resource pressure
+    var memoryPressureEvents: Int
+    var thermalThrottlingDetected: Bool
+}
+```
+
+### Quality Signals
+
+Implicit and explicit indicators of user satisfaction:
+
+```swift
+struct QualitySignals {
+    // Explicit feedback
+    var thumbsUp: Int
+    var thumbsDown: Int
+    var feedbackRatio: Double  // thumbsUp / total
+
+    // Implicit signals
+    var responseEditedByUser: Bool      // User modified the response
+    var queryRepeatedImmediately: Bool  // User asked same thing again
+    var conversationAbandoned: Bool     // User stopped mid-task
+
+    // Frustration detection
+    var shortFollowUpResponses: Int     // "no", "wrong", "try again"
+    var multipleRetries: Int            // Same query rephrased
+    var responseTime: Double            // Long pause = thinking/frustration?
+}
+```
+
+### Mood Detection (Lightweight)
+
+Not full sentiment analysis, but pattern recognition for frustration:
+
+| Pattern | Signal | Action |
+|---------|--------|--------|
+| "No, I meant..." | Misunderstanding | Log for quality review |
+| Same query 3x in 5 min | Frustration | Escalate to cloud |
+| "Forget it" / abandonment | Failure | Log + escalate future similar queries |
+| Quick thumbs down | Poor quality | Immediate cloud retry option |
+| Consistently slow responses | Latency issue | Shift more to cloud |
+
+### Adaptive Routing Engine
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    Adaptive Routing Engine                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   User Query                                                                │
+│        │                                                                    │
+│        ▼                                                                    │
+│   ┌─────────────────────────────────────────────────────────────────────┐  │
+│   │                     ROUTING DECISION                                 │  │
+│   │                                                                       │  │
+│   │   Inputs:                                                            │  │
+│   │   ├── Query complexity score (heuristic)                            │  │
+│   │   ├── Recent local model performance (rolling window)               │  │
+│   │   ├── Recent quality signals (last 24h)                             │  │
+│   │   ├── Current system state (memory, thermal)                        │  │
+│   │   ├── User's configured preferences (privacy weight)                │  │
+│   │   └── Historical success rate for similar queries                   │  │
+│   │                                                                       │  │
+│   │   Output: { route: "local" | "cloud" | "hybrid", confidence: 0-1 }  │  │
+│   └─────────────────────────────────────────────────────────────────────┘  │
+│        │                                                                    │
+│        ├──────────────────┬──────────────────┐                             │
+│        ▼                  ▼                  ▼                             │
+│   ┌─────────┐        ┌─────────┐        ┌─────────┐                        │
+│   │  Local  │        │  Cloud  │        │ Hybrid  │                        │
+│   │  Agent  │        │   API   │        │  (Both) │                        │
+│   └─────────┘        └─────────┘        └─────────┘                        │
+│        │                  │                  │                             │
+│        └──────────────────┴──────────────────┘                             │
+│                           │                                                │
+│                           ▼                                                │
+│                    Response + Feedback Loop                                │
+│                           │                                                │
+│                           ▼                                                │
+│                    Update Routing Weights                                  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Self-Annealing Behavior
+
+The system adjusts its local/cloud balance over time:
+
+**Initial State (Post-Onboarding):**
+```
+User chose: "Hybrid mode, prefer privacy"
+Initial weights: Local 70% / Cloud 30%
+```
+
+**After 1 Week (Good Performance):**
+```
+Local success rate: 92%
+Avg latency: 1.4s
+Quality score: 4.2/5
+→ Maintain: Local 70% / Cloud 30%
+```
+
+**After 1 Month (Degradation Detected):**
+```
+Local success rate: 78% (↓)
+Avg latency: 2.8s (↑)
+Quality score: 3.4/5 (↓)
+→ Auto-adjust: Local 50% / Cloud 50%
+→ Notify user: "I've shifted some tasks to cloud for better responses"
+```
+
+**After User Upgrades RAM:**
+```
+System detects: 32GB RAM (was 16GB)
+→ Offer: "You now have more memory. Want to try running more locally?"
+→ If accepted, gradually increase local weight with monitoring
+```
+
+### Graceful Degradation
+
+When local models fail, the system should recover transparently:
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│ Failure Scenario                    │ Automatic Response       │
+├────────────────────────────────────────────────────────────────┤
+│ Local model timeout (>5s)           │ Retry with cloud         │
+│ Local model error                   │ Fallback to cloud        │
+│ Memory pressure detected            │ Pause local, use cloud   │
+│ Thermal throttling                  │ Reduce local load        │
+│ Repeated low quality                │ Shift query type to cloud│
+│ API key expired/invalid             │ Use local if possible    │
+│ Network offline                     │ Local only (with warning)│
+└────────────────────────────────────────────────────────────────┘
+```
+
+### User Transparency
+
+Users should know when the system adapts, but not be overwhelmed:
+
+**Subtle Notification (Default):**
+```
+EmberHearth: "I used cloud AI for this response to give you a faster answer."
+[Gear icon] Tap to adjust preferences
+```
+
+**Monthly Summary (Optional):**
+```
+EmberHearth > Settings > Usage & Monitoring
+
+This Month's Routing:
+├── 340 queries routed locally (68%)
+├── 160 queries routed to cloud (32%)
+└── 12 automatic fallbacks (cloud saved the day!)
+
+The system made 3 automatic adjustments:
+• Feb 5: Shifted complex queries to cloud (quality improved 18%)
+• Feb 12: Detected memory pressure, reduced local load
+• Feb 18: Restored local routing after system stabilized
+```
+
+**Privacy-Sensitive Notification:**
+```
+⚠️ This query involves personal data. Processing locally for privacy.
+   Response may take a moment longer. [Always do this] [Ask each time]
+```
+
+### Learning from Patterns
+
+Over time, the system learns which query *types* work best where:
+
+```swift
+struct QueryTypePerformance {
+    var queryCategory: String  // "calendar", "email_draft", "research", etc.
+    var localSuccessRate: Double
+    var cloudSuccessRate: Double
+    var avgLocalLatency: Double
+    var avgCloudLatency: Double
+    var preferredRoute: Route
+}
+
+// Example learned patterns:
+// "calendar_lookup"   → Local preferred (95% success, 0.3s)
+// "email_draft"       → Local preferred (88% success, 1.2s)
+// "complex_planning"  → Cloud preferred (72% local vs 94% cloud)
+// "creative_writing"  → Cloud preferred (quality difference notable)
+```
+
+### Configuration Options
+
+Users who *do* want control can access it:
+
+```
+EmberHearth > Settings > AI Routing
+
+Automatic Optimization: [ON] / OFF
+├── Let EmberHearth adjust routing based on performance
+└── You'll be notified of significant changes
+
+Privacy Weight: [────●───] More Privacy ←→ More Speed
+├── Higher = prefer local even if slower
+└── Lower = use cloud more freely
+
+Manual Overrides:
+├── Calendar queries: [Auto] / Local Only / Cloud Only
+├── Email drafting:   [Auto] / Local Only / Cloud Only
+├── Research:         [Auto] / Local Only / Cloud Only
+└── Creative writing: [Auto] / Local Only / Cloud Only
+
+Advanced:
+├── Show routing decisions: OFF / [ON]
+├── Fallback timeout: [5 seconds]
+└── Reset learned preferences: [Reset]
+```
+
+---
+
 ## Implementation Phases
 
 ### Phase 1: Cloud API Only
@@ -522,6 +760,15 @@ EmberHearth's advantage: **Deep macOS integration** means local agents can acces
 - Structured data summaries (privacy-preserving)
 - Full monitoring dashboard
 - A/B testing infrastructure
+
+### Phase 5: Self-Tuning Architecture
+
+- Performance and quality signal collection
+- Adaptive routing based on observed behavior
+- Automatic fallback and graceful degradation
+- Query-type learning (which tasks work best where)
+- User-transparent adjustments with optional notifications
+- Self-healing when local models underperform
 
 ---
 
@@ -674,6 +921,21 @@ This aligns well with EmberHearth's security-first philosophy.
 - [ ] Quality feedback collection (thumbs up/down)
 - [ ] Export/analytics for usage data
 
+### Phase 5 (Self-Tuning / Self-Annealing)
+- [ ] Performance signal collection (latency, errors, retries)
+- [ ] Quality signal detection (user edits, repeated queries, abandonment)
+- [ ] Frustration pattern recognition (lightweight mood detection)
+- [ ] Adaptive routing engine with configurable weights
+- [ ] Query-type performance learning (which queries work best where)
+- [ ] Automatic fallback on local model failure
+- [ ] Graceful degradation under memory/thermal pressure
+- [ ] User notification system for routing changes
+- [ ] Monthly routing summary generation
+- [ ] Privacy weight slider in settings
+- [ ] Per-query-type manual overrides
+- [ ] Hardware change detection (RAM upgrades)
+- [ ] "Reset learned preferences" functionality
+
 ---
 
 ## Resources
@@ -722,6 +984,13 @@ This aligns well with EmberHearth's security-first philosophy.
 - Potentially 40-60% token cost reduction vs cloud-only
 - Built-in monitoring validates actual savings during development
 
-**Key differentiator vs Moltbot:** EmberHearth's deep macOS integration means local agents access native APIs (EventKit, Contacts, Mail) directly, not through generic file/shell access. This enables better privacy boundaries and richer structured data extraction.
+**Self-Tuning is essential for non-technical users:**
+- Users configure preferences during onboarding and forget about them
+- System must detect degradation (latency, quality, user frustration)
+- Automatic adjustment of local/cloud balance based on observed performance
+- Graceful degradation when local models fail or resources are constrained
+- Transparent notifications keep users informed without overwhelming them
 
-The local LLM landscape is improving rapidly. What requires 24GB today may run on 16GB next year. EmberHearth should architect for this flexibility, with monitoring infrastructure to continuously validate the cost/quality tradeoffs.
+**Key differentiator vs Moltbot:** EmberHearth's deep macOS integration means local agents access native APIs (EventKit, Contacts, Mail) directly, not through generic file/shell access. This enables better privacy boundaries and richer structured data extraction. The self-tuning architecture ensures the system remains optimal over time without user intervention.
+
+The local LLM landscape is improving rapidly. What requires 24GB today may run on 16GB next year. EmberHearth should architect for this flexibility, with self-annealing behavior that adapts to hardware changes, model improvements, and user needs over time.
