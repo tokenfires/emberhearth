@@ -151,12 +151,12 @@ emberhearth/
 
 **Deliverable:** `docs/research/work-personal-contexts.md` with architecture proposal
 
-### 1.6 Memory & Learning System Research
+### 1.6 Memory & Learning System Research 🔄
 
 **Goal:** Design how EmberHearth learns about users and retains context over time.
 
 **Research Questions:**
-- [ ] What facts should be automatically extracted from conversations?
+- [x] What facts should be automatically extracted from conversations?
 - [ ] How should privacy levels be assigned to different memory types?
 - [ ] What embedding approach works best for semantic retrieval?
 - [ ] How should temporal associations (events, deadlines) be handled?
@@ -164,6 +164,12 @@ emberhearth/
 - [ ] How do users view/edit/delete their stored memories?
 
 **Deliverable:** `docs/research/memory-learning.md` with architecture proposal
+
+**Progress Notes:**
+- Fact taxonomy defined (preferences, relationships, biographical, events, opinions, contextual, secrets)
+- LLM-based extraction approach chosen over rule-based inference engine
+- Confidence decay model with emotional salience modifier documented
+- Initial answers for privacy, embedding, temporal, user control—need deeper research
 
 ### 1.7 Conversation Design Research
 
@@ -448,7 +454,7 @@ The project is open source, but sustainability options should be considered:
 | Phase | Status | Notes |
 |-------|--------|-------|
 | Phase 0: Setup | ✅ Complete | Repo created, structure established |
-| Phase 1: Research | 🔄 In Progress | iMessage, Security, Integrations, Local Models, Work/Personal complete. Memory, Conversation, Onboarding pending |
+| Phase 1: Research | 🔄 In Progress | iMessage, Security, Integrations, Local Models, Work/Personal complete. Memory in progress (1/6 questions). Conversation, Onboarding pending |
 | Phase 2: Prototype | Not Started | |
 | Phase 3: Architecture | Not Started | |
 | Phase 4: Memory | Not Started | |
