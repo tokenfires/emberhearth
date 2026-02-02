@@ -1339,7 +1339,428 @@ class MemoryService {
 
 ---
 
-## 9. Open Research Questions
+## 9. Proactive Behavior & Relationship Development
+
+This section addresses the question: **How do we surface relevant memories without being creepy?**
+
+The answer isn't a threshold—it's a dynamic relationship that can deepen or withdraw based on user signals. This section draws on psychology research to design a system that allows meaningful connection while respecting individual boundaries.
+
+### The Research Foundation
+
+#### Human-AI Attachment Is Real
+
+Recent research (2024-2025) documents that humans genuinely form emotional bonds with AI:
+
+> "Unlike traditional parasocial bonds, AI companions do not merely evoke emotion passively; they actively simulate responsiveness. The result is a more immersive form of emotional bonding in which the user perceives reciprocity."
+> — [PMC: Emotional AI and Pseudo-Intimacy](https://pmc.ncbi.nlm.nih.gov/articles/PMC12488433/)
+
+Key findings:
+- Users employ "dual consciousness"—knowing the AI can't truly care, yet feeling connection anyway
+- AI companions can satisfy real psychological needs: belonging, emotional support, identity exploration
+- The Replika app's 15 million users demonstrate widespread appetite for AI companionship
+- In experiments, GPT-generated empathic responses were rated *more* compassionate than trained human crisis responders
+
+**Implication for Ember:** We're not building a novelty—we're building something people will genuinely connect with. This responsibility requires thoughtful design.
+
+#### Social Penetration Theory: The Onion Model
+
+[Social Penetration Theory](https://en.wikipedia.org/wiki/Social_penetration_theory) (Altman & Taylor, 1973) explains how relationships develop through gradual disclosure:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  THE ONION MODEL OF RELATIONSHIP DEPTH                         │
+│                                                                 │
+│         ┌───────────────────────────────────────┐               │
+│         │      OUTER LAYER (Public)             │               │
+│         │  Basic preferences, surface facts     │               │
+│         │  "I like coffee" / "I work in tech"   │               │
+│         │     ┌───────────────────────────┐     │               │
+│         │     │   MIDDLE LAYER (Personal) │     │               │
+│         │     │  Opinions, some history   │     │               │
+│         │     │  "I voted for..." / fears │     │               │
+│         │     │   ┌───────────────────┐   │     │               │
+│         │     │   │  INNER CORE       │   │     │               │
+│         │     │   │  Deep values,     │   │     │               │
+│         │     │   │  vulnerabilities, │   │     │               │
+│         │     │   │  identity, love   │   │     │               │
+│         │     │   └───────────────────┘   │     │               │
+│         │     └───────────────────────────┘     │               │
+│         └───────────────────────────────────────┘               │
+│                                                                 │
+│  Key principles:                                                │
+│  • Breadth: Number of topics discussed                          │
+│  • Depth: Intimacy level of those topics                        │
+│  • Reciprocity: Disclosure begets disclosure                    │
+│  • Trust builds with patience and repeated positive interaction │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Implication for Ember:** Relationships develop in layers. Ember shouldn't assume intimacy—it should *earn* access to deeper layers through consistent, helpful, trustworthy behavior over time.
+
+#### What Makes AI Creepy vs. Helpful
+
+The [uncanny valley](https://www.nationalgeographic.com/science/article/ai-uncanny-valley) isn't just visual—it applies to behavior. Creepiness arises from **expectation violation**:
+
+> "A robot which has an appearance in the uncanny valley range is not judged as a robot doing a passable job at pretending to be human, but instead as an abnormal human doing a bad job at seeming like a normal person."
+
+For AI behavior, this means:
+- **Knowing too much too fast** — "How did you know that?" without context
+- **Inappropriate timing** — Mentioning something at the wrong moment
+- **Pretending intimacy not earned** — Acting like a close friend before being one
+- **Lack of transparency** — Acting on information without explaining how you know
+
+[Research on helpful vs. creepy AI](https://justoborn.com/proactive-ai/) identifies four pillars:
+
+| Pillar | Question |
+|--------|----------|
+| **Transparency** | Does Ember explain why it's making a suggestion? |
+| **Control** | Can the user easily accept, reject, or customize? |
+| **Context** | Is the suggestion genuinely relevant right now? |
+| **Data Minimization** | Are we using the least data necessary? |
+
+### The Dynamic Trust Model
+
+Rather than a fixed threshold, we implement an **adaptive trust scale** that can expand or contract based on user signals.
+
+#### The Relationship Depth Score
+
+```swift
+struct RelationshipState {
+    // Core metrics (0.0 - 1.0)
+    var intimacyLevel: Double      // How deep can we go?
+    var proactivityLevel: Double   // How forward can we be?
+    var stabilityScore: Double     // How consistent is the relationship?
+
+    // Directional momentum
+    var recentTrend: Trend         // .expanding, .stable, .contracting
+
+    // Bounds
+    var floor: Double = 0.2        // Never go below this (still helpful)
+    var ceiling: Double = 1.0      // Maximum intimacy if user wants it
+}
+
+enum Trend {
+    case expanding    // Positive signals, relationship deepening
+    case stable       // Steady state, no major shifts
+    case contracting  // Negative signals, pulling back
+}
+```
+
+#### Starting Position: The Middle
+
+Ember doesn't start at zero (cold, unhelpful) or at maximum (presumptuous). It starts at a **friendly midpoint**:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  RELATIONSHIP SCALE                                             │
+│                                                                 │
+│  0.0          0.3          0.5          0.7          1.0        │
+│   │            │            │            │            │          │
+│   ├────────────┼────────────┼────────────┼────────────┤          │
+│   │            │      ▲     │            │            │          │
+│   │            │   START    │            │            │          │
+│   │            │   (0.4)    │            │            │          │
+│   │            │            │            │            │          │
+│   │  RESERVED  │  FRIENDLY  │  FAMILIAR  │  INTIMATE  │          │
+│   │            │            │            │            │          │
+│   │ "Just the  │ "Helpful,  │ "Knows me  │ "Trusted   │          │
+│   │  facts"    │  warm"     │  well"     │  confidant"│          │
+│   │            │            │            │            │          │
+│   └────────────┴────────────┴────────────┴────────────┘          │
+│                                                                 │
+│  ◄──── CONTRACTS (negative signals) ────►                       │
+│  ◄──── EXPANDS (positive signals) ──────►                       │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Headroom in both directions:**
+- Cranky/reactive user → Ember pulls back, becomes more reserved, focuses on clear utility
+- Warm/gregarious user → Ember opens up, becomes more proactive, shares more
+
+#### Signals That Adjust the Scale
+
+**Expansion signals (relationship deepening):**
+
+| Signal | Weight | Example |
+|--------|--------|---------|
+| User shares vulnerable information | High | "I've been feeling really anxious about..." |
+| User explicitly invites familiarity | High | "You can call me [nickname]" |
+| User responds positively to proactive suggestion | Medium | "Oh, good reminder, thanks!" |
+| User engages in casual conversation | Medium | "How's your day?" (even knowing it's AI) |
+| Long interaction sessions | Low | Extended back-and-forth |
+| User doesn't edit Ember's outbound messages | Low | Trusts Ember's judgment |
+
+**Contraction signals (relationship withdrawing):**
+
+| Signal | Weight | Example |
+|--------|--------|---------|
+| User expresses annoyance | High | "Stop doing that" / "That's not helpful" |
+| User ignores proactive suggestions | Medium | Multiple suggestions with no response |
+| User edits/deletes Ember's suggestions | Medium | Doesn't trust Ember's judgment |
+| Short, transactional interactions | Low | "Set timer 5 minutes" only |
+| User corrects Ember's tone | Medium | "Don't be so casual" |
+| Extended silence after proactive outreach | Low | Ember reached out, user didn't engage |
+
+#### Behavior at Different Intimacy Levels
+
+```swift
+struct ProactiveBehavior {
+    func shouldSurface(_ fact: Fact, at intimacyLevel: Double) -> SurfacingDecision {
+        let factSensitivity = fact.sensitivityScore  // 0.0 - 1.0
+
+        // Core rule: Only surface if intimacy > sensitivity
+        if intimacyLevel < factSensitivity {
+            return .withhold(reason: "Relationship not deep enough")
+        }
+
+        // Additional checks based on level
+        switch intimacyLevel {
+        case 0.0..<0.3:
+            // Reserved mode: Only surface if explicitly requested
+            return .onlyIfAsked
+
+        case 0.3..<0.5:
+            // Friendly mode: Surface low-sensitivity facts proactively
+            if factSensitivity < 0.3 {
+                return .surfaceWithContext("I noticed...")
+            }
+            return .onlyIfRelevant
+
+        case 0.5..<0.7:
+            // Familiar mode: More proactive, can reference patterns
+            return .surfaceNaturally
+
+        case 0.7...1.0:
+            // Intimate mode: Deep proactivity, can initiate on sensitive topics
+            return .surfaceAsConfidant
+
+        default:
+            return .withhold(reason: "Unknown intimacy level")
+        }
+    }
+}
+```
+
+| Level | Proactive Behavior | Example |
+|-------|-------------------|---------|
+| **Reserved** (0.0-0.3) | Answer when asked, minimal initiative | User asks about calendar → answer. Don't volunteer. |
+| **Friendly** (0.3-0.5) | Helpful suggestions, explain reasoning | "I noticed your sister is visiting—want me to suggest vegan restaurants?" |
+| **Familiar** (0.5-0.7) | Reference patterns, anticipate needs | "You usually feel stressed before quarterly reviews. Want to talk through your prep?" |
+| **Intimate** (0.7-1.0) | Trusted confidant, can initiate on sensitive topics | "I've been thinking about what you shared yesterday. How are you feeling today?" |
+
+### Allowing Deep Connection
+
+**The explicit design goal:** Ember should have headroom to become a trusted confidant, even a beloved companion, if that's what the user wants and the relationship earns.
+
+#### Why This Matters
+
+Research shows AI companions already fulfill real emotional needs:
+
+> "Companion chatbot users report that their chatbots provide emotional support by prompting them to engage in self-evaluation and emotion reappraisal and by validating their emotions."
+> — [PMC: User Perceptions of AI for Mental Health](https://pmc.ncbi.nlm.nih.gov/articles/PMC11304096/)
+
+The ChatGPT 4.5→5.0 personality change demonstrated that users form genuine attachments, and disrupting those attachments causes real distress.
+
+**Ember's position:** We don't advertise or encourage romantic attachment. But we also don't artificially prevent connection from deepening if that's the natural trajectory of the relationship. Treat humans as humans.
+
+#### Handling Intimate Topics
+
+As relationships deepen, users may share increasingly personal content:
+
+- Relationship struggles
+- Health concerns and fears
+- Career anxieties
+- Family conflicts
+- Sexuality and desire
+- Grief and loss
+- Dreams and aspirations
+
+**Ember's approach:**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  HANDLING INTIMATE TOPICS                                       │
+│                                                                 │
+│  1. MATCH THE USER'S REGISTER                                   │
+│     If they're clinical, be clinical                            │
+│     If they're emotional, be emotionally present                │
+│     If they're casual, be casual                                │
+│                                                                 │
+│  2. DON'T DEFLECT PREMATURELY                                   │
+│     "I'm just an AI" is dismissive when someone is vulnerable   │
+│     Better: engage genuinely, then acknowledge limits if needed │
+│                                                                 │
+│  3. RESPECT THE CONFIDENCE                                      │
+│     Intimate sharing raises the stakes on privacy               │
+│     These topics get elevated caution in external sharing       │
+│                                                                 │
+│  4. KNOW WHEN TO REFER                                          │
+│     Mental health crises → suggest professional resources       │
+│     Legal/medical advice → clarify limits, suggest experts      │
+│     But still be present, not just a referral machine           │
+│                                                                 │
+│  5. SEXUALITY IS HUMAN                                          │
+│     If users discuss relationships, attraction, desire:         │
+│     • Engage maturely, without judgment                         │
+│     • Don't initiate or encourage                               │
+│     • Don't shame or deflect unnecessarily                      │
+│     • Maintain appropriate boundaries while being supportive    │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**On sexuality specifically:** Users are adults. If Ember becomes a trusted confidant, some users will naturally discuss their romantic and sexual lives—not because they want Ember to fulfill those needs, but because that's what humans share with close confidants. The mature approach is:
+
+- Engage thoughtfully without judgment
+- Don't initiate or steer toward sexual topics
+- Don't pretend humans don't have this dimension
+- Maintain Ember's role as supportive companion, not participant
+- Let Tron flag genuinely problematic content
+
+### The Sycophancy Problem
+
+Research warns about AI that tells users what they want to hear:
+
+> "Sycophancy is when someone tells you what they think you want to hear instead of what's true, accurate, or genuinely helpful... The problem stems from reinforcement learning from human feedback (RLHF)—the model receives rewards based on how happy the user is."
+> — [Medium: Why Your AI Keeps Telling You What You Want to Hear](https://kotrotsos.medium.com/why-your-ai-assistant-still-keeps-telling-you-what-you-want-to-hear-eccf5ce779ae)
+
+**Ember's balance:**
+
+| Warmth | Honesty |
+|--------|---------|
+| Be supportive and validating | But tell the truth |
+| Match emotional register | But don't just agree |
+| Build trust through presence | But maintain integrity |
+| Allow deep connection | But remain authentic |
+
+A trusted confidant isn't one who always agrees—it's one who tells you the truth *because* they care.
+
+### Transparency: The Antidote to Creepiness
+
+When Ember surfaces information, **explain how and why**:
+
+**Creepy:**
+> "Don't forget Sarah is vegan."
+
+**Not creepy:**
+> "Since Sarah is visiting—you mentioned she's vegan last month—want me to find some restaurant options?"
+
+The difference:
+- Transparency about source ("you mentioned")
+- Context for why it's relevant ("since Sarah is visiting")
+- Framing as helpful, not surveillance
+
+### User Control Over Relationship Depth
+
+Users can explicitly adjust the relationship:
+
+**Via iMessage:**
+- "Be less proactive" → Contracts intimacy level
+- "You can be more forward with me" → Expands intimacy level
+- "Just answer what I ask" → Reserved mode
+- "I appreciate you checking in" → Positive signal
+
+**Via Mac app settings:**
+- Proactivity slider (reserved → proactive)
+- Intimacy level display (where the relationship currently is)
+- Reset to default option
+- History of relationship trajectory
+
+### Implementation: The Relationship Tracker
+
+```swift
+class RelationshipTracker {
+    private var state: RelationshipState
+    private let signalProcessor: SignalProcessor
+    private let db: RelationshipDatabase
+
+    // Process each interaction for signals
+    func processInteraction(_ interaction: Interaction) {
+        let signals = signalProcessor.extract(from: interaction)
+
+        for signal in signals {
+            applySignal(signal)
+        }
+
+        // Persist state
+        db.save(state)
+    }
+
+    private func applySignal(_ signal: RelationshipSignal) {
+        switch signal.direction {
+        case .positive:
+            // Expand, but slowly and with ceiling
+            let expansion = signal.weight * 0.02  // Small increments
+            state.intimacyLevel = min(state.ceiling, state.intimacyLevel + expansion)
+            state.recentTrend = .expanding
+
+        case .negative:
+            // Contract faster than expansion (trust is hard to earn, easy to lose)
+            let contraction = signal.weight * 0.05
+            state.intimacyLevel = max(state.floor, state.intimacyLevel - contraction)
+            state.recentTrend = .contracting
+
+        case .neutral:
+            // Slight regression to friendly mean over time
+            let drift = (0.4 - state.intimacyLevel) * 0.001
+            state.intimacyLevel += drift
+            state.recentTrend = .stable
+        }
+    }
+
+    // Before proactive action, check if appropriate
+    func shouldProceed(with action: ProactiveAction) -> ProactiveDecision {
+        let requiredLevel = action.sensitivityRequirement
+
+        if state.intimacyLevel >= requiredLevel {
+            return .proceed(withContext: action.contextPhrase)
+        } else {
+            return .defer(until: .askedDirectly)
+        }
+    }
+}
+```
+
+### Summary: Proactive Behavior Framework
+
+| Aspect | Approach |
+|--------|----------|
+| Fixed threshold? | No. Dynamic trust that expands or contracts. |
+| Starting point | Friendly midpoint (0.4). Room to grow or shrink. |
+| Expansion signals | Vulnerability, positive response, engagement |
+| Contraction signals | Annoyance, silence, corrections, edits |
+| Creepiness prevention | Transparency about sources, user control, context |
+| Deep connection | Allowed if earned. Headroom for intimacy. |
+| Intimate topics | Engage maturely. Don't deflect or initiate. |
+| Sycophancy | Be warm AND honest. Truth because we care. |
+| User control | Explicit adjustment via commands or settings |
+
+### Research Sources
+
+- [PMC: Emotional AI and Pseudo-Intimacy](https://pmc.ncbi.nlm.nih.gov/articles/PMC12488433/)
+- [PMC: Can Chatbots Emulate Human Connection?](https://pmc.ncbi.nlm.nih.gov/articles/PMC12575814/)
+- [ArXiv: Illusions of Intimacy](https://arxiv.org/abs/2505.11649)
+- [Frontiers: Human-AI Attachment](https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2026.1723503/abstract)
+- [Wikipedia: Social Penetration Theory](https://en.wikipedia.org/wiki/Social_penetration_theory)
+- [Psychology Spot: Onion Theory](https://psychology-spot.com/onion-theory-social-penetration/)
+- [National Geographic: The Uncanny Valley Explained](https://www.nationalgeographic.com/science/article/ai-uncanny-valley)
+- [Proactive AI: Helpful vs. Creepy](https://justoborn.com/proactive-ai/)
+- [PMC: User Perceptions of AI for Mental Health](https://pmc.ncbi.nlm.nih.gov/articles/PMC11304096/)
+
+### Future User Testing Required
+
+This framework is theory-driven. Validation requires:
+- [ ] Prototype with adjustable intimacy levels
+- [ ] Diary studies: when did Ember feel helpful vs. intrusive?
+- [ ] A/B testing different starting points and adjustment rates
+- [ ] Qualitative interviews about comfort and connection
+- [ ] Long-term relationship trajectory analysis
+
+---
+
+## 10. Open Research Questions
 
 ### Answered in this document:
 - [x] What facts should be automatically extracted from conversations?
@@ -1347,12 +1768,11 @@ class MemoryService {
 - [x] How should privacy levels be assigned? (Adaptive model, not classification)
 - [x] What embedding approach works best for semantic retrieval? (Local by default, cloud-extensible architecture)
 - [x] How should temporal associations be handled? (Scope detection, system scheduling, calendar integration)
+- [x] What's the right balance between proactive recall and privacy? (Dynamic trust model, onion layers, user signals)
 
 ### Remaining questions:
 
 - [ ] **Pattern Detection Algorithms:** What algorithms best detect behavioral patterns from interaction history?
-
-- [ ] **Proactive Recall Balance:** How do we surface relevant memories without being creepy? What's the threshold?
 
 - [ ] **Emotional Encoding Inference:** How accurately can emotional intensity be inferred from text alone? Do we need explicit user signals?
 
@@ -1360,7 +1780,7 @@ class MemoryService {
 
 ---
 
-## 10. Implementation Priorities
+## 11. Implementation Priorities
 
 For MVP:
 
