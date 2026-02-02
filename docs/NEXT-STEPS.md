@@ -1,8 +1,8 @@
 # EmberHearth: Next Steps
 
-**Version:** 1.0  
-**Date:** January 30, 2026  
-**Status:** Planning  
+**Version:** 1.1
+**Date:** February 2, 2026
+**Status:** Phase 1 Research In Progress
 **Related:** [VISION.md](VISION.md)
 
 ---
@@ -25,18 +25,35 @@ This document captures the concrete next steps for developing EmberHearth, organ
 - [ ] Set up basic directory structure:
 
 ```
-emberhearth/                      # or chosen name
+emberhearth/
 ├── README.md                # Project overview, quick start
-├── LICENSE                  # MIT or Apache 2.0
+├── LICENSE                  # MIT License
 ├── CLAUDE.md               # Instructions for Claude Code
 ├── docs/
 │   ├── VISION.md           # The vision document
 │   ├── NEXT-STEPS.md       # This document
 │   └── research/           # Research notes
 │       ├── imessage.md     # iMessage integration research
-│       ├── macos-apis.md   # Apple API exploration
+│       ├── macos-apis.md   # Apple API exploration index
 │       ├── local-models.md # Local LLM research
-│       └── security.md     # Security primitives research
+│       ├── security.md     # Security primitives research
+│       └── integrations/   # Per-app integration research
+│           ├── calendar.md
+│           ├── contacts.md
+│           ├── mail.md
+│           ├── notes.md
+│           ├── weather.md
+│           ├── maps.md
+│           ├── shortcuts.md
+│           ├── homekit.md
+│           ├── files.md
+│           ├── media.md
+│           ├── health-fitness.md
+│           ├── news-stocks.md
+│           ├── utilities.md
+│           ├── iwork.md
+│           ├── find-my.md
+│           └── plugin-architecture.md
 ├── src/                    # Source code
 │   └── .gitkeep
 ├── tests/                  # Test files
@@ -58,61 +75,145 @@ emberhearth/                      # or chosen name
 
 *These tasks are ideal for Claude Code mobile or conversational Claude. They're about gathering information and documenting findings.*
 
-### 1.1 iMessage Integration Research
+### 1.1 iMessage Integration Research ✅
 
 **Goal:** Understand the viable approaches for sending/receiving iMessages programmatically.
 
 **Research Questions:**
-- [ ] How does Messages.app automation work via AppleScript?
-- [ ] What are the sandboxing implications for accessing Messages?
-- [ ] Are there documented approaches using Swift/MessageKit?
-- [ ] What private APIs exist and what are the risks of using them?
-- [ ] How do existing projects (if any) handle this?
+- [x] How does Messages.app automation work via AppleScript?
+- [x] What are the sandboxing implications for accessing Messages?
+- [x] Are there documented approaches using Swift/MessageKit?
+- [x] What private APIs exist and what are the risks of using them?
+- [x] How do existing projects (if any) handle this?
 
 **Deliverable:** `docs/research/imessage.md` with findings and recommendation
 
-### 1.2 macOS Security Primitives
+### 1.2 macOS Security Primitives ✅
 
 **Goal:** Understand what macOS provides for secure app architecture.
 
 **Research Questions:**
-- [ ] App Sandbox: What can and cannot be sandboxed?
-- [ ] Entitlements: Which entitlements are needed for various capabilities?
-- [ ] XPC Services: How to use XPC for process isolation?
-- [ ] Keychain Services: API for secure credential storage/retrieval
-- [ ] Code signing and notarization requirements
+- [x] App Sandbox: What can and cannot be sandboxed?
+- [x] Entitlements: Which entitlements are needed for various capabilities?
+- [x] XPC Services: How to use XPC for process isolation?
+- [x] Keychain Services: API for secure credential storage/retrieval
+- [x] Code signing and notarization requirements
 
 **Deliverable:** `docs/research/security.md` with findings
 
-### 1.3 Apple API Exploration
+### 1.3 Apple API Exploration ✅
 
 **Goal:** Catalog what's available through Apple's frameworks for the MCP server.
 
 **Starting Point:** https://developer.apple.com/documentation
 
-**Frameworks to Explore:**
-- [ ] EventKit (Calendar, Reminders)
-- [ ] Contacts framework
-- [ ] MailKit / Mail.app scripting
-- [ ] Notes (is there an API?)
-- [ ] Safari/WebKit (bookmarks, reading list)
-- [ ] HomeKit (smart home control)
-- [ ] Shortcuts/Automator integration
+**Frameworks Explored:**
+- [x] EventKit (Calendar, Reminders)
+- [x] Contacts framework
+- [x] MailKit / Mail.app scripting
+- [x] Notes (AppleScript)
+- [x] HomeKit (smart home control)
+- [x] Shortcuts/App Intents
+- [x] WeatherKit
+- [x] MapKit
+- [x] MusicKit
+- [x] Files/iCloud
+- [x] Health/Fitness (iOS only)
+- [x] Plugin Architecture
 
-**Deliverable:** `docs/research/macos-apis.md` with capability matrix
+**Deliverable:** `docs/research/macos-apis.md` with capability matrix + `docs/research/integrations/` detailed docs
 
-### 1.4 Local Model Feasibility
+### 1.4 Local Model Feasibility ✅
 
 **Goal:** Determine if local models can handle assistant tasks acceptably.
 
 **Research Questions:**
-- [ ] What models run well on Apple Silicon (M1/M2/M4)?
-- [ ] MLX vs llama.cpp vs Ollama performance comparison
-- [ ] What's the latency for a typical assistant query?
-- [ ] Can a Mac Mini M2 (base) run useful models?
-- [ ] What quantization levels are practical?
+- [x] What models run well on Apple Silicon (M1/M2/M4/M5)?
+- [x] MLX vs llama.cpp vs Ollama performance comparison
+- [x] What's the latency for a typical assistant query?
+- [x] Can a Mac Mini M4 (base) run useful models?
+- [x] What quantization levels are practical?
+- [x] Which models support function calling/tool use?
 
 **Deliverable:** `docs/research/local-models.md` with benchmarks and recommendations
+
+### 1.5 Work/Personal Context Separation ✅
+
+**Goal:** Design how EmberHearth maintains strict isolation between work and personal contexts.
+
+**Research Questions:**
+- [x] How to implement two separate iMessage sessions?
+- [x] How should accounts (email, calendar) map to contexts?
+- [x] What security implications does dual-context have?
+- [x] How should LLM routing differ per context?
+- [x] What data can cross contexts, if any?
+- [x] How do users configure and manage contexts?
+
+**Deliverable:** `docs/research/work-personal-contexts.md` with architecture proposal
+
+### 1.6 Memory & Learning System Research ✅
+
+**Goal:** Design how EmberHearth learns about users and retains context over time.
+
+**Research Questions:**
+- [x] What facts should be automatically extracted from conversations?
+- [x] How should privacy levels be assigned to different memory types?
+- [x] What embedding approach works best for semantic retrieval?
+- [x] How should temporal associations (events, deadlines) be handled?
+- [x] What's the right balance between proactive recall and privacy?
+- [x] How do users view/edit/delete their stored memories?
+
+**Deliverable:** `docs/research/memory-learning.md` with architecture proposal ✅
+
+**Key Decisions:**
+- Fact taxonomy defined (preferences, relationships, biographical, events, opinions, contextual, secrets)
+- LLM-based extraction approach chosen over rule-based inference engine
+- Confidence decay model with emotional salience modifier documented
+- Privacy: Adaptive model, not classification. Two trust relationships (User↔Ember vs Ember↔World). Category-based caution flagging. Trust develops over time through user feedback. Tron audits external sharing.
+- Embeddings: Local by default for privacy. Work context always local. Architecture designed for cloud extensibility when Apple offers private cloud option. Candidate models: all-MiniLM-L6-v2 (MVP), bge-small-en-v1.5 (benchmark).
+- Temporal: Three dimensions (learned, valid, trigger). LLM extracts scope. Expired facts marked historical, never deleted. UNUserNotificationCenter for reminders. NSBackgroundActivityScheduler for background work. Ember gets its own calendar in Calendar.app for transparency.
+- Proactive recall: Dynamic trust model (not fixed threshold). Relationship depth can expand or contract based on user signals. Onion model layers. Headroom for deep connection if earned. Transparency prevents creepiness. Psychology research on human-AI attachment informs design.
+- User control: Conversational interface primary (corrections, deletions, queries via iMessage). Mac app as fallback for bulk operations. Fact states: Active, Secret, Archived, Secret+Archived ("memory holed"). Dependency-aware deletion with warnings. Confidence-aware hedging language. CSV export available.
+
+### 1.7 Conversation Design Research ✅
+
+**Goal:** Define how EmberHearth should communicate with users.
+
+**Research Questions:**
+- [x] What personality and tone is appropriate for a personal assistant?
+- [x] How verbose should responses be? When to be brief vs. detailed?
+- [x] How should EmberHearth handle misunderstandings or clarifications?
+- [x] What proactive communication is helpful vs. annoying?
+- [x] How should errors and limitations be communicated?
+- [x] How to handle sensitive topics (health, finances, relationships)?
+
+**Deliverable:** `docs/research/conversation-design.md` with guidelines ✅
+
+**Key Decisions:**
+- Personality: Warm, curious, capable, honest, evolving. Inspired by Samantha from *Her* (genuine presence, not romantic framing).
+- Voice: Direct but not blunt, warm but not gushing, confident but not arrogant. Uses contractions, first person, matches user formality.
+- Tone: Four-dial spectrum model (clarity, simplicity, friendliness, helpfulness) adjusted by context.
+- Verbosity: Default concise, expand on signal. Tracks implicit user preferences.
+- Errors: Acknowledge clearly, explain simply, offer path forward, don't over-apologize.
+- Clarification: Ask when high-stakes or ambiguous, infer when confident. Third position repair for misunderstandings.
+- Sensitive topics: Match user register, be present first, know limits, suggest professionals when appropriate.
+- Siri gap analysis: Reliability, context awareness, natural conversation, honest about limits.
+- Apple fit: Privacy-first, accessible, polished, trustworthy—"what everyone wished Siri could be."
+- Female voice planned (trustworthiness studies). Name "Ember" evokes warmth, similar to "Amber."
+
+### 1.8 Onboarding UX Research
+
+**Goal:** Design the first-time user experience for non-technical users.
+
+**Research Questions:**
+- [ ] What permissions need to be requested and in what order?
+- [ ] How to explain security model without overwhelming users?
+- [ ] What's the minimum setup before first useful interaction?
+- [ ] How should LLM provider selection work?
+- [ ] How to handle users who don't have an LLM API key?
+- [ ] What tutorial or guided tour is needed?
+
+**Deliverable:** `docs/research/onboarding-ux.md` with wireframes/flows
 
 ---
 
@@ -343,14 +444,33 @@ The project needs a legally defensible name that:
 
 **Recommendation:** MIT for simplicity unless patent concerns arise
 
+### Monetization Strategy
+
+The project is open source, but sustainability options should be considered:
+
+**Questions to Explore:**
+- [ ] Free forever with optional donations/sponsorship?
+- [ ] Freemium with premium features (what features)?
+- [ ] Hosted service option (privacy implications)?
+- [ ] Plugin marketplace with revenue share?
+- [ ] Consulting/support services?
+- [ ] Hardware bundles (pre-configured Mac Mini)?
+
+**Guiding Principles:**
+- Core assistant functionality must remain free and open source
+- Never monetize user data
+- Any premium features should be "nice to have" not essential
+
+**Deliverable:** `docs/research/monetization.md` with options analysis
+
 ---
 
 ## Progress Tracking
 
 | Phase | Status | Notes |
 |-------|--------|-------|
-| Phase 0: Setup | Not Started | |
-| Phase 1: Research | Not Started | Can begin on mobile |
+| Phase 0: Setup | ✅ Complete | Repo created, structure established |
+| Phase 1: Research | 🔄 In Progress | iMessage, Security, Integrations, Local Models, Work/Personal, Memory, Conversation complete. Onboarding pending |
 | Phase 2: Prototype | Not Started | |
 | Phase 3: Architecture | Not Started | |
 | Phase 4: Memory | Not Started | |
