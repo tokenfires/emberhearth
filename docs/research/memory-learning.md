@@ -586,7 +586,456 @@ struct ConsolidationScheduler {
 
 ---
 
-## 5. Privacy Classification
+## 5. Temporal Associations
+
+Facts often have a time dimension: when they were learned, when they're valid, and when they should trigger action. This section covers how Ember handles time-aware memory.
+
+### Three Dimensions of Time
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  TEMPORAL DIMENSIONS OF MEMORY                                  │
+│                                                                 │
+│  1. WHEN WAS THIS LEARNED?                                      │
+│     "You told me about Sarah's visit on January 15th"           │
+│     → Links fact to source interaction                          │
+│     → Enables temporal recall ("what were we talking about      │
+│       last Friday?")                                            │
+│                                                                 │
+│  2. WHEN IS THIS FACT VALID?                                    │
+│     "Sarah is visiting next week" → Valid Jan 20-26             │
+│     "I have a deadline Friday" → Valid until this Friday        │
+│     "I'm vegetarian" → Valid indefinitely                       │
+│     → Some facts expire, others don't                           │
+│                                                                 │
+│  3. WHEN SHOULD EMBER ACT?                                      │
+│     "Remind me to call mom on her birthday" → Trigger Mar 15    │
+│     "Meeting with John next Tuesday" → Surface that morning     │
+│     → Proactive behavior tied to time                           │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Temporal Scope Detection
+
+The LLM extracts temporal scope during fact extraction:
+
+```swift
+struct TemporalScope {
+    var learnedAt: Date           // When user told us (always set)
+    var validFrom: Date?          // When fact becomes true
+    var validUntil: Date?         // When fact stops being true
+    var triggerAt: Date?          // When to take proactive action
+    var recurrence: RecurrenceRule?  // For repeating events
+    var scopeType: TemporalScopeType
+}
+
+enum TemporalScopeType {
+    case instant        // "I just got promoted"
+    case bounded        // "Sarah is visiting next week"
+    case recurring      // "Weekly team meeting on Tuesdays"
+    case indefinite     // "I'm vegetarian"
+    case deadline       // "Report due Friday"
+}
+```
+
+**Parsing Examples:**
+
+| User Says | Parsed Scope |
+|-----------|--------------|
+| "My sister is visiting next week" | `validFrom: Jan 20, validUntil: Jan 26` |
+| "I have a deadline Friday" | `validUntil: this Friday, scopeType: .deadline` |
+| "Remind me at 3pm" | `triggerAt: today 3pm` |
+| "I'm vegetarian" | `validUntil: nil (indefinite)` |
+| "I used to live in Boston" | `validUntil: past (historical)` |
+| "Weekly standup on Mondays at 9am" | `recurrence: weekly, day: monday, time: 9am` |
+
+**Ambiguity Handling:**
+
+"Friday" could mean this Friday or next. The LLM should:
+1. Default to the nearest future occurrence
+2. Consider context ("I have a deadline Friday" = this Friday)
+3. Ask for clarification if ambiguous and high-stakes
+
+### Storage Schema for Temporal Facts
+
+```sql
+-- Extended facts table with temporal fields
+ALTER TABLE facts ADD COLUMN learned_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE facts ADD COLUMN valid_from DATETIME;
+ALTER TABLE facts ADD COLUMN valid_until DATETIME;
+ALTER TABLE facts ADD COLUMN trigger_at DATETIME;
+ALTER TABLE facts ADD COLUMN recurrence_rule TEXT;  -- iCal RRULE format
+ALTER TABLE facts ADD COLUMN temporal_scope_type TEXT;
+
+-- Index for temporal queries
+CREATE INDEX idx_facts_valid_until ON facts(valid_until);
+CREATE INDEX idx_facts_trigger_at ON facts(trigger_at);
+
+-- Scheduled triggers (separate table for efficient polling)
+CREATE TABLE scheduled_triggers (
+    id TEXT PRIMARY KEY,
+    fact_id TEXT NOT NULL,
+    trigger_at DATETIME NOT NULL,
+    trigger_type TEXT NOT NULL,  -- 'reminder', 'deadline_warning', 'proactive'
+    notification_id TEXT,         -- Links to system notification
+    fired BOOLEAN DEFAULT FALSE,
+
+    FOREIGN KEY (fact_id) REFERENCES facts(id)
+);
+
+CREATE INDEX idx_triggers_pending ON scheduled_triggers(trigger_at)
+    WHERE fired = FALSE;
+```
+
+### Handling Expired Facts
+
+**Decision: Never delete, mark as historical.**
+
+Expired facts remain valuable for:
+- "Remember when Sarah visited in January?"
+- Pattern detection ("you always seem stressed around tax season")
+- Temporal context ("we discussed this before your promotion")
+
+```swift
+enum FactTemporalStatus {
+    case future      // Not yet valid
+    case current     // Currently valid
+    case historical  // Was valid, no longer
+    case indefinite  // No expiration
+}
+
+extension Fact {
+    var temporalStatus: FactTemporalStatus {
+        let now = Date()
+
+        if let validFrom = validFrom, validFrom > now {
+            return .future
+        }
+
+        if let validUntil = validUntil, validUntil < now {
+            return .historical
+        }
+
+        if validUntil == nil && validFrom == nil {
+            return .indefinite
+        }
+
+        return .current
+    }
+}
+```
+
+**Retrieval Behavior:**
+
+| Query Type | Include Historical? |
+|------------|---------------------|
+| Current state ("What's my sister's diet?") | No, use current facts |
+| Temporal recall ("What did we discuss in January?") | Yes |
+| Pattern detection ("Do I always...?") | Yes |
+| Proactive surfacing | No, current only |
+
+### Scheduling Architecture
+
+Ember is always-on but must be power-efficient. We use a two-layer approach:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  LAYER 1: SYSTEM-SCHEDULED (Power-Efficient)                    │
+│                                                                 │
+│  UNUserNotificationCenter                                       │
+│  ─────────────────────────────────────────────────────────────  │
+│  • User-facing reminders ("Remind me at 3pm")                   │
+│  • Deadline warnings (calculated at storage time)               │
+│  • Survives app restart, system handles timing                  │
+│                                                                 │
+│  NSBackgroundActivityScheduler                                  │
+│  ─────────────────────────────────────────────────────────────  │
+│  • Consolidation cycle (daily, ±2hr tolerance)                  │
+│  • Proactive suggestion checks (hourly, ±30min tolerance)       │
+│  • System chooses optimal time for power/thermal efficiency     │
+│                                                                 │
+├─────────────────────────────────────────────────────────────────┤
+│  LAYER 2: IN-PROCESS EVENT QUEUE (When App Active)              │
+│                                                                 │
+│  Sorted queue + single DispatchSourceTimer                      │
+│  ─────────────────────────────────────────────────────────────  │
+│  • Timer set to next event only (not polling)                   │
+│  • 10%+ tolerance for system coalescing                         │
+│  • Re-arm after each fire                                       │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Implementation:**
+
+```swift
+class TemporalScheduler {
+    private let notificationCenter = UNUserNotificationCenter.current()
+    private var backgroundActivity: NSBackgroundActivityScheduler?
+    private var eventQueue: [ScheduledTrigger] = []
+    private var nextEventTimer: DispatchSourceTimer?
+
+    // MARK: - User Reminders (System-Scheduled)
+
+    func scheduleReminder(_ fact: Fact) async throws {
+        guard let triggerAt = fact.triggerAt else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = "Ember"
+        content.body = fact.reminderText
+        content.sound = .default
+
+        let components = Calendar.current.dateComponents(
+            [.year, .month, .day, .hour, .minute],
+            from: triggerAt
+        )
+        let trigger = UNCalendarNotificationTrigger(
+            dateMatching: components,
+            repeats: fact.recurrence != nil
+        )
+
+        let request = UNNotificationRequest(
+            identifier: "ember-\(fact.id)",
+            content: content,
+            trigger: trigger
+        )
+
+        try await notificationCenter.add(request)
+
+        // Track in database
+        try await db.insertTrigger(ScheduledTrigger(
+            factId: fact.id,
+            triggerAt: triggerAt,
+            type: .reminder,
+            notificationId: request.identifier
+        ))
+    }
+
+    // MARK: - Deadline Warnings
+
+    func scheduleDeadlineWarning(_ fact: Fact) async throws {
+        guard fact.temporalScopeType == .deadline,
+              let deadline = fact.validUntil else { return }
+
+        // Warning 24 hours before
+        let warningTime = deadline.addingTimeInterval(-24 * 60 * 60)
+        guard warningTime > Date() else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = "Deadline Tomorrow"
+        content.body = fact.content
+        content.sound = .default
+
+        let trigger = UNCalendarNotificationTrigger(
+            dateMatching: Calendar.current.dateComponents(
+                [.year, .month, .day, .hour, .minute],
+                from: warningTime
+            ),
+            repeats: false
+        )
+
+        let request = UNNotificationRequest(
+            identifier: "ember-deadline-\(fact.id)",
+            content: content,
+            trigger: trigger
+        )
+
+        try await notificationCenter.add(request)
+    }
+
+    // MARK: - Background Activity (Proactive Checks)
+
+    func setupProactiveScheduler() {
+        let activity = NSBackgroundActivityScheduler(
+            identifier: "com.emberhearth.proactive"
+        )
+        activity.repeats = true
+        activity.interval = 60 * 60        // Hourly
+        activity.tolerance = 30 * 60       // ±30 minutes
+        activity.qualityOfService = .utility
+
+        activity.schedule { [weak self] completion in
+            Task {
+                await self?.checkForProactiveSuggestions()
+                completion(.finished)
+            }
+        }
+
+        backgroundActivity = activity
+    }
+
+    // MARK: - Event Queue (In-Process)
+
+    func armNextEvent() {
+        nextEventTimer?.cancel()
+
+        guard let next = eventQueue.first else { return }
+
+        let delay = next.triggerAt.timeIntervalSinceNow
+        guard delay > 0 else {
+            fireEvent(next)
+            return
+        }
+
+        let timer = DispatchSource.makeTimerSource(queue: .global())
+        timer.schedule(
+            deadline: .now() + delay,
+            leeway: .seconds(max(1, Int(delay * 0.1)))  // 10% tolerance
+        )
+        timer.setEventHandler { [weak self] in
+            self?.fireEvent(next)
+        }
+        timer.resume()
+        nextEventTimer = timer
+    }
+}
+```
+
+### Calendar Integration: Ember's Calendar
+
+**Key Insight:** Give Ember its own calendar in Calendar.app.
+
+This serves multiple purposes:
+1. **Transparency** — User can see what Ember has scheduled
+2. **Personification** — Ember becomes a "person" with its own calendar
+3. **Familiar UI** — Users already know how to manage calendars
+4. **Sync** — iCloud syncs Ember's schedule across devices
+
+```swift
+class EmberCalendarIntegration {
+    private let eventStore = EKEventStore()
+    private var emberCalendar: EKCalendar?
+
+    func setupEmberCalendar() async throws {
+        // Find or create Ember's calendar
+        let calendars = eventStore.calendars(for: .event)
+
+        if let existing = calendars.first(where: { $0.title == "Ember" }) {
+            emberCalendar = existing
+        } else {
+            let calendar = EKCalendar(for: .event, eventStore: eventStore)
+            calendar.title = "Ember"
+            calendar.cgColor = NSColor.orange.cgColor  // Ember's color
+            calendar.source = eventStore.defaultCalendarForNewEvents?.source
+
+            try eventStore.saveCalendar(calendar, commit: true)
+            emberCalendar = calendar
+        }
+    }
+
+    // Sync temporal facts to Ember's calendar
+    func syncToCalendar(_ fact: Fact) throws {
+        guard let calendar = emberCalendar,
+              let validFrom = fact.validFrom else { return }
+
+        let event = EKEvent(eventStore: eventStore)
+        event.calendar = calendar
+        event.title = fact.calendarTitle
+        event.startDate = validFrom
+        event.endDate = fact.validUntil ?? validFrom.addingTimeInterval(3600)
+        event.notes = "Managed by Ember\nFact ID: \(fact.id)"
+
+        // Add alarm if it's a reminder
+        if fact.temporalScopeType == .deadline {
+            event.addAlarm(EKAlarm(relativeOffset: -24 * 60 * 60))  // 24hr warning
+        }
+
+        try eventStore.save(event, span: .thisEvent)
+    }
+}
+```
+
+**User Experience:**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Calendar.app                                                   │
+├─────────────────────────────────────────────────────────────────┤
+│  Calendars:                                                     │
+│  ☑ Personal                                                     │
+│  ☑ Work                                                         │
+│  ☑ Ember  ← Ember's own calendar, user can show/hide           │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │  Tuesday, January 21                                     │   │
+│  │                                                          │   │
+│  │  9:00 AM  Team Standup (Work)                            │   │
+│  │  2:00 PM  Meeting with John (Work)                       │   │
+│  │                                                          │   │
+│  │  ALL DAY  Sarah visiting (Ember)  ← Ember-managed        │   │
+│  │  ALL DAY  Report deadline (Ember) ← Ember-managed        │   │
+│  │                                                          │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Benefits:**
+- User can delete Ember events directly in Calendar
+- User can modify times, Ember respects changes
+- No hidden state—everything visible
+- Works with existing calendar workflows
+
+### Integration with Fact Storage
+
+When a temporal fact is stored:
+
+```swift
+func storeFact(_ fact: Fact, context: Context) async throws {
+    // 1. Store in database
+    try await db.insert(fact)
+
+    // 2. Handle temporal aspects
+    if fact.hasTemporalScope {
+        // Schedule system notifications for reminders
+        if fact.triggerAt != nil {
+            try await temporalScheduler.scheduleReminder(fact)
+        }
+
+        // Schedule deadline warnings
+        if fact.temporalScopeType == .deadline {
+            try await temporalScheduler.scheduleDeadlineWarning(fact)
+        }
+
+        // Sync to Ember's calendar
+        if shouldAppearInCalendar(fact) {
+            try calendarIntegration.syncToCalendar(fact)
+        }
+
+        // Add to in-process event queue if needed
+        if let proactiveTrigger = fact.proactiveTriggerTime {
+            temporalScheduler.addToQueue(fact, at: proactiveTrigger)
+        }
+    }
+}
+
+func shouldAppearInCalendar(_ fact: Fact) -> Bool {
+    switch fact.temporalScopeType {
+    case .bounded, .deadline, .recurring:
+        return true  // Events with date ranges
+    case .instant, .indefinite:
+        return false // Not calendar-worthy
+    }
+}
+```
+
+### Summary
+
+| Aspect | Approach |
+|--------|----------|
+| Scope detection | LLM extracts temporal fields during fact extraction |
+| Storage | `valid_from`, `valid_until`, `trigger_at`, `recurrence_rule` fields |
+| Expired facts | Mark as historical, never delete |
+| User reminders | `UNUserNotificationCenter` (system-scheduled) |
+| Background work | `NSBackgroundActivityScheduler` (power-efficient) |
+| In-process events | Sorted queue + single timer (next event only) |
+| Calendar integration | Ember's own calendar in Calendar.app |
+| Transparency | User sees Ember's schedule in familiar UI |
+
+---
+
+## 6. Privacy Classification
 
 ### The Research Question
 
@@ -813,7 +1262,7 @@ Despite adaptive learning, users maintain full control:
 
 ---
 
-## 6. User Control Interface
+## 7. User Control Interface
 
 ### Memory Browser (in Mac app)
 
@@ -854,7 +1303,7 @@ Would you like me to forget any of this, or is something incorrect?"
 
 ---
 
-## 7. Context Isolation (Work/Personal)
+## 8. Context Isolation (Work/Personal)
 
 As established in [work-personal-contexts.md](./work-personal-contexts.md):
 
@@ -890,13 +1339,14 @@ class MemoryService {
 
 ---
 
-## 8. Open Research Questions
+## 9. Open Research Questions
 
 ### Answered in this document:
 - [x] What facts should be automatically extracted from conversations?
 - [x] How should confidence decay work? (Emotional salience as modifier)
 - [x] How should privacy levels be assigned? (Adaptive model, not classification)
 - [x] What embedding approach works best for semantic retrieval? (Local by default, cloud-extensible architecture)
+- [x] How should temporal associations be handled? (Scope detection, system scheduling, calendar integration)
 
 ### Remaining questions:
 
@@ -910,7 +1360,7 @@ class MemoryService {
 
 ---
 
-## 9. Implementation Priorities
+## 10. Implementation Priorities
 
 For MVP:
 

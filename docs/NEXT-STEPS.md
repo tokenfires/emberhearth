@@ -159,7 +159,7 @@ emberhearth/
 - [x] What facts should be automatically extracted from conversations?
 - [x] How should privacy levels be assigned to different memory types?
 - [x] What embedding approach works best for semantic retrieval?
-- [ ] How should temporal associations (events, deadlines) be handled?
+- [x] How should temporal associations (events, deadlines) be handled?
 - [ ] What's the right balance between proactive recall and privacy?
 - [ ] How do users view/edit/delete their stored memories?
 
@@ -171,6 +171,7 @@ emberhearth/
 - Confidence decay model with emotional salience modifier documented
 - Privacy: Adaptive model, not classification. Two trust relationships (User↔Ember vs Ember↔World). Category-based caution flagging. Trust develops over time through user feedback. Tron audits external sharing.
 - Embeddings: Local by default for privacy. Work context always local. Architecture designed for cloud extensibility when Apple offers private cloud option. Candidate models: all-MiniLM-L6-v2 (MVP), bge-small-en-v1.5 (benchmark).
+- Temporal: Three dimensions (learned, valid, trigger). LLM extracts scope. Expired facts marked historical, never deleted. UNUserNotificationCenter for reminders. NSBackgroundActivityScheduler for background work. Ember gets its own calendar in Calendar.app for transparency.
 
 ### 1.7 Conversation Design Research
 
@@ -455,7 +456,7 @@ The project is open source, but sustainability options should be considered:
 | Phase | Status | Notes |
 |-------|--------|-------|
 | Phase 0: Setup | ✅ Complete | Repo created, structure established |
-| Phase 1: Research | 🔄 In Progress | iMessage, Security, Integrations, Local Models, Work/Personal complete. Memory in progress (3/6 questions). Conversation, Onboarding pending |
+| Phase 1: Research | 🔄 In Progress | iMessage, Security, Integrations, Local Models, Work/Personal complete. Memory in progress (4/6 questions). Conversation, Onboarding pending |
 | Phase 2: Prototype | Not Started | |
 | Phase 3: Architecture | Not Started | |
 | Phase 4: Memory | Not Started | |
