@@ -490,29 +490,228 @@ struct ConsolidationScheduler {
 
 ## 5. Privacy Classification
 
-### Automatic Classification Heuristics
+### The Research Question
 
-The LLM should classify privacy level during extraction:
+**Can an LLM reliably classify information as public/private/secret?**
 
-| Signal | Likely Level |
-|--------|--------------|
-| "Don't tell anyone..." | Secret |
-| "Between us..." | Secret |
-| Medical/health information | Private (elevate to Secret if explicit) |
-| Financial details | Private |
-| Workplace complaints | Private (Secret if about specific people) |
-| Family relationships | Private |
-| General preferences | Public |
-| Hobbies, interests | Public |
-| Location/schedule | Private |
+**Answer: No.** And attempting to do so with a "default to private" approach creates worse outcomes than thoughtful defaults.
 
-### User Override
+### Why Automatic Classification Fails
 
-Users can always:
-- View all stored facts
-- Change privacy level
-- Delete any fact
-- Mark categories as "never store"
+**1. Contextual Integrity (Nissenbaum)**
+
+Privacy isn't about secrecy vs. disclosure—it's about *appropriate information flow within context*. The same information can be:
+- Appropriate to share with your doctor
+- Inappropriate to share with your employer
+- Expected to share with your spouse
+- Violating to share publicly
+
+Classification depends on five parameters: data subject, sender, recipient, information type, and transmission principle. Ember can't know all of these for every piece of information.
+
+**2. Cultural and Personal Variation**
+
+What's private varies enormously:
+- Discussing salary: taboo in US, normal in Norway
+- Mental health: stigmatized in some cultures, openly discussed in others
+- Political views: risky in some contexts, expected in others
+
+There's no universal taxonomy. Personal preferences modify social norms.
+
+**3. The Over-Caution Problem (The Wheelchair Example)**
+
+Consider: A user is in a wheelchair. They ask Ember to book a flight. If health information "defaults to private," Ember might book without wheelchair accommodation—a *terrible* outcome.
+
+Some information *must* be used to serve the user, even if it's in a "sensitive" category. Over-caution creates failures as bad as over-sharing.
+
+### The Two Trust Relationships
+
+The key insight is that privacy operates differently in two relationships:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  TWO TRUST RELATIONSHIPS                                        │
+│                                                                 │
+│  1. USER ↔ EMBER                                                │
+│     High trust, open sharing                                    │
+│     User expects Ember to know and use information to help      │
+│     "I can tell Ember anything"                                 │
+│                                                                 │
+│  2. EMBER ↔ WORLD (on user's behalf)                            │
+│     Cautious, need-to-know basis                                │
+│     Ember should filter what it shares with third parties       │
+│     "Ember should protect my information from others"           │
+│                                                                 │
+│  Example:                                                       │
+│  ─────────────────────────────────────────────────────────────  │
+│  User: "Text my mom about dinner next week, I want to discuss   │
+│         my potential cancer diagnosis"                          │
+│                                                                 │
+│  USER ↔ EMBER: Ember knows everything (dinner, diagnosis, mom)  │
+│  EMBER ↔ WORLD: Ember texts "Dinner next week?" NOT the reason  │
+│                                                                 │
+│  This is how humans operate. We call it "developing trust."     │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### The Adaptive Privacy Model
+
+Rather than "default to private" (which makes Ember seem dumb and unhelpful), we use an adaptive model that develops trust over time—like a friendship.
+
+**Starting Point: Friendly, Reasonable Defaults**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  INITIAL PRIVACY DEFAULTS                                       │
+│                                                                 │
+│  USER ↔ EMBER (internal use):                                   │
+│  ─────────────────────────────────────────────────────────────  │
+│  • All facts are available to Ember for reasoning               │
+│  • Ember uses information to be helpful                         │
+│  • No artificial barriers to serving the user                   │
+│                                                                 │
+│  EMBER ↔ WORLD (external sharing):                              │
+│  ─────────────────────────────────────────────────────────────  │
+│  • Share minimum necessary for the task                         │
+│  • Apply category-based caution (see below)                     │
+│  • Learn user's preferences over time                           │
+│                                                                 │
+│  SECRETS (user-declared):                                       │
+│  ─────────────────────────────────────────────────────────────  │
+│  • Trigger phrases: "keep this secret", "confidential"          │
+│  • Never shared externally under any circumstances              │
+│  • Never mentioned proactively, even to user                    │
+│  • Additional encryption layer in storage                       │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Category-Based Caution (Not Classification)**
+
+Instead of classifying information as private, we apply *heightened caution* to certain categories when sharing externally:
+
+| Category | Caution Level | External Sharing Behavior |
+|----------|---------------|---------------------------|
+| Medical/Health | High | Share when necessary for task (wheelchair → flight). Exclude unless required. |
+| Financial | High | Share account info only when paying. Never share balances/debts. |
+| Relationship Issues | High | Don't forward complaints. "Dinner invite" not "they're fighting again." |
+| Workplace Matters | High | Context-bound. Work info stays in work context. |
+| Location/Schedule | Medium | Share for coordination. Don't broadcast patterns. |
+| Preferences | Low | Use freely to improve service. |
+| Biographical | Low | Use for personalization. Share when contextually appropriate. |
+
+**Key distinction:** This is *caution flagging*, not *classification*. "High caution" means "think before sharing," not "never use."
+
+### Trust Development Over Time
+
+Like human friendships, Ember builds a personalized privacy model through interaction:
+
+```swift
+struct AdaptivePrivacyModel {
+    // Learned from user feedback and behavior
+    var sharingPreferences: [Category: SharingPreference]
+    var explicitSecrets: Set<FactID>
+    var contextRules: [Context: ContextPrivacyRules]
+
+    // Signals that update the model
+    mutating func learn(from signal: PrivacySignal) {
+        switch signal {
+        case .userSaidDontShare(let category):
+            sharingPreferences[category] = .neverShare
+
+        case .userSaidOkToShare(let category):
+            sharingPreferences[category] = .shareWhenRelevant
+
+        case .userMarkedSecret(let factID):
+            explicitSecrets.insert(factID)
+
+        case .userCorrected(let action, let feedback):
+            // "You shouldn't have included that"
+            // "Why didn't you mention X?"
+            adjustModel(based: feedback)
+
+        case .implicitSignal(let behavior):
+            // User edited message before sending
+            // User deleted something Ember surfaced
+            updateFromBehavior(behavior)
+        }
+    }
+}
+
+struct SharingPreference {
+    var internalUse: InternalUseLevel    // How freely Ember uses this
+    var externalShare: ExternalShareLevel // How freely Ember shares with others
+    var confidence: Double               // How sure we are about this preference
+}
+```
+
+### Privacy Signals Ember Learns From
+
+**Explicit signals:**
+- "Don't tell anyone about X" → Mark as secret
+- "You can share that" → Lower caution for category
+- "Why didn't you mention my wheelchair?" → Increase use of health info
+- "You shouldn't have included that" → Increase caution for category
+
+**Implicit signals:**
+- User edits message before sending → Learn what they removed
+- User deletes surfaced information → Was it unwanted?
+- User corrects Ember's external communication → Adjust sharing model
+
+### Tron's Role: Privacy Audit
+
+The Tron security layer should audit privacy decisions:
+
+```swift
+protocol PrivacyAuditor {
+    // Before external action
+    func reviewOutboundContent(_ content: OutboundMessage) -> AuditResult
+
+    // Check if sensitive categories are being shared appropriately
+    func validateSharingDecision(_ decision: SharingDecision) -> ValidationResult
+
+    // Log privacy-relevant decisions for user review
+    func logPrivacyEvent(_ event: PrivacyEvent)
+}
+
+// Tron checks:
+// - Is high-caution information being shared?
+// - Does the sharing context match the information context?
+// - Has the user expressed preferences about this category?
+// - Should we warn the user before proceeding?
+```
+
+### User Controls
+
+Despite adaptive learning, users maintain full control:
+
+**In the Mac app:**
+- View all stored facts and their privacy levels
+- Mark specific facts as secret
+- Set category-wide sharing preferences
+- Review what Ember has shared externally (audit log)
+- Reset privacy model to defaults
+
+**Via iMessage:**
+- "Keep this secret" / "This is confidential"
+- "What have you shared about me?"
+- "Never share my [category] information"
+- "It's okay to mention my [category] when relevant"
+
+### Summary: The Adaptive Approach
+
+| Aspect | Approach |
+|--------|----------|
+| Internal use (User ↔ Ember) | Open. Ember uses all facts to help. |
+| External sharing (Ember ↔ World) | Cautious. Minimum necessary, learn preferences. |
+| Category classification | Caution flagging, not hard classification. |
+| Default stance | Friendly and helpful, not paranoid. |
+| Over time | Builds personalized privacy model through feedback. |
+| Secrets | User-declared only. Explicit trigger phrases. |
+| Audit | Tron reviews external sharing decisions. |
+
+**Public-facing statement:**
+> "Ember learns your privacy preferences over time. By default, it uses information to help you, but is cautious about what it shares with others on your behalf. You can mark anything as secret with a phrase like 'keep this confidential,' and you can always review and adjust what Ember knows and shares."
 
 ---
 
@@ -598,10 +797,9 @@ class MemoryService {
 ### Answered in this document:
 - [x] What facts should be automatically extracted from conversations?
 - [x] How should confidence decay work? (Emotional salience as modifier)
+- [x] How should privacy levels be assigned? (Adaptive model, not classification)
 
 ### Remaining questions:
-
-- [ ] **Privacy Classification:** Can an LLM reliably classify public/private/secret? What's the error rate? Need testing.
 
 - [ ] **Embedding Model Selection:** Which local embedding model balances quality and performance for on-device use?
 
