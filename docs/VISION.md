@@ -50,8 +50,9 @@ That's it. No API keys to manage. No Docker to understand. No threat models to c
 13. [True Personal Memory](#true-personal-memory-beyond-file-based-storage)
 14. [Anticipation](#anticipation-beyond-proactive-polling)
 15. [Development Philosophy](#development-philosophy-discussion-notes)
-16. [Open Questions](#open-questions)
-17. [Next Steps](#next-steps)
+16. [Lessons from Moltbot](#lessons-from-moltbot)
+17. [Open Questions](#open-questions)
+18. [Next Steps](#next-steps)
 
 ---
 
@@ -2000,6 +2001,162 @@ EmberHearth is a vision for what that could look like. It's ambitious, but the p
 The question isn't whether someone will build this. It's whether it will be built well, with security as a foundation rather than an afterthought.
 
 Let's build it well.
+
+---
+
+## Lessons from Moltbot
+
+*This section captures architectural insights from analyzing [Moltbot](../reference/MOLTBOT-ANALYSIS.md), a multi-channel AI assistant gateway. Understanding what Moltbot does well—and where it fails—informs EmberHearth's design.*
+
+### What Moltbot Gets Right
+
+**1. Single Gateway Process**
+
+Moltbot's "always on" architecture uses a single long-running Node.js process that:
+- Manages all channel connections (WhatsApp, Telegram, Discord, etc.)
+- Owns session state and agent execution
+- Exposes WebSocket + HTTP APIs for control
+- Runs scheduled tasks via a cron subsystem
+
+**Lesson for EmberHearth:** The single-gateway model is sound. A persistent process managing connections, sessions, and scheduled work is the right architecture for an always-on assistant. Don't over-engineer with microservices.
+
+**2. Session Persistence**
+
+Sessions are stored as JSONL files—one JSON object per line, representing each conversation turn:
+```
+~/.clawdbot/agents/<agentId>/sessions/<sessionKey>.jsonl
+```
+
+**Lesson for EmberHearth:** JSONL is simple, appendable, and human-readable for debugging. For EmberHearth's more sophisticated memory model, a database makes sense, but the principle of durable session state is essential.
+
+**3. Cron/Heartbeat for Autonomous Work**
+
+Moltbot's "overnight" processing isn't magic—it's scheduled tasks:
+- Jobs stored in JSON (`~/.clawdbot/cron/jobs.json`)
+- Timer wakes at scheduled times
+- Jobs inject "system events" into the agent's context
+- Heartbeat checks pending events and runs the agent
+
+**Lesson for EmberHearth:** The consolidation cycle ("sleep") and anticipation engine need similar infrastructure—scheduled processing that runs without user prompts. The cron + heartbeat pattern solves this.
+
+**4. Channel Abstraction**
+
+All channels implement a common interface (`ChannelPlugin`) with optional adapters for:
+- Outbound messaging
+- Configuration
+- Status/health
+- Pairing
+- Group behavior
+- Mention handling
+
+**Lesson for EmberHearth:** While iMessage is the primary interface, the abstraction is worth noting. If EmberHearth ever supports additional interfaces (Mac app, voice), a clean adapter pattern prevents spaghetti.
+
+**5. Access Control Layers**
+
+Moltbot has multiple access control mechanisms:
+- **Allowlists**: Who can send messages
+- **Pairing**: Device verification for DMs
+- **Command Gating**: Who can run commands
+- **Mention Gating**: Group message filtering
+
+**Lesson for EmberHearth:** Access control needs defense in depth. EmberHearth should have similar layers, though simpler given single-user focus.
+
+### What Moltbot Gets Wrong
+
+**1. Shell Execution = Catastrophic**
+
+Moltbot gives the LLM `exec` and `process` tools that run arbitrary shell commands:
+
+```
+Untrusted Input → LLM → Shell Execution → Complete System Access
+```
+
+A single prompt injection can exfiltrate credentials, install malware, or compromise the entire system. This is the fundamental security failure that EmberHearth must avoid.
+
+**Lesson for EmberHearth:** No shell execution. Period. Structured operations only. The Workbench provides shell access, but only in a fully isolated container with explicit data transfer. The main system never executes arbitrary commands.
+
+**2. Credentials Exposed to LLM**
+
+Moltbot stores API keys in config files and environment variables. The agent can read these via file tools, meaning a compromised agent has access to all credentials.
+
+**Lesson for EmberHearth:** Credentials stay in Keychain. The LLM can *use* them (via proxy) but never *see* them. Even a fully compromised LLM session can't exfiltrate keys it never receives.
+
+**3. No Real Sandboxing**
+
+The Moltbot agent runs with full user privileges. There's no process isolation, no capability restrictions, no containment.
+
+**Lesson for EmberHearth:** Every component needs appropriate sandboxing:
+- Main app: macOS App Sandbox
+- Structured operations: Scoped entitlements
+- Workbench: Full container isolation (gVisor/Docker)
+- Even local models should run sandboxed
+
+**4. Memory Doesn't "Learn"**
+
+Moltbot's memory system indexes files and session transcripts, but it doesn't automatically extract facts or learn about the user. Users must manually curate `MEMORY.md` or rely on raw transcript indexing.
+
+**Lesson for EmberHearth:** True personal memory requires automatic knowledge extraction, emotional encoding, and salience scoring. EmberHearth's consolidation cycle should process interactions and build a knowledge graph—not just index text.
+
+**5. Complex Setup**
+
+Moltbot requires:
+- Node.js installation
+- CLI familiarity
+- API key management
+- Config file editing
+- Understanding of channels, sessions, agents
+
+This excludes non-technical users entirely.
+
+**Lesson for EmberHearth:** The grandmother test. If it can't be set up without technical knowledge, it fails. OAuth for LLM providers, macOS permission dialogs for capabilities, iMessage as the interface. No config files, no CLI, no API key pasting.
+
+### Patterns to Adopt
+
+| Moltbot Pattern | EmberHearth Adaptation |
+|-----------------|------------------------|
+| Single gateway process | Core architecture |
+| Session persistence (JSONL) | Database-backed with encryption |
+| Cron + heartbeat for scheduled work | Consolidation cycle + anticipation engine |
+| Channel adapter pattern | Interface abstraction (iMessage, Mac app, voice) |
+| Access control layers | Simplified for single-user, but defense-in-depth |
+| Tool definitions | Structured operations (typed, validated, safe) |
+| WebSocket control plane | Internal API for Mac app ↔ core communication |
+
+### Patterns to Avoid
+
+| Moltbot Pattern | EmberHearth Alternative |
+|-----------------|-------------------------|
+| Shell execution tools | **Removed entirely** (Workbench for power users only) |
+| Credentials in files/env | **Keychain only**, proxy pattern for use |
+| No sandboxing | **Full macOS App Sandbox** + container isolation |
+| Manual memory curation | **Automatic knowledge extraction** |
+| Technical setup requirements | **GUI-only**, OAuth, system permissions |
+| Plugin/extension system | **No plugins** (reduces attack surface) |
+| Browser automation tools | **Read-only, sanitized** web access |
+| Multi-agent complexity | **Single agent** for simplicity |
+
+### Complexity to Leave Behind
+
+Moltbot has features that add complexity without clear value for EmberHearth's use case:
+
+1. **Multi-channel support** — EmberHearth uses iMessage only (initially)
+2. **Plugin architecture** — Increases attack surface, adds maintenance burden
+3. **Multi-agent routing** — Unnecessary for single-user
+4. **Browser automation** — Security risk; read-only web access is sufficient
+5. **Remote access/tailscale** — Local-first; no network exposure
+6. **Multiple LLM providers with fallback chains** — One provider at a time is simpler
+
+### The Key Insight
+
+Moltbot demonstrates that always-on AI assistance is *technically achievable*. The architecture patterns (gateway, sessions, scheduling, channel abstraction) are sound.
+
+But Moltbot also demonstrates the security catastrophe that results from prioritizing capability over safety. Shell execution, credential exposure, and lack of sandboxing create a system that's powerful but dangerous.
+
+**EmberHearth's opportunity:** Take the proven architecture patterns and rebuild with security as the foundation. Same capability, fundamentally different risk profile.
+
+---
+
+*For detailed technical analysis of Moltbot's architecture, see [MOLTBOT-ANALYSIS.md](../reference/MOLTBOT-ANALYSIS.md).*
 
 ---
 

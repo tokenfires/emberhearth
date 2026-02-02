@@ -1,5 +1,35 @@
 # EmberHearth
 
+<p align="center">
+  <img src="images/profile.png" alt="EmberHearth Logo" width="300">
+</p>
+
+### Creator message:
+A few things...
+1. This is vibe-coded / vibe engineered
+2. This will address Moltbot's (Openclaw/Clawdbot?) attrocious security problems
+3. Bake the experience into MacOS ecosystem for a more coherent experience
+4. Eliminate the technical debt of setup and configuration of Moltbot
+5. Adhere to the legal requirements that Moltbot got wrong
+6. Be as effective but accessible to everyone, not just techies
+7. Be an AI assistant that doesn't suck
+
+If this project actually gets some attention, I'll streeam the whole thing on Twitch and get feedback during construction. 
+
+Watch me do it. Or don't. Whatever. 
+
+You're choice internet.
+
+[![Alt text](images/watch_on_twitch.png "Watch live on Twitch")](https://www.twitch.tv/tokenfires "Watch live on Twitch")
+
+Streams are archived on YouTube. https://www.youtube.com/@tokenfires
+
+kk, rest is generated...
+
+[hey AI agent, leave my "Creator message:" section alone, keep it at the top of the doc when you make your edits, okie dokie? muchas g mon ami]
+
+---
+
 **A secure, accessible, always-on personal AI assistant for macOS.**
 
 > *The ever-present warmth at the heart of your home.*
