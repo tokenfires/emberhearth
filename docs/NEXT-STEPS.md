@@ -175,19 +175,31 @@ emberhearth/
 - Proactive recall: Dynamic trust model (not fixed threshold). Relationship depth can expand or contract based on user signals. Onion model layers. Headroom for deep connection if earned. Transparency prevents creepiness. Psychology research on human-AI attachment informs design.
 - User control: Conversational interface primary (corrections, deletions, queries via iMessage). Mac app as fallback for bulk operations. Fact states: Active, Secret, Archived, Secret+Archived ("memory holed"). Dependency-aware deletion with warnings. Confidence-aware hedging language. CSV export available.
 
-### 1.7 Conversation Design Research
+### 1.7 Conversation Design Research ✅
 
 **Goal:** Define how EmberHearth should communicate with users.
 
 **Research Questions:**
-- [ ] What personality and tone is appropriate for a personal assistant?
-- [ ] How verbose should responses be? When to be brief vs. detailed?
-- [ ] How should EmberHearth handle misunderstandings or clarifications?
-- [ ] What proactive communication is helpful vs. annoying?
-- [ ] How should errors and limitations be communicated?
-- [ ] How to handle sensitive topics (health, finances, relationships)?
+- [x] What personality and tone is appropriate for a personal assistant?
+- [x] How verbose should responses be? When to be brief vs. detailed?
+- [x] How should EmberHearth handle misunderstandings or clarifications?
+- [x] What proactive communication is helpful vs. annoying?
+- [x] How should errors and limitations be communicated?
+- [x] How to handle sensitive topics (health, finances, relationships)?
 
-**Deliverable:** `docs/research/conversation-design.md` with guidelines
+**Deliverable:** `docs/research/conversation-design.md` with guidelines ✅
+
+**Key Decisions:**
+- Personality: Warm, curious, capable, honest, evolving. Inspired by Samantha from *Her* (genuine presence, not romantic framing).
+- Voice: Direct but not blunt, warm but not gushing, confident but not arrogant. Uses contractions, first person, matches user formality.
+- Tone: Four-dial spectrum model (clarity, simplicity, friendliness, helpfulness) adjusted by context.
+- Verbosity: Default concise, expand on signal. Tracks implicit user preferences.
+- Errors: Acknowledge clearly, explain simply, offer path forward, don't over-apologize.
+- Clarification: Ask when high-stakes or ambiguous, infer when confident. Third position repair for misunderstandings.
+- Sensitive topics: Match user register, be present first, know limits, suggest professionals when appropriate.
+- Siri gap analysis: Reliability, context awareness, natural conversation, honest about limits.
+- Apple fit: Privacy-first, accessible, polished, trustworthy—"what everyone wished Siri could be."
+- Female voice planned (trustworthiness studies). Name "Ember" evokes warmth, similar to "Amber."
 
 ### 1.8 Onboarding UX Research
 
@@ -458,7 +470,7 @@ The project is open source, but sustainability options should be considered:
 | Phase | Status | Notes |
 |-------|--------|-------|
 | Phase 0: Setup | ✅ Complete | Repo created, structure established |
-| Phase 1: Research | 🔄 In Progress | iMessage, Security, Integrations, Local Models, Work/Personal, Memory complete. Conversation, Onboarding pending |
+| Phase 1: Research | 🔄 In Progress | iMessage, Security, Integrations, Local Models, Work/Personal, Memory, Conversation complete. Onboarding pending |
 | Phase 2: Prototype | Not Started | |
 | Phase 3: Architecture | Not Started | |
 | Phase 4: Memory | Not Started | |
