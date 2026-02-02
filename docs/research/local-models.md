@@ -223,29 +223,282 @@ For an always-on assistant like EmberHearth, **Mac Mini or Mac Studio** is recom
 ### Recommended Approach
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    EmberHearth LLM Layer                    │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    │
-│   │  Cloud API  │    │  Local MLX  │    │  Hybrid     │    │
-│   │  (Default)  │    │  (Optional) │    │  (Future)   │    │
-│   └─────────────┘    └─────────────┘    └─────────────┘    │
-│                                                             │
-│   - Claude API       - Qwen 2.5 14B+   - Local for simple  │
-│   - OpenAI API       - Requires 16GB+  - Cloud for complex │
-│   - Any OpenAI-      - User downloads  - Auto-routing      │
-│     compatible       - Privacy mode    - Cost savings      │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         EmberHearth LLM Layer                                │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌─────────────────────┐    │
+│  │ Cloud API  │  │ Local Only │  │  Simple    │  │ Orchestrated Hybrid │    │
+│  │ (Default)  │  │ (Privacy)  │  │  Hybrid    │  │ (Recommended v2+)   │    │
+│  └────────────┘  └────────────┘  └────────────┘  └─────────────────────┘    │
+│                                                                              │
+│  - Claude API    - Qwen 2.5 14B+ - Route by     - Cloud = Planner          │
+│  - OpenAI API    - Requires 16GB+  complexity   - Local = Executors         │
+│  - Works on all  - Full privacy  - Auto-detect  - Privacy + Cost savings    │
+│    hardware      - No API needed - Cost savings - Best of both worlds       │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
+
+### Mode 1: Cloud API Only (Default)
+
+- Support Claude, OpenAI, and OpenAI-compatible APIs
+- User provides API key
+- Works on all hardware configurations
+- Best quality and reliability
+- **Use case:** Users with 8GB Macs, users who want simplest setup
+
+### Mode 2: Local Model Only (Privacy Mode)
+
+- MLX runtime with Qwen 2.5 family
+- Requires 16GB+ RAM for acceptable quality
+- Zero data leaves the device
+- No API key or subscription required
+- **Use case:** Privacy-focused users, offline operation
+
+### Mode 3: Simple Hybrid (Auto-Routing)
+
+- Route simple queries locally, complex queries to cloud
+- Based on query complexity heuristics
+- User-configurable threshold
+- Basic cost optimization
+- **Use case:** Cost-conscious users who want good quality
+
+### Mode 4: Orchestrated Hybrid (Recommended for v2+)
+
+**This is the most sophisticated and potentially most cost-effective approach.**
+
+The cloud foundation model acts as an **orchestrator/planner** while local LLMs serve as **specialized executors**. This keeps sensitive data local while leveraging the superior reasoning of frontier models.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    Orchestrated Hybrid Architecture                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   User: "What's on my calendar tomorrow and draft a response to            │
+│          John's email about the project deadline"                          │
+│                              │                                              │
+│                              ▼                                              │
+│   ┌─────────────────────────────────────────────────────────────────────┐  │
+│   │                    CLOUD FOUNDATION MODEL                            │  │
+│   │                    (Claude / GPT-4 / etc.)                           │  │
+│   │                                                                       │  │
+│   │   Role: Planner & Orchestrator                                       │  │
+│   │   - Understands user intent                                          │  │
+│   │   - Breaks task into subtasks                                        │  │
+│   │   - Decides which local agents to invoke                             │  │
+│   │   - Synthesizes final response                                       │  │
+│   │   - Reviews/refines agent outputs                                    │  │
+│   └──────────────────────────┬──────────────────────────────────────────┘  │
+│                              │                                              │
+│          ┌───────────────────┼───────────────────┐                         │
+│          │                   │                   │                         │
+│          ▼                   ▼                   ▼                         │
+│   ┌─────────────┐     ┌─────────────┐     ┌─────────────┐                  │
+│   │ LOCAL AGENT │     │ LOCAL AGENT │     │ LOCAL AGENT │                  │
+│   │ Calendar    │     │ Email       │     │ Draft       │                  │
+│   │ Reader      │     │ Reader      │     │ Writer      │                  │
+│   │             │     │             │     │             │                  │
+│   │ Qwen 2.5 7B │     │ Qwen 2.5 7B │     │ Qwen 2.5 7B │                  │
+│   │ (tool-tuned)│     │ (tool-tuned)│     │ (instruct)  │                  │
+│   └──────┬──────┘     └──────┬──────┘     └──────┬──────┘                  │
+│          │                   │                   │                         │
+│          ▼                   ▼                   ▼                         │
+│   ┌─────────────┐     ┌─────────────┐     ┌─────────────┐                  │
+│   │  EventKit   │     │  Mail.app   │     │  Structured │                  │
+│   │  API        │     │  AppleScript│     │  Output     │                  │
+│   └─────────────┘     └─────────────┘     └─────────────┘                  │
+│                                                                             │
+│   Data flow: Sensitive content (email body, calendar details) stays        │
+│   LOCAL. Only structured summaries/metadata go to cloud when needed.       │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Benefits:**
+
+1. **Privacy**: Personal data (email content, calendar details, notes) processed by local agents—never sent to cloud API
+2. **Cost Efficiency**: Cloud model only receives:
+   - User's original request
+   - Structured summaries from local agents (not raw data)
+   - Its own reasoning/planning tokens
+3. **Quality**: Foundation model's superior reasoning for planning while local models handle execution
+4. **Latency**: Local agents can execute in parallel; no network round-trip for data retrieval
+
+**Token Flow Example:**
+
+```
+WITHOUT Orchestrated Hybrid:
+┌────────────────────────────────────────────────────────────────┐
+│ Tokens to Cloud API:                                           │
+│ - User prompt: ~50 tokens                                      │
+│ - Full email content: ~500 tokens                              │
+│ - Full calendar data: ~200 tokens                              │
+│ - System prompt: ~200 tokens                                   │
+│ - Response: ~300 tokens                                        │
+│ TOTAL: ~1,250 tokens                                           │
+└────────────────────────────────────────────────────────────────┘
+
+WITH Orchestrated Hybrid:
+┌────────────────────────────────────────────────────────────────┐
+│ Tokens to Cloud API:                                           │
+│ - User prompt: ~50 tokens                                      │
+│ - Planning prompt: ~100 tokens                                 │
+│ - Agent summaries: ~150 tokens (structured, not raw)           │
+│ - Response: ~300 tokens                                        │
+│ TOTAL: ~600 tokens                                             │
+│                                                                │
+│ Tokens to Local Agents (FREE):                                 │
+│ - Calendar agent: ~300 tokens                                  │
+│ - Email agent: ~600 tokens                                     │
+│ - Draft agent: ~400 tokens                                     │
+└────────────────────────────────────────────────────────────────┘
+
+Savings: ~50% reduction in cloud API tokens
+```
+
+**When to Use Each Agent Type:**
+
+| Task | Cloud Orchestrator | Local Agent |
+|------|-------------------|-------------|
+| Understanding intent | ✓ | |
+| Multi-step planning | ✓ | |
+| Reading calendar/email | | ✓ |
+| Extracting structured data | | ✓ |
+| Generating first drafts | | ✓ |
+| Complex reasoning | ✓ | |
+| Final response synthesis | ✓ | |
+| Quality review/refinement | ✓ | |
+
+---
+
+## Cost & Performance Monitoring
+
+**Critical for validating the orchestrated hybrid approach.** The macOS app should include a monitoring dashboard to track efficiency gains during development and in production.
+
+### Metrics to Track
+
+```swift
+struct UsageMetrics {
+    // Token usage
+    var cloudInputTokens: Int
+    var cloudOutputTokens: Int
+    var localInputTokens: Int
+    var localOutputTokens: Int
+
+    // Cost
+    var estimatedCloudCost: Decimal  // Based on provider pricing
+    var estimatedSavings: Decimal    // vs. cloud-only approach
+
+    // Performance
+    var cloudLatencyMs: Int
+    var localLatencyMs: Int
+    var totalResponseTimeMs: Int
+
+    // Quality (user feedback)
+    var userRating: Int?             // Optional thumbs up/down
+    var wasEdited: Bool              // Did user modify the response?
+}
+```
+
+### Monitoring Dashboard (macOS App)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  EmberHearth > Settings > Usage & Monitoring                    │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  This Week's Usage                                              │
+│  ─────────────────                                              │
+│  Total conversations: 127                                       │
+│  Cloud API tokens: 45,230 (↓ 48% vs cloud-only estimate)       │
+│  Local agent tokens: 89,450                                     │
+│                                                                 │
+│  Estimated Costs                                                │
+│  ───────────────                                                │
+│  Cloud API cost: $2.14                                          │
+│  Estimated if cloud-only: $4.12                                 │
+│  Savings this week: $1.98 (48%)                                │
+│                                                                 │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  Token Usage Over Time                                    │  │
+│  │                                                           │  │
+│  │  4k ┤                                    ╭─╮              │  │
+│  │     │                              ╭─────╯ │              │  │
+│  │  2k ┤    ╭───╮   ╭─────╮     ╭────╯       │              │  │
+│  │     │╭───╯   ╰───╯     ╰─────╯            ╰──            │  │
+│  │   0 ┼─────────────────────────────────────────           │  │
+│  │      Mon   Tue   Wed   Thu   Fri   Sat   Sun             │  │
+│  │                                                           │  │
+│  │  ▬ Cloud tokens  ▬ Local tokens                          │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                                 │
+│  Performance                                                    │
+│  ───────────                                                    │
+│  Avg response time: 1.8s                                        │
+│  Cloud latency: 0.9s | Local processing: 0.7s | Overhead: 0.2s │
+│                                                                 │
+│  Agent Utilization                                              │
+│  ─────────────────                                              │
+│  Calendar agent: 34 calls (avg 0.3s)                           │
+│  Email agent: 28 calls (avg 0.5s)                              │
+│  Notes agent: 19 calls (avg 0.2s)                              │
+│  Draft agent: 45 calls (avg 0.8s)                              │
+│                                                                 │
+│  [Export Data]  [Clear History]  [Compare Modes]               │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### A/B Testing Mode
+
+For development validation, support running both modes and comparing:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Mode Comparison (Last 7 Days)                                  │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│                    Cloud-Only    Orchestrated    Difference     │
+│  ──────────────    ──────────    ────────────    ──────────     │
+│  Token usage       89,450        45,230          -49%          │
+│  Est. cost         $4.12         $2.14           -48%          │
+│  Avg latency       1.2s          1.8s            +50%          │
+│  Quality score     4.5/5         4.3/5           -4%           │
+│                                                                 │
+│  Recommendation: Orchestrated hybrid provides significant       │
+│  cost savings with minimal quality impact. Latency increase     │
+│  is acceptable for most use cases.                              │
+│                                                                 │
+│  [Enable A/B Testing]  [Set Sample Rate: 20%]                  │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Comparison to Moltbot
+
+| Feature | EmberHearth (Orchestrated) | Moltbot |
+|---------|---------------------------|---------|
+| Local agent execution | ✓ (MLX native) | ✓ (Ollama) |
+| Cloud orchestration | ✓ | ✓ |
+| Privacy preservation | ✓ (data stays local) | Varies by skill |
+| Cost tracking | ✓ (built-in dashboard) | Manual |
+| Token optimization | ✓ (structured summaries) | Basic |
+| macOS integration | ✓ (native APIs) | Generic |
+| A/B testing | ✓ | ✗ |
+
+EmberHearth's advantage: **Deep macOS integration** means local agents can access native APIs (EventKit, Contacts, etc.) directly, rather than relying on generic file/shell access.
+
+---
+
+## Implementation Phases
 
 ### Phase 1: Cloud API Only
 
 - Support Claude, OpenAI, and OpenAI-compatible APIs
 - User provides API key
 - Works on all hardware configurations
-- Best quality and reliability
+- Basic usage tracking (tokens, cost estimate)
 
 ### Phase 2: Local Model Support
 
@@ -253,13 +506,22 @@ For an always-on assistant like EmberHearth, **Mac Mini or Mac Studio** is recom
 - Support Qwen 2.5 family (best tool use)
 - Automatic hardware detection
 - Download models via UI
+- Local-only privacy mode
 
-### Phase 3: Hybrid Mode (Future)
+### Phase 3: Simple Hybrid
 
-- Route simple queries locally
-- Send complex queries to cloud
-- User configurable threshold
-- Cost optimization
+- Query complexity detection
+- Automatic routing (simple → local, complex → cloud)
+- User-configurable preferences
+- Combined usage tracking
+
+### Phase 4: Orchestrated Hybrid
+
+- Agent framework for local execution
+- Cloud model as orchestrator
+- Structured data summaries (privacy-preserving)
+- Full monitoring dashboard
+- A/B testing infrastructure
 
 ---
 
@@ -384,19 +646,33 @@ This aligns well with EmberHearth's security-first philosophy.
 - [ ] OpenAI-compatible endpoint support
 - [ ] API key secure storage (Keychain)
 - [ ] Graceful error handling
+- [ ] Basic token usage tracking
 
 ### Phase 2 (Local Models)
 - [ ] MLX runtime integration
-- [ ] Hardware detection
+- [ ] Hardware detection (RAM, chip generation)
 - [ ] Model download manager
 - [ ] Model selection UI
-- [ ] Performance monitoring
+- [ ] Local-only privacy mode
+- [ ] Performance monitoring (tokens/sec, latency)
 
-### Phase 3 (Hybrid)
-- [ ] Query complexity estimation
+### Phase 3 (Simple Hybrid)
+- [ ] Query complexity estimation heuristics
 - [ ] Automatic routing logic
-- [ ] User preferences for routing
-- [ ] Cost tracking dashboard
+- [ ] User preferences for routing threshold
+- [ ] Combined cloud + local usage tracking
+- [ ] Basic cost tracking
+
+### Phase 4 (Orchestrated Hybrid)
+- [ ] Agent framework for local LLM execution
+- [ ] Structured data extraction from local agents
+- [ ] Cloud orchestrator integration (planning/synthesis)
+- [ ] Privacy-preserving summaries (not raw data to cloud)
+- [ ] Full monitoring dashboard
+- [ ] Token savings calculator (vs cloud-only)
+- [ ] A/B testing infrastructure
+- [ ] Quality feedback collection (thumbs up/down)
+- [ ] Export/analytics for usage data
 
 ---
 
@@ -431,10 +707,21 @@ This aligns well with EmberHearth's security-first philosophy.
 3. **24GB+ recommended** - Good quality, responsive experience
 4. **MLX is the right runtime** - 5-10x faster than Ollama
 
-**Strategy:**
-- Launch with cloud APIs as primary
-- Add local model support for privacy-conscious users with sufficient hardware
-- Be honest about limitations
-- Consider hybrid mode for best of both worlds
+**Strategy (Four Modes):**
 
-The local LLM landscape is improving rapidly. What requires 24GB today may run on 16GB next year. EmberHearth should architect for this flexibility.
+| Mode | Target Users | Hardware | Key Benefit |
+|------|--------------|----------|-------------|
+| Cloud API | Everyone | Any | Best quality, simplest setup |
+| Local Only | Privacy-focused | 16GB+ | Zero data exposure |
+| Simple Hybrid | Cost-conscious | 16GB+ | Automatic cost savings |
+| **Orchestrated Hybrid** | Power users | 16GB+ | Privacy + cost + quality |
+
+**The Orchestrated Hybrid approach is the most promising long-term strategy:**
+- Cloud foundation model handles planning and reasoning (what it's best at)
+- Local LLMs execute data retrieval and drafting (keeping sensitive data local)
+- Potentially 40-60% token cost reduction vs cloud-only
+- Built-in monitoring validates actual savings during development
+
+**Key differentiator vs Moltbot:** EmberHearth's deep macOS integration means local agents access native APIs (EventKit, Contacts, Mail) directly, not through generic file/shell access. This enables better privacy boundaries and richer structured data extraction.
+
+The local LLM landscape is improving rapidly. What requires 24GB today may run on 16GB next year. EmberHearth should architect for this flexibility, with monitoring infrastructure to continuously validate the cost/quality tradeoffs.
