@@ -383,32 +383,130 @@ CREATE INDEX idx_facts_decay ON facts(context, last_reinforced, emotional_intens
 
 ### Vector Embedding Strategy
 
-For semantic retrieval ("find facts related to this topic"):
+For semantic retrieval ("find facts related to this topic"), we need an embedding model to convert text → vectors for similarity search.
+
+**Decision: Local embeddings by default, architecture allows cloud extension.**
+
+#### Why Embeddings? (Not the LLM)
+
+Embeddings solve the *retrieval* problem efficiently:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  EMBEDDING OPTIONS                                              │
+│  THE RETRIEVAL PROBLEM                                          │
 │                                                                 │
-│  Option A: Local Embedding (Privacy-First)                      │
-│  ─────────────────────────────────────────────────────────────  │
-│  Model: all-MiniLM-L6-v2 or similar                             │
-│  Pros: No data leaves device, fast, free                        │
-│  Cons: Lower quality than cloud models                          │
-│  Size: ~80MB model, 384-dim vectors                             │
+│  User: "What does my sister like to eat?"                       │
+│  Ember has 10,000 stored facts.                                 │
 │                                                                 │
-│  Option B: Cloud Embedding (Higher Quality)                     │
-│  ─────────────────────────────────────────────────────────────  │
-│  Model: OpenAI text-embedding-3-small or Anthropic equivalent   │
-│  Pros: Higher quality semantic matching                         │
-│  Cons: Data sent to cloud, cost per embedding                   │
-│  Size: 1536-dim vectors                                         │
+│  BAD: Ask LLM to scan all 10,000 facts                          │
+│       → Expensive, slow, hits context limits                    │
 │                                                                 │
-│  RECOMMENDATION: Local by default, cloud optional               │
-│  Work context: Always local (policy compliance)                 │
-│  Personal context: User choice                                  │
+│  GOOD: Vector similarity search                                 │
+│       1. Query → embedding → [0.21, -0.42, 0.91, ...]           │
+│       2. Find closest stored vectors (milliseconds, pure math)  │
+│       3. Return top 10 relevant facts to LLM                    │
+│       → Cheap, fast, scales to millions of facts                │
+│                                                                 │
+│  Think: Embedding model = card catalog                          │
+│         Foundation LLM = librarian who reads the books          │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+#### The Decision: Local by Default
+
+| Aspect | Decision |
+|--------|----------|
+| Default | Local embeddings (privacy-first) |
+| Work context | Always local (policy compliance, no exceptions) |
+| Personal context | Local default, cloud path reserved for future |
+| Architecture | Design for extensibility—cloud provider can be added later |
+
+**Rationale:** Until Apple offers a privacy-preserving cloud embedding option (similar to Private Cloud Compute for LLMs), we default to local. This aligns with EmberHearth's "privacy as foundational" principle.
+
+#### Candidate Local Embedding Models
+
+| Model | Dimensions | Size | Quality | Notes |
+|-------|-----------|------|---------|-------|
+| `all-MiniLM-L6-v2` | 384 | ~80MB | Good | Widely used, fast, solid baseline |
+| `nomic-embed-text-v1.5` | 768 | ~275MB | Very Good | Strong quality, reasonable size |
+| `bge-small-en-v1.5` | 384 | ~130MB | Very Good | Excellent quality for size |
+| `bge-base-en-v1.5` | 768 | ~440MB | Excellent | Higher quality, larger |
+| `gte-small` | 384 | ~70MB | Good | Compact, efficient |
+
+**Recommendation for MVP:** Start with `all-MiniLM-L6-v2` (smallest, fastest, good enough). Benchmark against `bge-small-en-v1.5` during development. The quality difference for personal fact retrieval is likely negligible.
+
+#### Implementation Architecture
+
+```swift
+// Protocol allows swapping embedding providers
+protocol EmbeddingProvider {
+    func embed(_ text: String) async throws -> [Float]
+    func embedBatch(_ texts: [String]) async throws -> [[Float]]
+    var dimensions: Int { get }
+}
+
+// Local implementation (default)
+class LocalEmbeddingProvider: EmbeddingProvider {
+    private let model: SentenceTransformer  // or MLX equivalent
+
+    init(modelPath: String = "all-MiniLM-L6-v2") {
+        // Load local model
+    }
+
+    func embed(_ text: String) async throws -> [Float] {
+        // Run inference locally
+    }
+}
+
+// Future: Cloud implementation (extensibility)
+class CloudEmbeddingProvider: EmbeddingProvider {
+    private let apiKey: String
+    private let endpoint: URL
+
+    // To be implemented when/if Apple offers private cloud embeddings
+    // or user explicitly opts into cloud provider
+}
+
+// Context-aware provider selection
+class EmbeddingService {
+    private let localProvider: LocalEmbeddingProvider
+    private var cloudProvider: CloudEmbeddingProvider?
+
+    func provider(for context: Context) -> EmbeddingProvider {
+        switch context {
+        case .work:
+            return localProvider  // Always local, no exceptions
+        case .personal:
+            // Future: could check user preference for cloud
+            return localProvider  // Local by default
+        }
+    }
+}
+```
+
+#### Storage Considerations
+
+```sql
+-- Vector storage in SQLite (using sqlite-vss or similar extension)
+-- Dimensions depend on model choice
+
+CREATE VIRTUAL TABLE fact_vectors USING vss0(
+    embedding(384)  -- Matches model dimension
+);
+
+-- Or store as BLOB if not using vector extension
+ALTER TABLE facts ADD COLUMN embedding BLOB;  -- 384 floats = 1536 bytes
+```
+
+#### Future Cloud Path
+
+When Apple introduces privacy-preserving cloud embeddings (or if user explicitly opts in):
+
+1. Implement `CloudEmbeddingProvider`
+2. Add user preference in settings
+3. Work context remains local-only regardless
+4. Migration path: re-embed existing facts with new provider (batch job during consolidation)
 
 ---
 
@@ -798,10 +896,9 @@ class MemoryService {
 - [x] What facts should be automatically extracted from conversations?
 - [x] How should confidence decay work? (Emotional salience as modifier)
 - [x] How should privacy levels be assigned? (Adaptive model, not classification)
+- [x] What embedding approach works best for semantic retrieval? (Local by default, cloud-extensible architecture)
 
 ### Remaining questions:
-
-- [ ] **Embedding Model Selection:** Which local embedding model balances quality and performance for on-device use?
 
 - [ ] **Pattern Detection Algorithms:** What algorithms best detect behavioral patterns from interaction history?
 
