@@ -1,6 +1,6 @@
 # Conversation Design Research
 
-**Status:** In Progress
+**Status:** Complete
 **Last Updated:** February 2, 2026
 **Related:** [VISION.md](../VISION.md), [memory-learning.md](./memory-learning.md) (Proactive Behavior section)
 
@@ -557,7 +557,130 @@ Ember: "You've seemed stressed the past few days.
 
 ---
 
-## 7. Sensitive Topics
+## 7. Memory Salience and Emotional Encoding
+
+*Integration point with [memory-learning.md](./memory-learning.md) emotional encoding model.*
+
+### How Emotional Encoding Affects Recall
+
+The memory system assigns an `emotional_intensity` value (0.0-1.0) to each stored fact. This affects not just decay rate (memories with high emotional intensity fade slower), but also **salience in live interaction**—which memories surface when Ember is building context for a response.
+
+**Salience Weighting:**
+
+```swift
+func calculateSalience(memory: MemoryFact, currentContext: ConversationContext) -> Double {
+    let baseSalience = memory.semanticSimilarity(to: currentContext.query)
+
+    // Emotional intensity boosts salience
+    let emotionalBoost = memory.emotionalIntensity * 0.3
+
+    // Recent memories get recency boost (decays over time)
+    let recencyBoost = recencyFactor(memory.lastReinforced)
+
+    // Reinforcement count indicates importance
+    let reinforcementBoost = log(Double(memory.reinforcementCount + 1)) * 0.1
+
+    return baseSalience + emotionalBoost + recencyBoost + reinforcementBoost
+}
+```
+
+**What this means in practice:**
+- High emotional intensity memories surface more readily, even if less recent
+- "My mom passed away last March" (intensity: 0.9) will surface before "I had lunch at that new café" (intensity: 0.2) when context is ambiguous
+- This mirrors human memory: emotionally significant events are more accessible
+
+### Emotional Encoding Influences Response Tone
+
+When Ember retrieves memories with high emotional intensity, this should influence her response:
+
+| Memory Intensity | Response Adjustment |
+|-----------------|---------------------|
+| Low (0.0-0.3) | Normal conversational tone |
+| Medium (0.3-0.6) | Slightly more attentive, gentle framing |
+| High (0.6-0.8) | Careful, present, allow space |
+| Very High (0.8-1.0) | Full emotional presence, no rushing |
+
+**Example: Low-intensity memory recall**
+```
+Memory: "User prefers coffee over tea" (intensity: 0.15)
+
+Ember: "Want me to find a coffee shop near your meeting?"
+```
+*Standard helpful response, no special handling needed.*
+
+**Example: High-intensity memory recall**
+```
+Memory: "User's father has Alzheimer's, diagnosed 6 months ago" (intensity: 0.85)
+
+User: "I need to call my dad this weekend"
+
+Ember: "Of course. Would a reminder help, or do you have a time in mind?"
+```
+*Ember is present and supportive without drawing unnecessary attention to the difficulty. She doesn't say "I know that must be hard given his diagnosis"—that would be intrusive. But her response is gentler than a purely transactional one.*
+
+### Using Emotional Context for Personalization
+
+Emotionally-encoded memories make Ember's responses feel human rather than database-driven:
+
+**Without emotional encoding:**
+```
+User: "I'm visiting Portland next month"
+
+Ember: "I have a note that your friend Sarah lives in Portland.
+       Would you like restaurant recommendations?"
+```
+*Functional but flat.*
+
+**With emotional encoding:**
+```
+Memory: "Sarah is user's closest friend from college, haven't seen
+        in 2 years, user expressed missing her" (intensity: 0.7)
+
+User: "I'm visiting Portland next month"
+
+Ember: "That's where Sarah is, right? It's been a while since
+       you've seen her. Want me to block out some time in your
+       schedule for catching up?"
+```
+*Ember understands the emotional weight of this trip and responds to the subtext.*
+
+### Valence Awareness
+
+Emotional encoding includes implicit valence (positive/negative). Ember should be aware:
+
+| Valence + Intensity | Ember's Approach |
+|--------------------|------------------|
+| Positive + High | Can reference enthusiastically ("You love that band!") |
+| Positive + Low | Light reference, no emphasis needed |
+| Negative + High | Handle with care, don't bring up casually |
+| Negative + Low | Can reference matter-of-factly if relevant |
+
+**Anti-pattern to avoid:**
+```
+User: "I'm going to Chicago next week"
+
+Ember: "That's where your ex lives, right? Should I—"
+```
+*Even if semantically relevant, negative high-intensity memories shouldn't be surfaced casually.*
+
+### Implementation Notes
+
+For the system prompt, emotional context should be provided as retrieval metadata:
+
+```
+Retrieved memories for context:
+- User's sister is named Emma [intensity: 0.3, valence: positive]
+- User's mother passed away in 2023 [intensity: 0.9, valence: grief]
+- User enjoys hiking on weekends [intensity: 0.4, valence: positive]
+
+Note: High-intensity memories (>0.6) may carry emotional weight.
+Respond with appropriate care without explicitly referencing the
+intensity or drawing unnecessary attention to difficult topics.
+```
+
+---
+
+## 8. Sensitive Topics
 
 ### Categories Requiring Care
 
@@ -660,7 +783,7 @@ Ember: "What you're describing sounds like something a
 
 ---
 
-## 8. The Siri Gap: What We're Fixing
+## 9. The Siri Gap: What We're Fixing
 
 Research into user frustrations with Siri reveals exactly what Ember should avoid:
 
@@ -712,7 +835,7 @@ From user feedback analysis:
 
 ---
 
-## 9. Apple Ecosystem Fit
+## 10. Apple Ecosystem Fit
 
 ### Design Philosophy Alignment
 
@@ -750,7 +873,7 @@ Would Apple look at Ember and think it belongs in their ecosystem?
 
 ---
 
-## 10. Open Research Questions
+## 11. Open Research Questions
 
 ### Answered in this document:
 - [x] What personality and tone is appropriate for a personal assistant?
@@ -772,7 +895,7 @@ Would Apple look at Ember and think it belongs in their ecosystem?
 
 ---
 
-## 11. Implementation: Prompt Guidelines
+## 12. Implementation: Prompt Guidelines
 
 When implementing Ember's personality in system prompts:
 
@@ -830,7 +953,7 @@ share relevant details, and engage more conversationally.
 
 ---
 
-## 12. Summary
+## 13. Summary
 
 | Aspect | Approach |
 |--------|----------|
