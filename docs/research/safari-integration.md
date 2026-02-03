@@ -14,6 +14,57 @@ Safari integration is essential for EmberHearth. Users' browsing activity reveal
 
 ---
 
+## Security Philosophy: Read vs. Control
+
+> ⚠️ **Critical Design Principle:** EmberHearth is built security-first. The failures of other AI companion systems (see `legal-ethical-considerations.md`) demonstrate what happens when AI systems are given too much agency without proper boundaries.
+
+Before diving into technical capabilities, we must distinguish between two fundamentally different types of browser integration:
+
+### Read Access (Data Pipeline)
+
+**Purpose:** Learning about the user to provide better assistance.
+
+| Capability | Value | Risk Level |
+|------------|-------|------------|
+| Bookmarks | Understand long-term interests | Low |
+| Reading List | Know what user wants to read | Low |
+| History | Understand research patterns | Medium (privacy) |
+| Current tab URLs | Know what user is viewing | Medium |
+| Page content (read-only) | Summarize articles | Medium |
+
+**Read access is a data pipeline.** Ember learns from this information to be a better assistant. The user's browser remains under their control.
+
+### Control Access (Articulation)
+
+**Purpose:** Acting on the user's behalf in the browser.
+
+| Capability | Value | Risk Level |
+|------------|-------|------------|
+| Navigate to URL | Open resources for user | Medium |
+| Open new tabs | Multi-step research | Medium |
+| Inject JavaScript | Interact with pages | **HIGH** |
+| Fill forms | Automation tasks | **HIGH** |
+| Click buttons | Autonomous actions | **HIGH** |
+
+**Control access is articulation.** Ember takes actions in the user's actual browser session. This is fundamentally different—and fundamentally more dangerous.
+
+### The Moltbot Lesson
+
+Other AI systems have failed by being "too open"—giving AI agents direct control over user-facing systems without adequate sandboxing. When an AI can:
+- Navigate to arbitrary URLs in the user's authenticated browser
+- Execute JavaScript on pages with the user's cookies/sessions
+- Interact with forms and buttons
+
+...the potential for harm scales dramatically. A prompt injection, a misunderstanding, or a bug can result in:
+- Unauthorized purchases
+- Data exposure
+- Account compromise
+- Actions the user never intended
+
+**EmberHearth's position:** Read access by default. Control access requires explicit, informed opt-in—and even then, we prefer sandboxed alternatives.
+
+---
+
 ## Integration Approaches
 
 Safari offers several integration paths, each with different capabilities and tradeoffs:
@@ -296,9 +347,18 @@ Similar to Safari App Extensions, but:
 
 ## Recommended Strategy for EmberHearth
 
-### MVP Phase
+### Core Principle: Separation of Concerns
 
-**Use Direct File Access + AppleScript:**
+EmberHearth's browser integration follows two separate paths:
+
+1. **Read Path:** Ember learns from user's Safari data (passive, always available)
+2. **Web Tool Path:** Ember interacts with the web via sandboxed MCP tool (active, isolated)
+
+The user's Safari session is **never directly controlled** by default.
+
+### MVP Phase: Read-Only Integration
+
+**Use Direct File Access (Read Path):**
 
 1. **Bookmarks & Reading List** — Parse `Bookmarks.plist`
    - Surface saved articles as context
@@ -308,36 +368,129 @@ Similar to Safari App Extensions, but:
    - Understand user's research patterns
    - "You've been reading a lot about Y this week..."
 
-3. **Current Tabs** — AppleScript to enumerate open tabs
+3. **Current Tabs** — AppleScript to enumerate open tabs (URLs and titles only)
    - Real-time awareness of what user is viewing
    - "Want me to help with what you're looking at?"
 
-4. **Page Content** — `do JavaScript` for current page
-   - Extract article text for summarization
-   - Read selected text for context
+4. **Page Content** — Read-only extraction for context
+   - Summarize articles user is reading
+   - Extract text user highlights or selects
 
-### Post-MVP
+**What MVP does NOT include:**
+- ❌ Navigating Safari to URLs
+- ❌ Opening new tabs
+- ❌ Executing JavaScript for interaction (only for read)
+- ❌ Any browser control capabilities
 
-**Add Safari App Extension:**
+### The Sandboxed Web Tool (MCP Layer)
 
-- Persistent presence in Safari toolbar
+When Ember needs to interact with the web—research, fetch content, look things up—she should NOT use the user's Safari session. Instead:
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  EMBER'S WEB ACCESS                                                  │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│   User's Safari                    Ember's Web Tool                 │
+│   ┌─────────────┐                 ┌─────────────────┐              │
+│   │             │                 │                 │              │
+│   │  Bookmarks  │ ──READ──────▶   │  MCP Web Tool   │              │
+│   │  History    │                 │  (Sandboxed)    │              │
+│   │  Open Tabs  │                 │                 │              │
+│   │             │                 │  • No cookies   │              │
+│   │  ⚠️ USER'S  │                 │  • No sessions  │              │
+│   │  SESSION    │                 │  • No auth      │              │
+│   │             │                 │  • Fresh context│              │
+│   └─────────────┘                 └─────────────────┘              │
+│         │                                  │                        │
+│         │                                  │                        │
+│     DO NOT                           Ember uses                     │
+│     CONTROL                          this to:                       │
+│                                      • Research topics              │
+│                                      • Fetch articles               │
+│                                      • Look up information          │
+│                                      • Web searches                 │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**The Sandboxed Web Tool provides:**
+- Fresh browser context (no cookies, no sessions, no user auth)
+- Headless browsing capability (via WebKit or similar)
+- URL fetching with content extraction
+- Cannot access user's authenticated state
+- Cannot make purchases, post content, or take actions as user
+
+**This is a tool call**, part of the MCP (Model Context Protocol) layer. When Ember needs to look something up:
+```
+Ember: "Let me look that up for you."
+[Tool: web_fetch(url="https://...", extract="article_text")]
+[Returns: content from sandboxed fetch]
+Ember: "Here's what I found..."
+```
+
+### Post-MVP: Safari Extension (Read-Enhanced)
+
+**Add Safari App Extension for better READ access:**
+
+- Persistent presence in Safari toolbar (for user-initiated actions)
 - Real-time page content capture (not just current tab)
-- Navigation event tracking
-- Quick actions without switching to EmberHearth app
+- Navigation event tracking (Ember knows what user browses)
+- Quick actions triggered BY USER in Safari → EmberHearth
+
+**The extension is for read/observe, not control.**
+
+### Experimental Feature: Direct Safari Control
+
+For power users who explicitly want Ember to control their browser, we offer an **experimental** feature:
+
+**Requirements to enable:**
+- Explicitly opt-in via Settings → Experimental → Safari Control
+- Acknowledge warning about security implications
+- Separate permission request (not bundled with read access)
+
+**What it enables:**
+- Ember can open URLs in Safari
+- Ember can navigate tabs
+- Ember can execute JavaScript (with user confirmation per action, initially)
+
+**Safeguards:**
+- Disabled by default (must be explicitly enabled)
+- Clear audit log of all browser control actions
+- User can revoke at any time
+- Tron reviews all navigation/control requests
+- Consider: per-action confirmation until trust established
+
+**Why experimental:**
+- Higher risk surface area
+- Potential for prompt injection exploitation
+- User's authenticated sessions at risk
+- Better alternatives exist (sandboxed web tool)
 
 ### Permission Strategy
 
 **Onboarding Flow:**
 1. Core functionality works without browser access
-2. Offer "Enhanced Browser Integration" as optional step
-3. Explain value: "Ember can help with articles you're reading and things you've saved"
+2. Offer "Browser Awareness" as optional enhancement (READ ONLY)
+3. Explain value: "Ember learns from your browsing to help better"
 4. Request Full Disk Access if user opts in
-5. Guide user to enable "Allow JavaScript from Apple Events"
+5. **Never** request Safari control permissions during onboarding
 
 **Graceful Degradation:**
-- No permissions: Ember works, just without browser context
-- AppleScript only: Current tabs, no history/bookmarks
-- Full Disk Access: Complete browser awareness
+- No permissions: Ember works, uses sandboxed web tool for research
+- Read access only: Ember learns from bookmarks/history/tabs
+- Full access (experimental): Ember can also control Safari
+
+### Why This Approach?
+
+| Concern | How We Address It |
+|---------|------------------|
+| Prompt injection | Sandboxed tool can't access authenticated sessions |
+| Unintended actions | No control by default; experimental feature requires opt-in |
+| User trust | Read-only feels safe; control feels invasive |
+| Capability | Sandboxed web tool provides research capability without risk |
+| Power users | Experimental feature available for those who want it |
+| Audit/compliance | Clear separation makes security review easier |
 
 ---
 
@@ -418,28 +571,49 @@ Chrome extensions use the same WebExtensions API as Safari Web Extensions, but:
 
 ## Implementation Checklist
 
-### Phase 1: Direct Access (MVP)
+### Phase 1: Read Access + Sandboxed Web Tool (MVP)
 
+**Read Access (Safari Data Pipeline):**
 - [ ] Parse `Bookmarks.plist` for bookmarks and Reading List
 - [ ] Query `History.db` for browsing history
-- [ ] AppleScript wrapper for current tabs/windows
-- [ ] AppleScript wrapper for `do JavaScript`
+- [ ] AppleScript wrapper for current tabs/windows (URLs and titles only)
+- [ ] Read-only page content extraction (for summarization)
 - [ ] Full Disk Access permission request flow
 - [ ] Graceful handling when permissions denied
 
-### Phase 2: Safari Extension
+**Sandboxed Web Tool (MCP Layer):**
+- [ ] Implement headless WebKit-based fetcher
+- [ ] URL fetch with content extraction (article text, metadata)
+- [ ] Web search capability (via search API or scraping)
+- [ ] Strict isolation: no cookies, no sessions, no user auth
+- [ ] Rate limiting and abuse prevention
+- [ ] Tool call interface for LLM integration
+
+### Phase 2: Safari Extension (Read-Enhanced)
 
 - [ ] Create Safari App Extension target
-- [ ] Implement toolbar button UI
-- [ ] Content script for page capture
+- [ ] Implement toolbar button UI (for user-initiated actions)
+- [ ] Content script for page capture (read-only)
+- [ ] Navigation event tracking (observe, not control)
 - [ ] Native messaging to main app
 - [ ] App Store submission with extension
 
-### Phase 3: Cross-Browser
+### Phase 3: Experimental Safari Control
 
-- [ ] Chrome bookmarks/history parsing
-- [ ] Chrome AppleScript integration
-- [ ] Consider cross-platform web extension
+- [ ] Settings UI for experimental feature opt-in
+- [ ] Security warning acknowledgment flow
+- [ ] AppleScript wrapper for navigation (guarded)
+- [ ] AppleScript wrapper for `do JavaScript` (guarded)
+- [ ] Tron integration for control request review
+- [ ] Audit logging for all control actions
+- [ ] Per-action confirmation mode (optional)
+
+### Phase 4: Cross-Browser
+
+- [ ] Chrome bookmarks/history parsing (read access)
+- [ ] Chrome AppleScript integration (read access)
+- [ ] Extend sandboxed web tool (browser-agnostic)
+- [ ] Consider cross-platform web extension (read-focused)
 
 ---
 
@@ -471,7 +645,22 @@ Chrome extensions use the same WebExtensions API as Safari Web Extensions, but:
 
 6. **Reading List sync** — Reading List syncs via iCloud—do we get items added on iOS?
 
+7. **Sandboxed web tool technology** — WebKit headless? WKWebView in invisible window? Third-party library? Need to evaluate options for the MCP web tool.
+
+8. **Search integration** — Should the sandboxed web tool use a search API (Brave, SerpAPI, etc.) or scrape search results? API is cleaner but adds cost/dependency.
+
+9. **Experimental feature telemetry** — If users enable Safari control, should we collect anonymized data about usage patterns to understand risk?
+
+---
+
+## Related Documents
+
+- `legal-ethical-considerations.md` — AI companion failures, including security/control issues
+- `security.md` — EmberHearth security architecture and Tron
+- `VISION.md` — Core security philosophy and shell execution prohibition
+
 ---
 
 *Document created: February 2026*
-*Status: Initial research complete*
+*Revised: February 2026 — Added security philosophy (read vs. control), sandboxed web tool architecture, experimental feature framework*
+*Status: Research complete — security-first architecture defined*
