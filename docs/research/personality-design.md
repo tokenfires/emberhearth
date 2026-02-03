@@ -239,6 +239,36 @@ For gendered archetypes:
 4. **Immediate effect** — Selected personality is evident from first real interaction
 5. **Easy exit** — User can skip with sensible defaults
 
+### A Happy Accident: The Character Creation Screen
+
+Wait a minute.
+
+Read that onboarding flow again. Does it feel... familiar?
+
+| Video Game | EmberHearth |
+|------------|-------------|
+| Name your character | Name your assistant |
+| Choose gender/appearance | Choose identity |
+| Select class (Warrior, Mage, Rogue) | Pick archetype (Ember, Ash, Flint, Cinder) |
+| Adjust attributes (STR, DEX, CHA) | Tune the four dials (warmth, formality, verbosity, humor) |
+| "Your adventure begins..." | "I'm looking forward to getting to know you." |
+
+This wasn't intentional. But it's *right*.
+
+Game designers have spent decades perfecting character creation—turning what could be a tedious configuration step into something players genuinely enjoy. Some people spend an hour on their Skyrim character's nose. Nobody spends an hour on app preferences.
+
+The difference? **Character creation is a narcissistic opportunity.** It's not about configuring software; it's about expressing who you are and who you want your companion to be. The choices feel personal because they *are* personal.
+
+What gamers know intuitively:
+- The setup *is* part of the experience, not a barrier to it
+- Meaningful choices create investment and ownership
+- "Your character, your story" makes everything that follows feel more yours
+- The option to "respec" later is a feature, not an admission of failure
+
+If onboarding to EmberHearth feels like rolling a new character rather than filling out a preferences form, we've done something right.
+
+*Achievement unlocked: Accidental game design.*
+
 ---
 
 ## Ethical Considerations
