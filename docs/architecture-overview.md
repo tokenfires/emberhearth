@@ -609,6 +609,7 @@ During this architecture review, the following items were noted:
 | `macos-apis.md` | Apple framework capabilities |
 | `safari-integration.md` | Bookmarks, history, AppleScript, Safari extensions |
 | `legal-ethical-considerations.md` | AI companion failures, legal frameworks, ethical design, safeguards |
+| `active-data-intake.md` | Continuous monitoring, FSEvents, event queue, Anticipation Engine feed |
 
 ---
 
