@@ -379,6 +379,249 @@ Research on recognizable AI patterns:
 
 ---
 
+## Pragmatic Constraints: Avoiding Over-Specification
+
+> *"An obvious solution of specifying all requirements in a single prompt actually hurts performance, due to LLMs' limited ability to follow long, complex instructions."*
+> — [arXiv research on prompt underspecification](https://arxiv.org/html/2505.13360v1)
+
+### The Problem: Prompt Bloat and Context Rot
+
+It's tempting to encode every nuance of Ember's personality into the system prompt. Don't.
+
+**Research findings on over-specification:**
+
+- Extra details can degrade performance by reducing accuracy, coherence, and relevance
+- LLMs struggle to filter irrelevant information even when they can identify it
+- Reasoning performance degrades at around 3,000 tokens—well below context window limits
+- Chain-of-Thought prompting doesn't overcome this; it's a fundamental limitation
+
+**The "context rot" phenomenon:**
+
+As context grows, model performance degrades non-uniformly. [Chroma Research](https://research.trychroma.com/context-rot) found that LLMs "lose focus or experience confusion" past certain thresholds, and Carnegie Mellon research shows 23% performance degradation when context utilization exceeds 85% of maximum capacity.
+
+**Degradation patterns vary by model:**
+
+Recent [research on instruction density](https://arxiv.org/pdf/2507.11538) identified three distinct patterns:
+1. **Threshold decay** — Near-perfect until critical density, then rapid degradation (reasoning models: o3, gemini-2.5-pro)
+2. **Linear decay** — Gradual degradation with instruction count (gpt-4.1, claude-sonnet-4)
+3. **Exponential decay** — Rapid early degradation (gpt-4o, llama-4-scout)
+
+**Implication:** The "right" amount of personality specification differs by model. What works for Claude may overwhelm a local Qwen model.
+
+### The Principle: Progressive Disclosure
+
+Just as good UI reveals complexity progressively rather than front-loading every option, Ember's personality guidance should be layered:
+
+**Layer 0: Core Identity (Always Present)**
+- Name, pronouns, basic role
+- ~100-200 tokens maximum
+
+**Layer 1: Communication Baseline (Always Present)**
+- Key style parameters (warmth, formality)
+- Critical behavioral boundaries
+- ~200-400 tokens maximum
+
+**Layer 2: Contextual Guidance (Injected When Relevant)**
+- Time-of-day adaptation cues
+- Topic-specific tone adjustments
+- Relationship history context
+- Injected dynamically based on situation
+
+**Layer 3: Edge Case Handling (Rarely Needed)**
+- Specific scenario instructions
+- Recovery behaviors
+- Only included when triggered by context
+
+**Total baseline: 300-600 tokens**, not thousands.
+
+### Right-Sizing Guidelines
+
+#### Token Budget by Model Class
+
+| Model Class | Recommended Personality Budget | Rationale |
+|-------------|-------------------------------|-----------|
+| **Large Cloud** (Claude, GPT-4) | 400-800 tokens | Can handle more nuance, but still benefits from brevity |
+| **Medium Cloud** (Claude Haiku, GPT-4o-mini) | 200-400 tokens | Faster, cheaper; keep instructions lean |
+| **Local 7B-13B** (Qwen, Mistral) | 150-300 tokens | Limited instruction-following; be concise |
+| **Local 3B and below** | 100-200 tokens | Minimal viable personality only |
+
+#### The 70-80% Rule
+
+Never use more than 70-80% of a model's effective context window. For a model with 8K context:
+- Reserve ~1,600 tokens for response
+- Reserve ~1,600 tokens for conversation history
+- That leaves ~4,800 for system prompt + current context
+- Personality should be a fraction of that, not all of it
+
+#### Primacy and Recency Bias
+
+LLMs weight the beginning and end of context more heavily. Structure accordingly:
+
+```
+[SYSTEM PROMPT]
+├── First 20%: Core identity + critical instructions (high recall)
+├── Middle 60%: Contextual details, examples (lower recall)
+└── Final 20%: Key behavioral reminders (high recall)
+```
+
+Critical personality elements should bookend the prompt, not hide in the middle.
+
+### What NOT to Specify
+
+**Don't encode:**
+- Every possible scenario response
+- Detailed emotional scripts
+- Exhaustive vocabulary preferences
+- Complex conditional logic ("if X then Y, unless Z...")
+- Meta-instructions about the instructions
+
+**Do encode:**
+- Clear identity markers
+- Core communication values (brief, specific)
+- Hard boundaries (what Ember never does)
+- General tone direction
+
+**Example of over-specification (avoid):**
+
+```
+When the user seems tired, use shorter sentences. If they mention
+it's morning, be more gentle. If it's Friday evening, you can be
+more playful. But if they're discussing work on Friday evening,
+maintain professionalism. Unless they seem stressed about work, in
+which case be supportive. Consider whether...
+```
+
+**Example of right-sized specification (prefer):**
+
+```
+Adapt your energy to match the user's apparent state. Be concise
+when they seem low-energy; be warmer when they seem to need support.
+```
+
+The model can infer the details. Trust it.
+
+### Model-Specific Tuning
+
+Different LLMs interpret instructions differently. Plan for variation:
+
+**Claude models:**
+- Respond well to values-based guidance ("be genuine," "prioritize clarity")
+- Can handle more nuanced personality description
+- Tend toward verbosity; explicit brevity cues help
+
+**GPT models:**
+- Respond well to role-based framing ("You are...")
+- May need more explicit formatting guidance
+- Better at following structural templates
+
+**Local models (Qwen, Mistral, Llama):**
+- Benefit from simpler, more direct instructions
+- May ignore or misinterpret complex conditionals
+- Test extensively; behavior varies significantly by fine-tune
+
+**Implementation strategy:**
+- Create a base personality template
+- Develop model-specific variants (not rewrites, just adjustments)
+- A/B test critical differences
+- Document what works for each model class
+
+### Testing for Over-Specification
+
+Signs your personality prompt is too heavy:
+
+1. **Inconsistent behavior** — Model oscillates between different styles
+2. **Literal interpretation** — Model follows instructions robotically rather than naturally
+3. **Instruction echoing** — Model references its own instructions in responses
+4. **Lost context** — Model forgets earlier conversation more than expected
+5. **Slower response** — Noticeably increased latency (more tokens to process)
+6. **Contradiction** — Model does opposite of instructions (confusion response)
+
+**Testing protocol:**
+1. Start minimal (core identity only)
+2. Add one layer at a time
+3. Test 20+ diverse conversations at each layer
+4. Stop when adding more doesn't improve behavior
+5. If behavior degrades, remove last additions
+
+### The Hierarchy of Personality Expression
+
+Where should personality logic live?
+
+| Mechanism | What It Handles | Token Cost |
+|-----------|-----------------|------------|
+| **System prompt** | Core identity, values, boundaries | Per-request |
+| **Fine-tuning** | Deep behavioral patterns, voice | Zero at inference |
+| **Few-shot examples** | Specific response styles | Per-request |
+| **Dynamic injection** | Contextual adaptation | Only when needed |
+| **Post-processing** | Format cleanup, safety checks | Zero prompt tokens |
+
+For Ember's personality:
+- **Fine-tuning** (if using local models): Bake in voice and general manner
+- **System prompt**: Identity + minimal style guidance
+- **Dynamic injection**: Time-of-day, relationship context, current emotional state
+- **Avoid**: Trying to do everything in the system prompt
+
+### Progressive Disclosure in Practice
+
+**Scenario: Morning greeting**
+
+*Bad approach (over-specified):*
+```
+System prompt includes: "In the morning (before 10 AM), use shorter
+sentences, avoid exclamation points, don't ask too many questions,
+acknowledge that the user may be tired, use a gentle tone..."
+```
+
+*Good approach (progressive):*
+```
+Base system prompt: [core identity, ~400 tokens]
++ Dynamic injection: "Current time: 7:23 AM, weekday"
+```
+
+The model infers morning behavior from the timestamp. If it doesn't behave appropriately, add minimal guidance—not exhaustive rules.
+
+**Scenario: User going through difficult time**
+
+*Bad approach:*
+```
+System prompt includes: "If the user mentions stress, anxiety,
+difficult situations, loss, grief, work problems, relationship
+issues, health concerns, financial stress... then be more
+supportive, use empathetic language, validate their feelings..."
+```
+
+*Good approach:*
+```
+Base system prompt: "Adapt to user's emotional state. Prioritize
+their wellbeing."
++ Memory context injection: "Recent context: User mentioned work
+stress and sleeping poorly this week."
+```
+
+The specific context tells the model what to adapt to. The base instruction tells it to adapt.
+
+### Guardrails Summary
+
+| Constraint | Guideline |
+|------------|-----------|
+| **Total personality tokens** | 300-800 depending on model |
+| **Context utilization** | Never exceed 70-80% of window |
+| **Instructions per prompt** | Fewer than 10 distinct directives |
+| **Conditional logic** | Minimize; let model infer from context |
+| **Testing before shipping** | 20+ diverse conversations per change |
+| **Model-specific variants** | Yes, maintain separate tuned versions |
+
+### Research Sources
+
+- [The Impact of Prompt Bloat on LLM Output Quality](https://mlops.community/the-impact-of-prompt-bloat-on-llm-output-quality/) — MLOps Community
+- [Disadvantage of Long Prompts for LLM](https://blog.promptlayer.com/disadvantage-of-long-prompt-for-llm/) — PromptLayer
+- [Context Rot: How Increasing Input Tokens Impacts LLM Performance](https://research.trychroma.com/context-rot) — Chroma Research
+- [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) — Anthropic
+- [How Many Instructions Can LLMs Follow At Once?](https://arxiv.org/pdf/2507.11538) — arXiv
+- [Token Optimization: The Backbone of Effective Prompt Engineering](https://developer.ibm.com/articles/awb-token-optimization-backbone-of-effective-prompt-engineering/) — IBM Developer
+
+---
+
 ## Open Questions
 
 1. **Measuring success** — How do we know if the personality design is working? Retention? User satisfaction surveys? Qualitative feedback?
@@ -396,6 +639,10 @@ Research on recognizable AI patterns:
 7. **Long-term evolution** — Over years of use, should Ember's personality fundamentally change? Or maintain recognizable consistency?
 
 8. **Local vs. cloud personality** — When using local models, how do we maintain personality consistency with more limited capability?
+
+9. **Optimal personality token budget** — What's the empirically optimal token count for personality specification per model class? Needs systematic testing.
+
+10. **Fine-tuning vs. prompting tradeoffs** — For local models, should we invest in personality fine-tuning rather than prompt engineering? What's the crossover point?
 
 ---
 
