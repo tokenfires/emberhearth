@@ -1,9 +1,23 @@
 # EmberHearth Architecture Overview
 
-**Version:** 1.0
+**Version:** 1.1
 **Date:** February 3, 2026
 **Status:** Pre-Prototype Review
 **Diagram:** `diagrams/emberhearth-architecture.drawio`
+
+### Diagram Pages
+
+The draw.io file contains 7 pages:
+
+| Page | Name | Description |
+|------|------|-------------|
+| 1 | System Overview | Main architecture with all components |
+| 2 | Data Flow - Message Processing | Step-by-step message handling |
+| 3 | MVP Scope | Visual breakdown of MVP vs later phases |
+| 4 | Plugin System | Plugin Manager, Runtime, API, permissions |
+| 5 | LLM Orchestration | Four modes, adaptive routing, local agents |
+| 6 | Security Layers | Defense in depth (6 layers), Tron detail |
+| 7 | Integration Services | Apple framework XPC services |
 
 ---
 
@@ -597,8 +611,9 @@ During this architecture review, the following items were noted:
 ## Next Steps
 
 1. ✅ Review this document for gaps
-2. ⏳ Create draw.io diagram with color coding
-3. ⏳ Proceed to Phase 2 prototyping
+2. ✅ Create draw.io diagram with color coding (7 pages)
+3. ⏳ Break work into trackable units (Pivotal Tracker discussion)
+4. ⏳ Proceed to Phase 2 prototyping
 
 ---
 

@@ -72,15 +72,24 @@
           <mxGeometry x="920" y="110" width="100" height="80" as="geometry" />
         </mxCell>
 
-        <!-- TRON SECTION -->
-        <mxCell id="tron-section" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FCE5CD;strokeColor=#B45F06;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+        <!-- DEFENSE LAYERS SECTION -->
+        <mxCell id="defense-section" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FCE5CD;strokeColor=#B45F06;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
           <mxGeometry x="240" y="220" width="920" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="tron" value="&lt;b&gt;TRON - Security Layer&lt;/b&gt;&lt;br&gt;&lt;br&gt;Prompt injection firewall | Tool authorization | Group chat restrictions | Anomaly detection | Audit logging" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#333333;" vertex="1" parent="1">
-          <mxGeometry x="260" y="230" width="880" height="60" as="geometry" />
+        <mxCell id="input-gateway" value="&lt;b&gt;Input Gateway&lt;/b&gt;&lt;br&gt;Rate limit, Validate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="260" y="230" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="tron-mvp-note" value="MVP: Hardcoded rules" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=2;fontSize=10;fontColor=#333333;" vertex="1" parent="1">
-          <mxGeometry x="1040" y="270" width="100" height="20" as="geometry" />
+        <mxCell id="tron" value="&lt;b&gt;TRON&lt;/b&gt;&lt;br&gt;Prompt injection | Tool auth | Anomaly" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="400" y="230" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="output-validation" value="&lt;b&gt;Output Validation&lt;/b&gt;&lt;br&gt;Secret detect, PII redact" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="620" y="230" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="workbench" value="&lt;b&gt;Workbench&lt;/b&gt;&lt;br&gt;Isolated container" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="780" y="230" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="defense-note" value="See: Security Layers drill-down" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=2;fontSize=9;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="920" y="270" width="140" height="20" as="geometry" />
         </mxCell>
 
         <!-- CORE SECTION -->
@@ -112,16 +121,27 @@
         </mxCell>
 
         <!-- LLMService - Mixed -->
-        <mxCell id="llm-service" value="&lt;b&gt;LLMService.xpc&lt;/b&gt;&lt;hr&gt;CloudProvider&lt;br&gt;ContextBuilder&lt;br&gt;PolicyEnforcer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+        <mxCell id="llm-service" value="&lt;b&gt;LLMService.xpc&lt;/b&gt;&lt;hr&gt;CloudProvider&lt;br&gt;ContextBuilder&lt;br&gt;PolicyEnforcer&lt;br&gt;&lt;b&gt;AdaptiveRouter&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
           <mxGeometry x="760" y="480" width="180" height="100" as="geometry" />
         </mxCell>
         <mxCell id="llm-local" value="LocalProvider (MLX)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;fontColor=#333333;" vertex="1" parent="1">
           <mxGeometry x="770" y="555" width="120" height="20" as="geometry" />
         </mxCell>
+        <mxCell id="llm-note" value="See: LLM Orchestration drill-down" style="text;html=1;strokeColor=none;fillColor=none;fontSize=9;fontStyle=2;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="760" y="575" width="160" height="15" as="geometry" />
+        </mxCell>
 
         <!-- Ember Personality -->
         <mxCell id="ember" value="&lt;b&gt;EMBER&lt;/b&gt;&lt;br&gt;(Personality)&lt;hr&gt;System Prompt&lt;br&gt;Voice &amp; Tone&lt;br&gt;Emotional Encoding" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673a6;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
           <mxGeometry x="1000" y="350" width="140" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Plugin System - Future -->
+        <mxCell id="plugin-system" value="&lt;b&gt;Plugin System&lt;/b&gt;&lt;hr&gt;Plugin Manager&lt;br&gt;JS Runtime (Sandbox)&lt;br&gt;EmberHearth API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="480" width="140" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="plugin-note" value="See: Plugin drill-down" style="text;html=1;strokeColor=none;fillColor=none;fontSize=9;fontStyle=2;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="575" width="100" height="15" as="geometry" />
         </mxCell>
 
         <!-- XPC Connections -->
@@ -158,9 +178,15 @@
           <mxGeometry x="630" y="650" width="130" height="80" as="geometry" />
         </mxCell>
 
-        <!-- Apple Frameworks -->
+        <!-- Apple Frameworks + Integration Services -->
         <mxCell id="apple-fw" value="&lt;b&gt;Apple Frameworks&lt;/b&gt;&lt;hr&gt;EventKit (Calendar)&lt;br&gt;Contacts&lt;br&gt;MapKit, HomeKit..." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
           <mxGeometry x="780" y="650" width="150" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="integration-services" value="&lt;b&gt;Integration XPCs&lt;/b&gt;&lt;br&gt;CalendarService&lt;br&gt;MailService&lt;br&gt;NotesService" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="785" y="735" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="int-note" value="See: Integrations drill-down" style="text;html=1;strokeColor=none;fillColor=none;fontSize=9;fontStyle=2;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="785" y="795" width="130" height="15" as="geometry" />
         </mxCell>
 
         <!-- Security -->
@@ -168,11 +194,19 @@
           <mxGeometry x="950" y="650" width="150" height="80" as="geometry" />
         </mxCell>
 
-        <!-- Connections -->
-        <mxCell id="conn1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=classic;endFill=1;" edge="1" parent="1" source="imessage" target="tron">
+        <!-- Ember to LLM Connection -->
+        <mxCell id="ember-llm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#9673a6;strokeWidth=2;endArrow=classic;endFill=1;dashed=1;" edge="1" parent="1" source="ember" target="llm-service">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="conn2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=classic;endFill=1;" edge="1" parent="1" source="tron" target="main-app">
+        <mxCell id="ember-label" value="System prompt" style="text;html=1;strokeColor=none;fillColor=none;fontSize=9;fontStyle=2;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="920" y="450" width="80" height="15" as="geometry" />
+        </mxCell>
+
+        <!-- Connections -->
+        <mxCell id="conn1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=classic;endFill=1;" edge="1" parent="1" source="imessage" target="input-gateway">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=classic;endFill=1;" edge="1" parent="1" source="output-validation" target="main-app">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="conn3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="msg-service" target="chat-db">
@@ -405,6 +439,261 @@
         </mxCell>
         <mxCell id="future-4" value="Voice interface" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#333333;" vertex="1" parent="1">
           <mxGeometry x="610" y="500" width="100" height="35" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram name="Plugin System" id="plugin-system-detail">
+    <mxGraphModel dx="1000" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="700" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="ps-title" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;&lt;b&gt;Plugin System Architecture&lt;/b&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="350" y="20" width="300" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ps-manager" value="&lt;b&gt;Plugin Manager&lt;/b&gt;&lt;hr&gt;Load manifests&lt;br&gt;Register tools with LLM&lt;br&gt;Route tool calls&lt;br&gt;Enforce permissions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="400" y="80" width="180" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ps-runtime" value="&lt;b&gt;Plugin Runtime&lt;/b&gt;&lt;hr&gt;JavaScriptCore Sandbox&lt;br&gt;No filesystem access&lt;br&gt;Declared network only&lt;br&gt;Execution timeout" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="150" y="220" width="180" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ps-api" value="&lt;b&gt;EmberHearth API&lt;/b&gt;&lt;hr&gt;calendar.listEvents()&lt;br&gt;contacts.search()&lt;br&gt;memory.query()&lt;br&gt;notifications.send()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="400" y="220" width="180" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ps-registry" value="&lt;b&gt;Tool Registry&lt;/b&gt;&lt;hr&gt;Map plugin tools&lt;br&gt;to EmberHearth APIs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="650" y="220" width="150" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ps-moltbot" value="&lt;b&gt;Moltbot Compat&lt;/b&gt;&lt;hr&gt;Import AgentSkills&lt;br&gt;Security adaptation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="650" y="320" width="150" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ps-perms" value="&lt;b&gt;Permission System&lt;/b&gt;&lt;hr&gt;network: [domains]&lt;br&gt;secrets: [names]&lt;br&gt;storage: quota&lt;br&gt;apis: [allowed]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="150" y="360" width="180" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ps-manifest" value="&lt;b&gt;Plugin Manifest&lt;/b&gt;&lt;hr&gt;name, version&lt;br&gt;tools: [definitions]&lt;br&gt;permissions: [required]&lt;br&gt;entry: main.js" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="400" y="360" width="180" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ps-a1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=1;endArrow=classic;" edge="1" parent="1" source="ps-manager" target="ps-runtime">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ps-a2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=1;endArrow=classic;" edge="1" parent="1" source="ps-manager" target="ps-api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ps-a3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=1;endArrow=classic;" edge="1" parent="1" source="ps-manager" target="ps-registry">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ps-note" value="Phase: Future (v2+)&lt;br&gt;MCP-style tool registration" style="text;html=1;strokeColor=none;fillColor=none;fontSize=10;fontStyle=2;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="500" width="150" height="30" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram name="LLM Orchestration" id="llm-orchestration">
+    <mxGraphModel dx="1100" dy="750" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="750" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="llm-title" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;&lt;b&gt;LLM Orchestration &amp;amp; Routing&lt;/b&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="380" y="20" width="340" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="llm-modes-box" value="&lt;b&gt;Four LLM Modes&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="500" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="llm-mode1" value="&lt;b&gt;Cloud Only&lt;/b&gt;&lt;br&gt;(Default/MVP)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="100" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="llm-mode2" value="&lt;b&gt;Local Only&lt;/b&gt;&lt;br&gt;(Privacy)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="170" y="100" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="llm-mode3" value="&lt;b&gt;Simple Hybrid&lt;/b&gt;&lt;br&gt;(Auto-route)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="285" y="100" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="llm-mode4" value="&lt;b&gt;Orchestrated&lt;/b&gt;&lt;br&gt;(Recommended)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="400" y="100" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="llm-router" value="&lt;b&gt;Adaptive Router&lt;/b&gt;&lt;hr&gt;Query complexity&lt;br&gt;Context policy&lt;br&gt;Performance history&lt;br&gt;Quality signals" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="580" y="80" width="150" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="llm-orch-box" value="&lt;b&gt;Orchestrated Hybrid Detail&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="220" width="700" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="llm-cloud-orch" value="&lt;b&gt;Cloud Orchestrator&lt;/b&gt;&lt;br&gt;(Claude/GPT-4)&lt;hr&gt;Understand intent&lt;br&gt;Plan subtasks&lt;br&gt;Synthesize response&lt;br&gt;Quality review" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="280" y="250" width="150" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="llm-local-cal" value="&lt;b&gt;Calendar Agent&lt;/b&gt;&lt;br&gt;(Local Qwen)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="60" y="340" width="110" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="llm-local-mail" value="&lt;b&gt;Email Agent&lt;/b&gt;&lt;br&gt;(Local Qwen)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="460" y="340" width="110" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="llm-local-draft" value="&lt;b&gt;Draft Agent&lt;/b&gt;&lt;br&gt;(Local Qwen)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="590" y="340" width="110" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="llm-self-tune" value="&lt;b&gt;Self-Tuning Engine&lt;/b&gt;&lt;hr&gt;Performance signals&lt;br&gt;Quality signals&lt;br&gt;Graceful degradation&lt;br&gt;User notifications" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="780" y="220" width="150" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="llm-monitor" value="&lt;b&gt;Monitoring Dashboard&lt;/b&gt;&lt;hr&gt;Token usage&lt;br&gt;Cost tracking&lt;br&gt;A/B testing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="780" y="350" width="150" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="llm-a1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=1;endArrow=classic;" edge="1" parent="1" source="llm-cloud-orch" target="llm-local-cal">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="llm-a2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=1;endArrow=classic;" edge="1" parent="1" source="llm-cloud-orch" target="llm-local-mail">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="llm-a3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=1;endArrow=classic;" edge="1" parent="1" source="llm-cloud-orch" target="llm-local-draft">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="llm-privacy-note" value="&lt;b&gt;Privacy:&lt;/b&gt; Sensitive data stays local.&lt;br&gt;Only structured summaries go to cloud." style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;fontSize=10;fontColor=#333333;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="450" width="220" height="40" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram name="Security Layers" id="security-layers">
+    <mxGraphModel dx="1000" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="700" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="sec-title" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;&lt;b&gt;Defense in Depth - Security Layers&lt;/b&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="300" y="20" width="400" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sec-l1" value="&lt;b&gt;Layer 1: Input Gateway&lt;/b&gt;&lt;hr&gt;Rate limiting&lt;br&gt;Format validation&lt;br&gt;Known attack patterns" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="180" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sec-l2" value="&lt;b&gt;Layer 2: Tron Firewall&lt;/b&gt;&lt;hr&gt;Signature-based detection&lt;br&gt;ML classification&lt;br&gt;Structural analysis" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="250" y="80" width="180" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sec-l3" value="&lt;b&gt;Layer 3: Capability Bounds&lt;/b&gt;&lt;hr&gt;Structured ops only&lt;br&gt;Sandboxed file access&lt;br&gt;Credential use not expose" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="460" y="80" width="180" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sec-l4" value="&lt;b&gt;Layer 4: Workbench&lt;/b&gt;&lt;hr&gt;Docker/gVisor container&lt;br&gt;No ambient authority&lt;br&gt;Explicit data transfer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="670" y="80" width="180" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sec-l5" value="&lt;b&gt;Layer 5: Output Validation&lt;/b&gt;&lt;hr&gt;Secret detection&lt;br&gt;PII redaction&lt;br&gt;Behavior anomaly" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="250" y="200" width="180" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sec-l6" value="&lt;b&gt;Layer 6: Retrospective&lt;/b&gt;&lt;hr&gt;Continuous history scan&lt;br&gt;Incident correlation&lt;br&gt;Signature feedback" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="460" y="200" width="180" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sec-tron-detail" value="&lt;b&gt;Tron Responsibilities&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="320" width="400" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="sec-tron-1" value="Prompt injection firewall" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="350" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="sec-tron-2" value="Tool call authorization" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="220" y="350" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="sec-tron-3" value="Group chat restrictions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="390" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="sec-tron-4" value="Anomaly detection" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="220" y="390" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="sec-tron-5" value="Audit logging" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="140" y="430" width="150" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sec-keychain" value="&lt;b&gt;Keychain Integration&lt;/b&gt;&lt;hr&gt;API keys per context&lt;br&gt;Secure Enclave for DB keys&lt;br&gt;Credentials used not exposed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="480" y="320" width="180" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sec-sandbox" value="&lt;b&gt;App Sandbox&lt;/b&gt;&lt;hr&gt;Container isolation&lt;br&gt;Entitlements&lt;br&gt;Hardened Runtime" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="680" y="320" width="160" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sec-mvp-note" value="MVP: Layers 1, 3 only (hardcoded rules)" style="text;html=1;strokeColor=none;fillColor=none;fontSize=10;fontStyle=2;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="500" width="200" height="20" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram name="Integration Services" id="integration-services">
+    <mxGraphModel dx="1000" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="700" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="int-title" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;&lt;b&gt;Apple Integration Services&lt;/b&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="350" y="20" width="300" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="int-tier1" value="&lt;b&gt;Tier 1: Core Integrations&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;opacity=50;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="440" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="int-calendar" value="&lt;b&gt;CalendarService.xpc&lt;/b&gt;&lt;hr&gt;EventKit&lt;br&gt;List/Create events&lt;br&gt;Reminders" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="100" width="130" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="int-mail" value="&lt;b&gt;MailService.xpc&lt;/b&gt;&lt;hr&gt;Mail.app AppleScript&lt;br&gt;List/Send" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="200" y="100" width="130" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="int-contacts" value="&lt;b&gt;ContactsService.xpc&lt;/b&gt;&lt;hr&gt;Contacts framework&lt;br&gt;Search/Lookup" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="345" y="100" width="130" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="int-tier2" value="&lt;b&gt;Tier 2: Enhanced Integrations&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;opacity=50;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="220" width="590" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="int-notes" value="&lt;b&gt;NotesService&lt;/b&gt;&lt;hr&gt;Notes AppleScript" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="250" width="110" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="int-weather" value="&lt;b&gt;WeatherService&lt;/b&gt;&lt;hr&gt;WeatherKit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="180" y="250" width="110" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="int-maps" value="&lt;b&gt;MapsService&lt;/b&gt;&lt;hr&gt;MapKit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="305" y="250" width="110" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="int-homekit" value="&lt;b&gt;HomeService&lt;/b&gt;&lt;hr&gt;HomeKit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="430" y="250" width="110" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="int-shortcuts" value="&lt;b&gt;ShortcutsService&lt;/b&gt;&lt;hr&gt;Shortcuts API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="555" y="250" width="110" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="int-protocol" value="&lt;b&gt;ContextAwareIntegration Protocol&lt;/b&gt;&lt;hr&gt;All services implement:&lt;br&gt;- detectContext() → .personal | .work&lt;br&gt;- routeToContext(context)&lt;br&gt;- getAccountsForContext(context)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673a6;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="680" y="100" width="220" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="int-intent" value="&lt;b&gt;IntentRouter&lt;/b&gt;&lt;hr&gt;Classify user intent&lt;br&gt;Route to service&lt;br&gt;Enforce capability bounds" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673a6;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="680" y="230" width="220" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="int-phases" value="&lt;b&gt;Implementation Phases&lt;/b&gt;&lt;br&gt;&lt;br&gt;MVP: No integrations&lt;br&gt;Phase 4: Tier 1 (Calendar, Mail, Contacts)&lt;br&gt;Phase 5+: Tier 2 (Notes, Weather, Maps, etc.)" style="text;html=1;strokeColor=#666666;fillColor=#f5f5f5;fontSize=10;fontColor=#333333;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="380" width="250" height="80" as="geometry" />
         </mxCell>
 
       </root>
