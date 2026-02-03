@@ -613,6 +613,7 @@ During this architecture review, the following items were noted:
 | `memory-learning.md` | Fact extraction, emotional encoding, decay, storage |
 | `specs/error-handling.md` | Component failures, crash recovery, backup strategy, logging |
 | `specs/autonomous-operation.md` | Self-healing, circuit breakers, seamless upgrades, optional telemetry |
+| `specs/token-awareness.md` | Usage tracking, budget enforcement, adaptive quality, projections |
 | `conversation-design.md` | Ember's personality, voice, tone, error handling |
 | `personality-design.md` | Three-layer model, bounded needs, love languages, attachment patterns |
 | `onboarding-ux.md` | Permission flow, LLM setup, first-time experience |

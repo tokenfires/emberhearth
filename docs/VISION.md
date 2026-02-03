@@ -1866,29 +1866,36 @@ If these users can:
 
 **Context:** The autonomous operation spec defines an "offline mode" where EmberHearth queues messages and acknowledges receipt but cannot generate AI responses. This is better than silence, but still degrades the user experience during LLM API outages.
 
-**Opportunity:** Bundle a small, quantized open-source model (e.g., Llama 3 8B, Phi-3, Gemma 2) with the MLX inference engine directly in the app. When the cloud LLM is unavailable, fall back to local inference.
+**Opportunity:** Bundle a small, quantized open-source model (e.g., Llama 3 8B, Qwen 2.5 7B, DeepSeek-V2-Lite) with the MLX inference engine directly in the app. When the cloud LLM is unavailable, fall back to local inference.
 
 **Why this could work:**
-- Apple Silicon is capable of running 7B-8B models at usable speeds
+- Apple Silicon is capable of running 7B-14B models at usable speeds
 - MLX is Apple's own framework, optimized for Apple Silicon
 - A "good enough" local response beats "I'll respond when I'm back online"
-- Model size: ~4-5GB quantized, acceptable for a desktop app
+- Model size: ~4-8GB quantized, acceptable for a desktop app
 - User expectation is already lowered during offline mode
 
+**The quality gap is closing fast:**
+As of early 2026, models like Qwen 2.5 and DeepSeek are hitting benchmarks near foundation model levels. The 7B-14B tier is no longer "significantly worse"—it's approaching "surprisingly capable." This changes the calculus:
+- A Qwen 2.5 7B may handle 70-80% of assistant requests with acceptable quality
+- For simple queries (calendar, reminders, basic Q&A), local may be indistinguishable
+- Only complex reasoning/long-context tasks would noticeably degrade
+
 **Tradeoffs to research:**
-- **Quality gap:** Local model responses will be noticeably worse. Is "worse but immediate" better than "delayed but better"?
-- **Context limitations:** Local models have smaller context windows. How to handle long conversations?
-- **Memory access:** Can the local model access the memory.db for personalization, or is it too limited?
-- **Model updates:** How to update the bundled model without a full app release?
-- **Disk space:** Is 4-5GB acceptable for users? Should it be an optional download?
+- **Quality gap:** Smaller than expected, but still present for complex tasks
+- **Context limitations:** Local models have smaller context windows (4K-8K vs 128K+). May need aggressive summarization for long conversations.
+- **Memory access:** Can the local model access the memory.db for personalization, or is retrieval too slow?
+- **Model updates:** How to update the bundled model without a full app release? (Sparkle could handle model downloads separately)
+- **Disk space:** Is 4-8GB acceptable for users? Should it be an optional download?
 
 **Possible implementation path:**
 1. MVP: Offline mode with message queue (current spec)
-2. v1.2+: Optional local model download in Settings
+2. v1.1: Optional local model download in Settings
 3. If downloaded, auto-fallback when cloud unavailable
 4. Clear indication to user: "I'm using my backup brain—responses may be simpler"
+5. v1.2+: Smart routing—use local for simple tasks even when online (cost savings)
 
-**Not a priority for MVP**, but worth tracking. Local model quality is improving rapidly; by the time EmberHearth ships, this may be more viable than it is today.
+**Increasingly viable.** The rapid improvement in small models makes this more attractive than originally expected. Worth re-evaluating when approaching v1.1 development.
 
 ### Token Efficiency Research
 
