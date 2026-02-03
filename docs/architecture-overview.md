@@ -7,7 +7,7 @@
 
 ### Diagram Pages
 
-The draw.io file contains 7 pages:
+The draw.io file contains 8 pages:
 
 | Page | Name | Description |
 |------|------|-------------|
@@ -18,6 +18,7 @@ The draw.io file contains 7 pages:
 | 5 | LLM Orchestration | Four modes, adaptive routing, local agents |
 | 6 | Security Layers | Defense in depth (6 layers), Tron detail |
 | 7 | Integration Services | Apple framework XPC services |
+| 8 | Ember Personality System | Three-layer model, progressive disclosure, dynamic injection |
 
 ---
 
@@ -600,6 +601,7 @@ During this architecture review, the following items were noted:
 | `security.md` | XPC services, Keychain, Secure Enclave, sandboxing |
 | `memory-learning.md` | Fact extraction, emotional encoding, decay, storage |
 | `conversation-design.md` | Ember's personality, voice, tone, error handling |
+| `personality-design.md` | Three-layer model, progressive disclosure, pragmatic constraints |
 | `onboarding-ux.md` | Permission flow, LLM setup, first-time experience |
 | `session-management.md` | Context window, sessions, groups, identity |
 | `local-models.md` | MLX, model selection, performance |
