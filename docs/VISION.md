@@ -1862,6 +1862,34 @@ If these users can:
 8. **Quantization Trade-offs:** How much capability is lost at 4-bit vs 8-bit quantization? Is the trade-off acceptable for assistant use cases?
 9. **Hybrid Architecture:** What's the optimal split between local and cloud inference? Can a local model handle 80% of requests with cloud fallback for complex tasks?
 
+### Future Opportunity: Bundled Local Fallback Model
+
+**Context:** The autonomous operation spec defines an "offline mode" where EmberHearth queues messages and acknowledges receipt but cannot generate AI responses. This is better than silence, but still degrades the user experience during LLM API outages.
+
+**Opportunity:** Bundle a small, quantized open-source model (e.g., Llama 3 8B, Phi-3, Gemma 2) with the MLX inference engine directly in the app. When the cloud LLM is unavailable, fall back to local inference.
+
+**Why this could work:**
+- Apple Silicon is capable of running 7B-8B models at usable speeds
+- MLX is Apple's own framework, optimized for Apple Silicon
+- A "good enough" local response beats "I'll respond when I'm back online"
+- Model size: ~4-5GB quantized, acceptable for a desktop app
+- User expectation is already lowered during offline mode
+
+**Tradeoffs to research:**
+- **Quality gap:** Local model responses will be noticeably worse. Is "worse but immediate" better than "delayed but better"?
+- **Context limitations:** Local models have smaller context windows. How to handle long conversations?
+- **Memory access:** Can the local model access the memory.db for personalization, or is it too limited?
+- **Model updates:** How to update the bundled model without a full app release?
+- **Disk space:** Is 4-5GB acceptable for users? Should it be an optional download?
+
+**Possible implementation path:**
+1. MVP: Offline mode with message queue (current spec)
+2. v1.2+: Optional local model download in Settings
+3. If downloaded, auto-fallback when cloud unavailable
+4. Clear indication to user: "I'm using my backup brain—responses may be simpler"
+
+**Not a priority for MVP**, but worth tracking. Local model quality is improving rapidly; by the time EmberHearth ships, this may be more viable than it is today.
+
 ### Token Efficiency Research
 
 10. **Compression Quality:** Can a small local model (3B-7B) produce summaries good enough that cloud models reason effectively from them?
