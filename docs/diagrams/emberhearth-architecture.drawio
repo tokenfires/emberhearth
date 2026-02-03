@@ -102,9 +102,15 @@
           <mxGeometry x="520" y="350" width="160" height="100" as="geometry" />
         </mxCell>
 
-        <!-- XPC Services -->
-        <mxCell id="xpc-label" value="XPC Services" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;align=center;fontColor=#333333;" vertex="1" parent="1">
-          <mxGeometry x="580" y="460" width="100" height="20" as="geometry" />
+        <!-- XPC Services with Sandbox Boundary -->
+        <mxCell id="sandbox-boundary" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#B85450;strokeWidth=2;dashed=1;dashPattern=8 4;" vertex="1" parent="1">
+          <mxGeometry x="250" y="465" width="710" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="sandbox-label" value="&lt;b&gt;APP SANDBOX BOUNDARY&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=0;align=left;fontColor=#B85450;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="260" y="467" width="180" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="xpc-label" value="XPC Services (Isolated Processes)" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;align=center;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="530" y="460" width="200" height="20" as="geometry" />
         </mxCell>
 
         <!-- MessageService - MVP -->
@@ -459,8 +465,15 @@
           <mxGeometry x="400" y="80" width="180" height="100" as="geometry" />
         </mxCell>
 
-        <mxCell id="ps-runtime" value="&lt;b&gt;Plugin Runtime&lt;/b&gt;&lt;hr&gt;JavaScriptCore Sandbox&lt;br&gt;No filesystem access&lt;br&gt;Declared network only&lt;br&gt;Execution timeout" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
-          <mxGeometry x="150" y="220" width="180" height="100" as="geometry" />
+        <!-- Sandbox Boundary for Plugin Runtime -->
+        <mxCell id="ps-sandbox-boundary" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#B85450;strokeWidth=2;dashed=1;dashPattern=8 4;" vertex="1" parent="1">
+          <mxGeometry x="140" y="210" width="200" height="265" as="geometry" />
+        </mxCell>
+        <mxCell id="ps-sandbox-label" value="&lt;b&gt;JAVASCRIPTCORE SANDBOX&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=0;align=center;fontColor=#B85450;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="145" y="213" width="190" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="ps-runtime" value="&lt;b&gt;Plugin Runtime&lt;/b&gt;&lt;hr&gt;JavaScriptCore Engine&lt;br&gt;No filesystem access&lt;br&gt;Declared network only&lt;br&gt;Execution timeout" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="150" y="235" width="180" height="100" as="geometry" />
         </mxCell>
 
         <mxCell id="ps-api" value="&lt;b&gt;EmberHearth API&lt;/b&gt;&lt;hr&gt;calendar.listEvents()&lt;br&gt;contacts.search()&lt;br&gt;memory.query()&lt;br&gt;notifications.send()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
@@ -638,6 +651,59 @@
           <mxGeometry x="40" y="500" width="200" height="20" as="geometry" />
         </mxCell>
 
+        <!-- Flow Arrows: Data Pipeline -->
+        <mxCell id="sec-flow-input" value="&lt;b&gt;Input&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#82b366;align=right;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="115" width="50" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="sec-arr-0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=classic;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="30" y="125" as="sourcePoint" />
+            <mxPoint x="40" y="125" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sec-arr-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="sec-l1" target="sec-l2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sec-arr-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="sec-l2" target="sec-l3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sec-arr-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="sec-l3" target="sec-l4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sec-arr-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="sec-l4" target="sec-l5">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="870" y="125" />
+              <mxPoint x="870" y="245" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sec-arr-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="sec-l5" target="sec-l6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sec-arr-out" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=classic;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="640" y="245" as="sourcePoint" />
+            <mxPoint x="900" y="245" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sec-flow-output" value="&lt;b&gt;Output&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#82b366;align=left;" vertex="1" parent="1">
+          <mxGeometry x="905" y="235" width="50" height="20" as="geometry" />
+        </mxCell>
+        <!-- Retrospective feedback loop -->
+        <mxCell id="sec-arr-retro" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#6c8ebf;strokeWidth=1;endArrow=classic;dashed=1;" edge="1" parent="1" source="sec-l6" target="sec-l2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="550" y="310" />
+              <mxPoint x="340" y="310" />
+              <mxPoint x="340" y="180" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sec-retro-label" value="Signature feedback" style="text;html=1;strokeColor=none;fillColor=none;fontSize=9;fontStyle=2;fontColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="355" y="295" width="100" height="15" as="geometry" />
+        </mxCell>
+
       </root>
     </mxGraphModel>
   </diagram>
@@ -694,6 +760,77 @@
 
         <mxCell id="int-phases" value="&lt;b&gt;Implementation Phases&lt;/b&gt;&lt;br&gt;&lt;br&gt;MVP: No integrations&lt;br&gt;Phase 4: Tier 1 (Calendar, Mail, Contacts)&lt;br&gt;Phase 5+: Tier 2 (Notes, Weather, Maps, etc.)" style="text;html=1;strokeColor=#666666;fillColor=#f5f5f5;fontSize=10;fontColor=#333333;rounded=1;" vertex="1" parent="1">
           <mxGeometry x="40" y="380" width="250" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Flow: User Intent → IntentRouter → Services -->
+        <mxCell id="int-input" value="&lt;b&gt;User Intent&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#82b366;align=right;" vertex="1" parent="1">
+          <mxGeometry x="580" y="255" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="int-arr-in" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=classic;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="665" y="275" as="sourcePoint" />
+            <mxPoint x="680" y="275" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- IntentRouter to Tier 1 services -->
+        <mxCell id="int-arr-cal" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=1;endArrow=classic;" edge="1" parent="1" source="int-intent" target="int-calendar">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="650" y="320" />
+              <mxPoint x="650" y="140" />
+              <mxPoint x="490" y="140" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="int-arr-mail" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=1;endArrow=classic;" edge="1" parent="1" source="int-intent" target="int-mail">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="630" y="320" />
+              <mxPoint x="630" y="60" />
+              <mxPoint x="265" y="60" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="int-arr-contacts" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=1;endArrow=classic;" edge="1" parent="1" source="int-intent" target="int-contacts">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="610" y="320" />
+              <mxPoint x="610" y="55" />
+              <mxPoint x="120" y="55" />
+              <mxPoint x="120" y="140" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- IntentRouter to Tier 2 services -->
+        <mxCell id="int-arr-tier2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#6c8ebf;strokeWidth=1;endArrow=classic;dashed=1;" edge="1" parent="1" source="int-intent" target="int-notes">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="680" y="350" />
+              <mxPoint x="30" y="350" />
+              <mxPoint x="30" y="285" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Protocol implements arrows -->
+        <mxCell id="int-proto-arr1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#9673a6;strokeWidth=1;endArrow=block;endFill=0;dashed=1;dashPattern=4 2;" edge="1" parent="1" source="int-calendar" target="int-protocol">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="int-proto-label" value="implements" style="text;html=1;strokeColor=none;fillColor=none;fontSize=8;fontStyle=2;fontColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="545" y="120" width="50" height="12" as="geometry" />
+        </mxCell>
+
+        <!-- Output arrow -->
+        <mxCell id="int-arr-out" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=classic;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="900" y="275" as="sourcePoint" />
+            <mxPoint x="950" y="275" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="int-output" value="&lt;b&gt;Response&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#82b366;align=left;" vertex="1" parent="1">
+          <mxGeometry x="950" y="265" width="60" height="20" as="geometry" />
         </mxCell>
 
       </root>
