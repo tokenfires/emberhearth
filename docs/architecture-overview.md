@@ -18,7 +18,7 @@ The draw.io file contains 8 pages:
 | 5 | LLM Orchestration | Four modes, adaptive routing, local agents |
 | 6 | Security Layers | Defense in depth (6 layers), Tron detail |
 | 7 | Integration Services | Apple framework XPC services |
-| 8 | Ember Personality System | Three-layer model, progressive disclosure, dynamic injection |
+| 8 | Ember Personality System | Three-layer model, bounded needs, user understanding, attachment-informed algorithm, configuration |
 
 ---
 
