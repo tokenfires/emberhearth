@@ -601,12 +601,13 @@ During this architecture review, the following items were noted:
 | `security.md` | XPC services, Keychain, Secure Enclave, sandboxing |
 | `memory-learning.md` | Fact extraction, emotional encoding, decay, storage |
 | `conversation-design.md` | Ember's personality, voice, tone, error handling |
-| `personality-design.md` | Three-layer model, progressive disclosure, pragmatic constraints |
+| `personality-design.md` | Three-layer model, bounded needs, love languages, attachment patterns |
 | `onboarding-ux.md` | Permission flow, LLM setup, first-time experience |
 | `session-management.md` | Context window, sessions, groups, identity |
 | `local-models.md` | MLX, model selection, performance |
 | `work-personal-contexts.md` | Dual context architecture |
 | `macos-apis.md` | Apple framework capabilities |
+| `safari-integration.md` | Bookmarks, history, AppleScript, Safari extensions |
 
 ---
 
