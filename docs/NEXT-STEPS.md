@@ -1,8 +1,8 @@
 # EmberHearth: Next Steps
 
-**Version:** 1.2
+**Version:** 1.3
 **Date:** February 3, 2026
-**Status:** Phase 1 Research Complete
+**Status:** Phase 1 Research Complete → Architecture Formalization In Progress
 **Related:** [VISION.md](VISION.md)
 
 ---
@@ -10,6 +10,8 @@
 ## Overview
 
 This document captures the concrete next steps for developing EmberHearth, organized into phases. Each phase builds on the previous, with clear deliverables and research questions to answer.
+
+**Current Focus:** Phase 1.5 — Architecture Formalization
 
 ---
 
@@ -266,6 +268,91 @@ emberhearth/
 - Family exception (trusted groups)
 - Work re-validation (time-based SMS confirmation, needs server)
 - 911/emergency call safeguards (out of SMS scope)
+
+---
+
+## Phase 1.5: Architecture Formalization ✅
+
+*Transition from research to actionable architecture. Extract decisions, define MVP scope, prepare for implementation.*
+
+**Status:** Complete
+
+### 1.5.1 Architecture Decision Records (ADRs) ✅
+
+**Goal:** Extract and document all significant architectural decisions from research.
+
+**Deliverables:**
+- [x] ADR-0001: Use XPC Services for Component Isolation
+- [x] ADR-0002: Distribute Outside Mac App Store
+- [x] ADR-0003: iMessage as Primary Interface
+- [x] ADR-0004: No Shell/Command Execution
+- [x] ADR-0005: Safari Read-Only Access by Default
+- [x] ADR-0006: Sandboxed Web Tool for Ember's Research
+- [x] ADR-0007: SQLite for Memory and Conversation Storage
+- [x] ADR-0008: Claude API as Primary LLM Provider
+- [x] ADR-0009: Tron Security Layer Architecture
+- [x] ADR-0010: FSEvents for Active Data Monitoring
+- [x] ADR-0011: Bounded Needs Personality Model
+
+**Location:** `docs/architecture/decisions/`
+
+### 1.5.2 MVP Scope Definition ✅
+
+**Goal:** Define exactly what's in MVP vs. later releases.
+
+**Deliverables:**
+- [x] MVP scope document with success criteria
+- [x] Feature matrix (MVP through v2.0)
+- [x] MVP architecture diagram
+- [x] MVP milestones (M1-M8)
+- [x] Definition of Done
+
+**Location:** `docs/releases/mvp-scope.md`, `docs/releases/feature-matrix.md`
+
+### 1.5.3 Deployment Formalization ✅
+
+**Goal:** Document build, signing, notarization, and release process.
+
+**Deliverables:**
+- [x] Build and release guide
+- [x] Code signing requirements
+- [x] Notarization process
+- [x] CI/CD pipeline (GitHub Actions)
+- [x] Sparkle auto-update configuration
+
+**Location:** `docs/deployment/build-and-release.md`
+
+### 1.5.4 Testing Strategy ✅
+
+**Goal:** Define how the system will be tested.
+
+**Deliverables:**
+- [x] Testing pyramid approach
+- [x] Unit test strategy
+- [x] LLM/prompt regression testing
+- [x] Security testing requirements
+- [x] Manual testing checklists
+
+**Location:** `docs/testing/strategy.md`
+
+### New Documentation Structure
+
+```
+docs/
+├── architecture/
+│   └── decisions/          # 11 ADRs
+│       ├── README.md
+│       ├── 0001-*.md through 0011-*.md
+├── specs/                  # Technical specs (next)
+├── deployment/
+│   └── build-and-release.md
+├── testing/
+│   └── strategy.md
+├── releases/
+│   ├── mvp-scope.md
+│   └── feature-matrix.md
+└── research/               # Existing research (unchanged)
+```
 
 ---
 
