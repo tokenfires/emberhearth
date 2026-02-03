@@ -1,8 +1,8 @@
 # EmberHearth: Next Steps
 
-**Version:** 1.1
-**Date:** February 2, 2026
-**Status:** Phase 1 Research In Progress
+**Version:** 1.2
+**Date:** February 3, 2026
+**Status:** Phase 1 Research Complete
 **Related:** [VISION.md](VISION.md)
 
 ---
@@ -226,32 +226,46 @@ emberhearth/
 - Accessibility: Full VoiceOver, Dynamic Type, keyboard navigation, reduced motion support.
 - Post-onboarding: Gentle feature discovery over first week via natural conversation.
 
-### 1.9 Session & Identity Management Research ⏳
+### 1.9 Session & Identity Management Research ✅
 
 **Goal:** Design how EmberHearth manages conversation context, session continuity, and user identity verification.
 
-**Status:** Research questions documented, answers pending.
+**Status:** Complete
 
 **Research Questions:**
-- [ ] How to build effective LLM context from iMessage history (context window management)?
-- [ ] What defines a "session" and how long until it expires?
-- [ ] What happens if user deletes iMessage chat history?
-- [ ] What if user starts a second parallel iMessage thread?
-- [ ] How should Ember behave in group chats? (Security implications)
-- [ ] How to verify messages come from authorized users?
-- [ ] Should multi-user roles/permissions be supported?
+- [x] How to build effective LLM context from iMessage history (context window management)?
+- [x] What defines a "session" and how long until it expires?
+- [x] What happens if user deletes iMessage chat history?
+- [x] What if user starts a second parallel iMessage thread?
+- [x] How should Ember behave in group chats? (Security implications)
+- [x] How to verify messages come from authorized users?
+- [x] Should multi-user roles/permissions be supported?
 
-**Deliverable:** `docs/research/session-management.md` with architecture decisions ⏳
+**Deliverable:** `docs/research/session-management.md` with architecture decisions ✅
 
-**Why This Was Added:**
-This research topic was identified after completing Phase 1 research. The original research covered *what* data to access (iMessage, memory, etc.) but not *how* to manage conversation flow and identity across sessions. These questions are foundational to the iMessage integration architecture and must be answered before Phase 2 prototyping.
+**Key Decisions:**
+- Context strategy: Hybrid Adaptive with dynamic summarization (~20 message trigger, adapts to user behavior)
+- Context budget: 10% system, 25% recent, 10% summary, 15% memories, 5% tasks, 35% response
+- Session timeout: Never—continuous relationship (no formal expiration)
+- Deleted history: Silent graceful degradation via new Conversation Archive (mini-RAG)
+- Conversation Archive: Separate from memory facts, preserves conversational texture, 90-day retention
+- Group chat mode: Social only—no tools, no memory, no commands; natural response timing
+- Group triggers: Name mention (Ember/Em/E/nicknames), introductions, direct address
+- Public/private awareness: Strict separation—Ember protects primary's trust in social contexts
+- Identity model: Phone = user after initial passkey confirmation (same trust as iMessage itself)
+- Sensitive ops: Soft deletes, MacOS app for permanent deletion/browsing
+- Pattern recognition: Wellness checks (Ember), security anomalies (Tron)
+- Multi-user: Single owner only for MVP; roles deferred to Phase 5+
 
-**Key Areas:**
-1. **Context Window Management** — LLMs have limited context; iMessage history can span years. Need strategy for building effective context.
-2. **Session Continuity** — Handling deleted history, parallel threads, app restarts, Mac sleep/wake.
-3. **Group Chat Security** — Ember added to group chat = potential information disclosure. Need security tiers (Tron integration).
-4. **Identity Verification** — Ensuring messages come from authorized user, not someone with borrowed phone.
-5. **Multi-User Scenarios** — Deferred to later phase, but documented for future consideration.
+**New MacOS App Requirements Identified:**
+- Conversation Archive management (clear, retention period)
+- Saved data browser (facts/events, selection for deletion)
+- Soft delete recovery screen
+
+**Earmarked for Future:**
+- Family exception (trusted groups)
+- Work re-validation (time-based SMS confirmation, needs server)
+- 911/emergency call safeguards (out of SMS scope)
 
 ---
 
@@ -508,7 +522,7 @@ The project is open source, but sustainability options should be considered:
 | Phase | Status | Notes |
 |-------|--------|-------|
 | Phase 0: Setup | ✅ Complete | Repo created, structure established |
-| Phase 1: Research | ⏳ 8/9 Complete | Session & Identity Management (1.9) pending |
+| Phase 1: Research | ✅ Complete | All 9 research topics complete |
 | Phase 2: Prototype | Not Started | Blocked on 1.9 completion |
 | Phase 3: Architecture | Not Started | |
 | Phase 4: Memory | Not Started | |

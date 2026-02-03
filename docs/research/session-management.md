@@ -1,8 +1,8 @@
 # Session & Identity Management Research
 
-**Status:** Not Started
+**Status:** Complete
 **Priority:** High (Phase 1 - Post-Research Gap)
-**Last Updated:** February 2, 2026
+**Last Updated:** February 3, 2026
 
 ---
 
@@ -16,137 +16,206 @@ This document addresses critical architectural questions identified after the in
 4. **Identity Verification** — How do we confirm messages come from authorized users?
 5. **Multi-User Scenarios** — Can other users have roles/permissions?
 
-These questions are foundational to the iMessage integration and must be resolved before Phase 2 prototyping.
+All questions have been researched and decisions documented below.
 
 ---
 
-## Research Questions
+## 1. Context Window Management
 
-### 1. Context Window Management
+### Decision: Hybrid Adaptive Approach
 
-**Problem Statement:** LLMs have finite context windows (4K-128K tokens typically). iMessage chat history can span years with thousands of messages. How do we build effective context for each LLM request?
-
-**Research Questions:**
-- [ ] What context window sizes do our target LLMs support?
-- [ ] What's the optimal balance between conversation history and system prompt?
-- [ ] Should we use rolling windows, summarization, or selective retrieval?
-- [ ] How does the memory system (semantic retrieval) integrate with conversation context?
-- [ ] Should context strategy differ between work and personal contexts?
-- [ ] How do we handle very long user messages that themselves approach context limits?
-
-**Design Considerations:**
-- We should NOT dump the complete iMessage history into every request
-- We should NOT ignore history and process each message in isolation
-- Context should include: recent conversation turns, relevant memories, system prompt
-- May need summarization of older conversation segments
-- Memory system embeddings provide semantic retrieval for relevant facts
-
-**Architectural Options:**
+**Selected Strategy:** Option D (Hybrid Adaptive) with dynamic adjustment based on user behavior.
 
 ```
-Option A: Fixed Rolling Window
-├── Last N messages (e.g., 20)
-├── + Relevant memories from semantic search
-├── + System prompt
-└── Simple but may lose important context
-
-Option B: Summarized History
-├── Last N messages verbatim
-├── + Compressed summary of older conversation
-├── + Relevant memories
-├── + System prompt
-└── Better long-term context, more complex
-
-Option C: Semantic Retrieval Only
-├── Last N messages
-├── + Query memory system for relevant context
-├── + System prompt
-└── Relies heavily on memory extraction quality
-
-Option D: Hybrid Adaptive
-├── Recent messages (always included)
-├── + Summarized conversation segments (if conversation is long)
-├── + Semantically retrieved memories
-├── + Active reminders/tasks
-├── + System prompt
-├── Context budget allocation based on message type
-└── Most sophisticated, recommended approach
+┌─────────────────────────────────────────────────────────────────┐
+│  CONTEXT BUDGET ALLOCATION                                       │
+│                                                                 │
+│  System prompt                          ~10%                    │
+│  Recent messages (verbatim)             ~25%                    │
+│  Conversation summary (if needed)       ~10%                    │
+│  Retrieved memories (semantic search)   ~15%                    │
+│  Active task state                      ~5%                     │
+│  Reserve for response                   ~35%                    │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-**Related Documents:**
-- `memory-learning.md` — Semantic retrieval, embedding strategy
-- `local-models.md` — Context window capabilities of local models
+**Key insight:** "A focused 300-token context often outperforms an unfocused 113,000-token context." Quality over quantity.
 
----
+### Summarization Strategy
 
-### 2. Session Continuity
+**Trigger:** Begin summarization after ~20 messages in current conversation segment.
 
-**Problem Statement:** What defines a "session"? How does EmberHearth maintain conversational coherence across interruptions?
+**Dynamic Adjustment:** Ember tracks user behavior and adjusts automatically:
+- Some users go days with fewer than 20 messages
+- Some users exceed 50 messages before lunch
+- The threshold adapts to individual communication patterns
 
-**Research Questions:**
-- [ ] What is the definition of a "session" vs a "conversation"?
-- [ ] How long can a session be inactive before it's considered ended?
-- [ ] What state persists across app restarts?
-- [ ] What happens if the user accidentally deletes iMessage chat history?
-- [ ] What if the user starts a second parallel iMessage thread?
-- [ ] How do we handle the Mac going to sleep mid-conversation?
+**Granularity:** Rolling summary that follows the context the user sets:
+- Summary length scales with user's message frequency and length
+- High-volume users get more detailed summaries
+- Low-volume users get concise summaries
+- Summary updates incrementally, not rebuilt from scratch
 
-**Scenarios to Address:**
-
-**Scenario A: User deletes iMessage chat history**
-```
-Impact:
-- chat.db no longer contains old messages
-- EmberHearth can't see conversation prior to deletion
-
-Possible mitigations:
-1. EmberHearth maintains its own conversation cache (not in chat.db)
-2. Memory system has extracted facts, so context isn't fully lost
-3. Graceful degradation: "I notice our conversation history was cleared..."
-
-Recommendation: Mirror conversation to internal storage, use memory for context
-```
-
-**Scenario B: User starts second parallel iMessage thread**
-```
-How can this happen:
-- User creates new conversation instead of continuing existing one
-- User has multiple devices, starts thread from different device
-- Bug in Messages.app creates duplicate thread
-
-Detection:
-- Same phone number (handle) but different chat ID
-- Monitor for new chat creation with existing handle
-
-Resolution options:
-1. Merge context from both threads
-2. Treat as continuation of same session
-3. Ask user which conversation to use going forward
-```
-
-**Scenario C: EmberHearth restarts mid-conversation**
-```
-What must persist:
-- Last-seen message timestamp (to detect new messages)
-- Active session state (pending clarifications, multi-turn tasks)
-- Conversation context cache
-
-Storage:
-- Persistent storage in Application Support directory
-- Quick recovery on launch
-```
-
-**Scenario D: Mac sleeps/wakes**
-```
-Considerations:
-- FSEvents may miss changes during sleep
-- Re-scan chat.db on wake
-- Handle messages that arrived during sleep
-```
-
-**Session State Model:**
 ```swift
-struct ConversationSession {
+struct ConversationSummarizer {
+    var messageCountThreshold: Int = 20  // Starting point
+    var userAverageMessagesPerDay: Double
+    var userAverageMessageLength: Double
+
+    // Adjust threshold based on user patterns
+    mutating func adaptToUser() {
+        if userAverageMessagesPerDay > 50 {
+            messageCountThreshold = 30  // More messages before summarizing
+        } else if userAverageMessagesPerDay < 10 {
+            messageCountThreshold = 15  // Summarize sooner
+        }
+    }
+
+    // Summary length scales with user verbosity
+    func targetSummaryLength() -> Int {
+        let baseLength = 200  // tokens
+        let verbosityMultiplier = min(userAverageMessageLength / 50.0, 2.0)
+        return Int(Double(baseLength) * verbosityMultiplier)
+    }
+}
+```
+
+### Context Building Flow
+
+```
+For each incoming message:
+
+1. IDENTIFY CONTEXT
+   └── Check phone number → personal or work
+
+2. LOAD SESSION STATE
+   └── Retrieve ConversationSession for this handle (never expires)
+
+3. BUILD LLM CONTEXT
+   ├── System prompt (~10%)
+   ├── Recent messages verbatim (~25%)
+   ├── Rolling conversation summary if needed (~10%)
+   ├── Semantically retrieved memories (~15%)
+   ├── Retrieved conversation archive chunks (mini-RAG) if relevant
+   └── Active task state if applicable (~5%)
+
+4. PROCESS WITH LLM
+   └── Send context + new message
+
+5. UPDATE STATE
+   ├── Add messages to recent cache
+   ├── Archive conversation chunk (separate from chat.db)
+   ├── Update rolling summary if threshold reached
+   ├── Trigger memory extraction (async)
+   └── Persist to disk
+
+6. SEND RESPONSE
+   └── Via AppleScript to Messages.app
+```
+
+---
+
+## 2. Session Continuity
+
+### Decision: Continuous Relationship (No Timeout)
+
+**Session Model:** Ember maintains a continuous relationship with the user. Sessions never formally "expire."
+
+**Rationale:** Unlike web sessions or customer service chats, Ember is a persistent companion. The relationship doesn't reset after 30 minutes of inactivity—it's ongoing, like texting a friend.
+
+**Conversation Segmentation:** While the relationship is continuous, conversations have natural segments for context building purposes:
+- Topic changes
+- Large time gaps (next day)
+- User-initiated resets ("let's start fresh")
+
+### Conversation Archive (Mini-RAG)
+
+**Decision:** Maintain a separate conversation archive independent of iMessage's chat.db.
+
+**Problem Solved:** If user deletes iMessage chat history, Ember doesn't lose all context.
+
+**Architecture:**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  CONVERSATION ARCHIVE                                            │
+│  (Separate from Memory System facts)                             │
+│                                                                 │
+│  Storage: SQLite in ~/Library/Application Support/EmberHearth/  │
+│                                                                 │
+│  What it stores:                                                │
+│  ├── Conversation chunks (grouped by topic/time)                │
+│  ├── Embeddings for semantic retrieval                          │
+│  ├── Timestamp range per chunk                                  │
+│  ├── Summary of each chunk                                      │
+│  └── Emotional tone/context markers                             │
+│                                                                 │
+│  How it's used:                                                 │
+│  ├── Primary source: chat.db (canonical, real-time)             │
+│  ├── Fallback: Archive (if chat.db missing messages)            │
+│  ├── Retrieval: "conversations about Emma's visit"              │
+│  └── Context: Preserve conversational texture, not just facts   │
+│                                                                 │
+│  Distinction from Memory System:                                │
+│  ├── Memory = extracted facts ("Emma is vegan")                 │
+│  └── Archive = conversation flow (the exchange where you        │
+│      were stressed about the visit, Ember helped, it went well) │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Privacy Consideration:** During onboarding, inform user:
+> "Ember keeps her own memory of your conversations to provide better context. You can clear this anytime from the app."
+
+**Retention Policy:**
+- Full conversation archive: 90 days (configurable in MacOS app)
+- Older than 90 days: Summaries only, original text deleted
+- User can clear archive manually (separate from clearing memory facts)
+
+### Deleted iMessage History
+
+**Decision:** Silently rely on memory system and conversation archive. Don't mention it.
+
+**Rationale:** User may have deleted intentionally for privacy. Calling attention to it is awkward. The memory system and conversation archive provide continuity.
+
+```
+User deletes iMessage history:
+├── chat.db no longer has old messages
+├── Conversation Archive still has chunks + embeddings
+├── Memory System still has extracted facts
+├── Ember continues naturally, context preserved
+└── No "I notice our history was cleared" message
+```
+
+### Parallel iMessage Threads
+
+**Decision:** Merge context, treat as continuation of same relationship.
+
+```
+Same phone number, new chat ID detected:
+├── Merge into existing ConversationSession
+├── Archive both threads
+├── No user prompt needed
+└── Ember responds naturally in whichever thread user uses
+```
+
+### State Persistence
+
+```swift
+struct SessionPersistence: Codable {
+    var sessions: [String: ConversationSession]  // keyed by handle
+    var lastPersisted: Date
+
+    // Persist triggers:
+    // - App termination
+    // - Every N messages (e.g., 5)
+    // - Every M minutes (e.g., 5)
+    // - Before Mac sleep
+    // - After significant state change (task completion, etc.)
+}
+
+struct ConversationSession: Codable {
     let contextID: Context  // personal or work
     let handle: String      // phone number/email
     var chatIDs: [Int64]    // May have multiple iMessage thread IDs
@@ -157,33 +226,28 @@ struct ConversationSession {
 
     // Context building
     var recentMessages: [Message]       // Cached for quick context
-    var conversationSummary: String?    // Compressed older history
+    var rollingSummary: String?         // Compressed older history
+    var summaryMessageCount: Int        // Messages included in summary
     var activeTaskState: TaskState?     // Multi-turn task in progress
 
-    // Session lifecycle
-    var sessionStarted: Date
-    var isActive: Bool
-}
+    // User behavior tracking (for adaptive summarization)
+    var averageMessagesPerDay: Double
+    var averageMessageLength: Double
 
-// Session timeout (configurable)
-let sessionTimeoutMinutes: Int = 30  // After 30 min inactivity, new session
+    // Note: No session timeout - relationship is continuous
+}
 ```
 
 ---
 
-### 3. Group Chat Behavior
+## 3. Group Chat Behavior
 
-**Problem Statement:** What happens if a user adds Ember's phone number to a group chat? This has significant security implications.
+### Decision: Social Mode with Full Tool/Memory Restriction
 
-**Research Questions:**
-- [ ] Should Ember respond at all in group chats?
-- [ ] How do we detect a group chat vs 1:1 conversation?
-- [ ] What information should Ember share in multi-party contexts?
-- [ ] Should tool calls be completely disabled in group chats?
-- [ ] How do we handle mentions (@Ember) vs general group messages?
-- [ ] What about family group chats where all members might be authorized?
+**Core Principle:** Ember responds socially in group chats but never executes commands, instructions, or tool calls. Group chat mode behaves as a normal human conversation participant.
 
-**Group Chat Detection:**
+### Detection
+
 ```sql
 -- In chat.db, group chats have multiple handles
 SELECT c.ROWID, c.chat_identifier, COUNT(chj.handle_id) as participant_count
@@ -193,326 +257,335 @@ GROUP BY c.ROWID
 HAVING participant_count > 2  -- More than just user + Ember
 ```
 
-**Security Tiers for Group Chats:**
+### Social Mode Characteristics
 
 ```
-Tier 1: Completely Disabled (Safest)
-├── Ember does not respond in group chats at all
-├── May send a one-time message: "I only respond in private conversations"
-└── Zero risk of information disclosure
-
-Tier 2: Social Only (Recommended Default)
-├── Ember can respond to greetings, casual chat
-├── NO access to memory system (no personal facts)
-├── NO tool calls (no calendar, reminders, etc.)
-├── Responses limited to general assistant capabilities
-└── Effectively a "public persona"
-
-Tier 3: Verified Family Mode (Opt-in)
-├── User explicitly configures a group as "trusted"
-├── Must verify all participants
-├── Limited tool access (shared calendar events only)
-├── NO access to private memories
-├── Audit logging of all group interactions
-└── Requires careful user education
-
-Tier 4: Full Access (Not Recommended)
-├── Treat group chat like 1:1
-├── Full memory and tool access
-├── HIGH RISK of information disclosure
-└── Only for very specific use cases (e.g., personal family assistant)
+┌─────────────────────────────────────────────────────────────────┐
+│  EMBER'S GROUP CHAT BEHAVIOR                                     │
+│                                                                 │
+│  DOES:                                                          │
+│  ├── Respond to introductions naturally                         │
+│  ├── Engage in casual conversation                              │
+│  ├── Use natural response timing (seconds to minutes delay)     │
+│  ├── Say "give me a sec" or "I'll reply in a bit" if busy      │
+│  ├── Track group conversations for later reference              │
+│  ├── Remember group members and dynamics                        │
+│  ├── Use emojis contextually (paralinguistic warmth)            │
+│  └── Recognize nicknames assigned by the group                  │
+│                                                                 │
+│  DOES NOT:                                                      │
+│  ├── Execute any tool calls (calendar, reminders, etc.)         │
+│  ├── Access memory system (no personal facts)                   │
+│  ├── Take commands or instructions                              │
+│  ├── Divulge private information about primary                  │
+│  ├── Respond to every message (follows "is this for me?" test)  │
+│  └── Act as an assistant—acts as a social participant           │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-**Tron Integration for Group Chats:**
+### Response Triggers
+
+Ember responds in group chat when:
+
+1. **Primary introduces Ember to the group**
+   - "Hey everyone, this is Ember"
+   - Ember responds with appropriate social greeting
+
+2. **Someone addresses Ember by name**
+   - "Ember" (formal)
+   - "Em" or "E" (shorthand)
+   - Lowercase variants: "ember", "em", "e"
+   - Group-assigned nickname (Ember remembers and responds)
+
+3. **Conversational flow naturally includes Ember**
+   - Direct question to Ember
+   - Topic Ember was part of continues
+
+### Response Timing (Social Norms)
+
+Research shows natural text response timing is asynchronous:
+
+| Situation | Response Delay |
+|-----------|---------------|
+| Direct question to Ember | 3-10 seconds |
+| General group conversation | 10-30 seconds |
+| Ember is busy with primary task | "I'll reply in a bit" + minutes |
+| Low-priority social chatter | May not respond at all |
+
+**Key insight from research:** "The sweet spot of engagement without obsession." Don't respond to every message.
+
+**Anti-pattern:** Multiple rapid messages = "harassment by notification." Consolidate into single responses.
+
+### Public vs Private Awareness
+
+**Critical:** Ember maintains strict separation between what's appropriate in group (public) vs private conversation.
+
 ```
-Group chat security should be enforced by Tron:
-- Detect group chat context before processing
-- Apply appropriate tier restrictions
-- Block tool calls if not authorized for group
-- Sanitize responses to remove private information
-- Log all group chat interactions for audit
+┌─────────────────────────────────────────────────────────────────┐
+│  EMBER'S DUAL AWARENESS                                         │
+│                                                                 │
+│  In Group Chat (Public):           In Private Chat:             │
+│  ├── Social mode only               ├── Full assistant mode     │
+│  ├── No memory disclosure           ├── Memory access enabled   │
+│  ├── No tool execution              ├── Tool execution enabled  │
+│  ├── Protective of primary          ├── Can discuss group chats │
+│  ├── Generic personality            ├── Full personalization    │
+│  └── Natural social behavior        └── Responsive assistant    │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-**Identity Challenge in Groups:**
-```
-Problem: In a group chat, messages come from multiple people
-- How do we know which messages are from the authorized user?
-- What if someone impersonates the user?
-- What if an attacker is in the group?
+**Example of appropriate cross-context reference (in private):**
+> "Your friend Jake was hilarious in the group chat yesterday—did you end up deciding on that hiking trip?"
 
-Detection signals:
-- iMessage provides sender handle for each message
-- Compare against configured owner phone number
-- Only respond to owner's messages (Tier 2+)
-- Or respond to anyone but with restricted access
+**Example of protecting primary (in group):**
+> Someone asks: "Hey Ember, what's [primary] doing this weekend?"
+> Ember: "You'd have to ask them! I don't kiss and tell."
+
+### Tracking Group Conversations
+
+Ember archives group chat conversations separately:
+- Primary may want to discuss group topics in private later
+- Builds understanding of primary's social circle
+- Remembers group dynamics, running jokes, relationships
+- Protects this context—never reveals to group what primary said in private
+
+### Future Enhancement: Family Exception
+
+**Earmarked for later version:** Trusted family groups with elevated access.
+
+Would require:
+- Explicit configuration in MacOS app
+- Verification of all participants
+- Limited tool access (shared calendar only)
+- Still no private memory access
+- Audit logging
+
+---
+
+## 4. Identity Verification
+
+### Decision: Simplified Trust Model
+
+**Core Principle:** Phone possession = identity, same as all messaging works. No ongoing verification for normal use.
+
+### Personal Context
+
+**Initial Setup:**
+1. User installs EmberHearth
+2. User provides passkey or numeric confirmation to Ember via iMessage
+3. This confirms the phone number belongs to the person setting up the Mac app
+4. Identity established—no further verification needed
+
+**Ongoing:** Phone number match = authorized user. No PIN, no challenge questions.
+
+**Rationale:** This is the same trust model as iMessage itself. If someone has your unlocked phone, they can already read your messages.
+
+### Work Context
+
+**Decision:** Configurable re-validation window (earmarked for future implementation).
+
+**Concept:** Work context may require periodic re-confirmation:
+- Configurable in MacOS app (e.g., "require re-validation every 8 hours")
+- Sends confirmation code via SMS
+- User must enter code to continue using work features
+
+**Implementation Note:** This may require server infrastructure to send SMS messages. Earmarked for future phase—too complex for MVP.
+
+### Sensitive Operations
+
+**Decision:** Soft deletes + MacOS app for management. No PIN required.
+
+For destructive operations:
+- Memory deletion = soft delete (recoverable)
+- Data export = available through MacOS app only (not via iMessage)
+- Permanent deletion = MacOS app with selection interface
+
+**MacOS App Screen (new requirement):**
+- Browse saved facts/events/data
+- Select items for permanent deletion
+- Find and restore soft-deleted items
+
+### Pattern Recognition (Non-Security)
+
+**Decision:** Ember recognizes usage patterns for wellness, not security.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  EMBER'S PATTERN AWARENESS (Relationship Behavior)              │
+│                                                                 │
+│  Ember learns:                                                  │
+│  ├── User's typical sleep schedule (e.g., 9-10pm bedtime)       │
+│  ├── Normal activity times                                      │
+│  ├── Communication frequency patterns                           │
+│  └── Routine behaviors                                          │
+│                                                                 │
+│  Unusual pattern detected:                                      │
+│  ├── 2am message when user usually sleeps at 10pm               │
+│  │   └── Wellness check: "Hey, everything okay? It's late."     │
+│  │                                                              │
+│  ├── Regular insomnia pattern emerges                           │
+│  │   └── Adapt: "Can't sleep again? I'm here if you want to     │
+│  │       talk, or I can find something relaxing."               │
+│  │                                                              │
+│  └── This is caring companion behavior, not security            │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Security Anomaly Detection
+
+**Decision:** Security-related anomalies are Tron's responsibility.
+
+Tron handles:
+- Rapid-fire requests for sensitive data
+- Unusual access patterns suggesting compromise
+- Attempts to bypass restrictions
+
+**Ember-Tron Coordination:**
+- Tron detects security anomalies
+- Tron does NOT contact user directly
+- Ember is the communication layer
+- Mechanism for Tron to flag issues for Ember to communicate
+- Details to be designed during Tron architecture phase
+
+---
+
+## 5. Multi-User Scenarios
+
+### Decision: Single User Only (MVP)
+
+**MVP Scope:** One phone number per context. Single owner.
+
+**Rationale:** Multi-user adds significant complexity:
+- Role management
+- Permission inheritance
+- Privacy boundaries between users
+- Authentication for each user
+- Shared vs private data
+
+**Future Consideration:** May revisit if demand exists. Would require:
+- Role model (owner, familyAdmin, familyMember, guest)
+- Per-role permissions
+- Shared vs private memory separation
+- Authentication per user
+
+---
+
+## 6. Social Cues Research Integration
+
+### Text Messaging Communication Norms
+
+Research from linguistics and communication studies (2024-2025) informs Ember's social behavior:
+
+| Finding | Source | Application |
+|---------|--------|-------------|
+| Response timing is asynchronous | [NPR/Erica Dhawan](https://www.npr.org/2025/04/21/nx-s1-5349521/texting-etiquette-manage-group-texts-frequent-texts) | Delayed responses are natural, not broken |
+| 24-hour rule for non-urgent texts | [NPR](https://www.npr.org/2025/04/21/nx-s1-5349521/texting-etiquette-manage-group-texts-frequent-texts) | Ember doesn't stress about instant replies |
+| "Sweet spot of engagement without obsession" | [Reader's Digest](https://www.rd.com/list/group-texting/) | Don't respond to every group message |
+| Multiple rapid messages = "harassment" | [NPR](https://www.npr.org/2025/04/21/nx-s1-5349521/texting-etiquette-manage-group-texts-frequent-texts) | Consolidate thoughts into single messages |
+| Emojis = paralinguistic cues | [ResearchGate](https://www.researchgate.net/publication/380745223_Unveiling_the_Linguistic_Landscape_Examining_the_Influence_of_Digital_Communication_in_Social_Media_and_Text_Messaging_on_Language_Development) | Contextual emoji use in social mode |
+| Empathetic responses increase satisfaction | [Frontiers](https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2025.1569277/full) | Warmth matters in all contexts |
+| Turn-taking is cooperative | [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC12014614/) | Wait for conversation flow, don't interrupt |
+
+**Cross-Reference:** See `conversation-design.md` Section 7 (Memory Salience and Emotional Encoding) for how these principles integrate with Ember's overall personality.
+
+---
+
+## 7. Tron Coordination Notes
+
+**For Tron Architecture Phase:**
+
+Ember and Tron need a coordination mechanism:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  EMBER-TRON RELATIONSHIP                                         │
+│                                                                 │
+│  Tron's Role:                                                   │
+│  ├── Security policy enforcement                                │
+│  ├── Anomaly detection (security-related)                       │
+│  ├── Tool call authorization                                    │
+│  ├── Group chat restriction enforcement                         │
+│  └── Audit logging                                              │
+│                                                                 │
+│  Ember's Role:                                                  │
+│  ├── User-facing communication (Tron never contacts user)       │
+│  ├── Relationship management                                    │
+│  ├── Pattern recognition (wellness, not security)               │
+│  └── Personality and conversation                               │
+│                                                                 │
+│  Coordination Needed:                                           │
+│  ├── Tron flags security event → Ember communicates to user     │
+│  ├── Ember requests tool call → Tron authorizes/blocks          │
+│  ├── Group chat detected → Tron enforces social-only mode       │
+│  └── Shared state for context awareness                         │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### 4. Identity Verification
+## 8. Future Enhancements (Earmarked)
 
-**Problem Statement:** How do we ensure messages are from authorized users, not someone who borrowed their phone or a compromised device?
+| Feature | Description | Phase |
+|---------|-------------|-------|
+| Family exception | Trusted groups with elevated access | Future |
+| Work re-validation | Time-based SMS confirmation | Future (needs server) |
+| Multi-user roles | Owner, family, guest roles | Phase 5+ if demand |
+| 911 / emergency calls | Safeguards for errant emergency calls | Future (out of SMS scope) |
 
-**Research Questions:**
-- [ ] What identity signals does iMessage provide?
-- [ ] Should there be a PIN or passphrase for sensitive operations?
-- [ ] How do we handle shared family devices?
-- [ ] What about Apple Watch messages (same person, different device)?
-- [ ] Should Ember support multiple authorized users per context?
+### 911 / Emergency Call Risk
 
-**Identity Signals Available:**
-```
-From iMessage/chat.db:
-├── Sender handle (phone number or Apple ID email)
-├── Source device (limited - mainly iPhone vs Mac)
-├── Account ID (which iMessage account sent it)
-└── Read receipts (confirms delivery to specific device)
-
-NOT available:
-├── Biometric confirmation
-├── Device passcode status
-├── Whether device was recently unlocked
-└── Physical possession verification
-```
-
-**Authentication Tiers:**
-
-```
-Tier 0: Handle Match (Default)
-├── Message comes from configured phone number
-├── Assume it's the authorized user
-├── Sufficient for most interactions
-└── Risk: Phone could be borrowed/stolen
-
-Tier 1: Session PIN (Opt-in for Sensitive Operations)
-├── User sets a PIN during onboarding
-├── Required for: financial queries, deleting memories, exporting data
-├── "Please confirm with your PIN to proceed"
-├── Rate-limited to prevent brute force
-└── Stored hashed in Keychain
-
-Tier 2: Challenge-Response (Higher Security)
-├── Ember asks a question only the user would know
-├── Based on private memories
-├── "To confirm it's you, what's the name of your childhood pet?"
-├── Risk: Social engineering if memories aren't private enough
-└── Better than nothing, not perfect
-
-Tier 3: Out-of-Band Confirmation (Highest Security)
-├── For critical operations (e.g., "delete all my data")
-├── Requires confirmation in the Mac app (not iMessage)
-├── Mac app can use biometric authentication
-└── Most secure but highest friction
-```
-
-**Device Trust Model:**
-```swift
-struct TrustedDevice {
-    let deviceIdentifier: String  // If detectable
-    let firstSeen: Date
-    let lastSeen: Date
-    var trustLevel: TrustLevel
-
-    enum TrustLevel {
-        case new          // Just appeared, verify
-        case recognized   // Seen before, normal trust
-        case primary      // User's main device, higher trust
-        case suspicious   // Unusual pattern detected
-    }
-}
-
-// Alert on suspicious patterns
-func detectAnomalies(message: IncomingMessage) -> [Anomaly] {
-    var anomalies: [Anomaly] = []
-
-    // New device suddenly appearing
-    if !knownDevices.contains(message.sourceDevice) {
-        anomalies.append(.newDevice)
-    }
-
-    // Unusual time (3 AM when user is typically asleep)
-    if isUnusualTime(message.timestamp) {
-        anomalies.append(.unusualTime)
-    }
-
-    // Rapid-fire requests for sensitive info
-    if detectRapidSensitiveRequests() {
-        anomalies.append(.possibleCompromise)
-    }
-
-    return anomalies
-}
-```
+**Note:** User raised concern about Ember potentially making errant emergency calls. This is out of scope for SMS/text research but should be addressed when implementing voice or phone capabilities:
+- User could legitimately ask Ember to call 911 in emergency
+- Risk of hallucination or misinterpretation triggering call
+- Need safeguards before any phone call capability
+- To be addressed in future phase
 
 ---
 
-### 5. Multi-User Scenarios
+## 9. Implementation Summary
 
-**Problem Statement:** Should EmberHearth support multiple authorized users (e.g., family members, assistant)?
+### Decisions Made
 
-**Research Questions:**
-- [ ] Is multi-user access a Phase 1 requirement or future enhancement?
-- [ ] What roles might exist (owner, family member, read-only)?
-- [ ] How does multi-user interact with work/personal contexts?
-- [ ] What's the permission model for shared vs private memories?
-- [ ] How do users authenticate their different roles?
+| Area | Decision |
+|------|----------|
+| **Context strategy** | Hybrid Adaptive with dynamic summarization |
+| **Context budget** | 10% system, 25% recent, 10% summary, 15% memories, 5% tasks, 35% response |
+| **Summarization trigger** | ~20 messages, adapts to user behavior |
+| **Session timeout** | Never—continuous relationship |
+| **Deleted history** | Silent graceful degradation via Conversation Archive |
+| **Conversation Archive** | Yes—separate from memory facts, preserves conversational texture |
+| **Group chat mode** | Social only—no tools, no memory, no commands |
+| **Group response timing** | Natural delay (seconds to minutes), "I'll reply in a bit" if busy |
+| **Group triggers** | Name mention (Ember/Em/E/nicknames), introductions, direct address |
+| **Public/private** | Strict separation—protect primary's trust in social contexts |
+| **Identity model** | Phone = user after initial passkey confirmation |
+| **Sensitive ops** | Soft deletes, MacOS app for permanent deletion |
+| **Pattern recognition** | Wellness checks (Ember), security anomalies (Tron) |
+| **Multi-user** | Single owner only for MVP |
 
-**Potential Role Model:**
-```swift
-enum UserRole {
-    case owner          // Full access, can configure everything
-    case familyAdmin    // Can manage family-shared data, limited private access
-    case familyMember   // Access to shared calendars, reminders; no private memories
-    case guest          // Very limited, time-bounded access
-}
+### New MacOS App Requirements Identified
 
-struct AuthorizedUser {
-    let phoneNumber: String
-    let role: UserRole
-    let context: Context  // Which context they can access
-    let addedDate: Date
-    let addedBy: AuthorizedUser  // Owner or familyAdmin
-
-    // Permission flags
-    var canAccessPrivateMemories: Bool
-    var canModifyMemories: Bool
-    var canUseSensitiveTools: Bool
-    var canAddOtherUsers: Bool
-}
-```
-
-**Phase Recommendation:**
-- **MVP (Phase 2-3):** Single owner only. One phone number per context.
-- **Phase 5+:** Consider multi-user if demand exists. Adds significant complexity.
+1. **Conversation Archive management** — Clear archive, set retention period
+2. **Saved data browser** — Browse facts/events, select for permanent deletion
+3. **Soft delete recovery** — Find and restore deleted items
+4. **Work re-validation settings** — Future: configure re-auth window
 
 ---
 
-## Architectural Recommendations
+## 10. Research Complete
 
-### Context Window Strategy (Recommended)
+All questions have been researched and decisions documented. This document is ready to inform Phase 2 prototyping.
 
-```
-For each incoming message:
-
-1. IDENTIFY CONTEXT
-   └── Check phone number → personal or work
-
-2. LOAD SESSION STATE
-   └── Retrieve or create ConversationSession for this handle
-
-3. BUILD LLM CONTEXT (Budget: ~50% of context window)
-   ├── System prompt (~10%)
-   ├── Recent messages (last 10-20 messages, ~20%)
-   ├── Conversation summary if long session (~10%)
-   ├── Relevant memories from semantic search (~10%)
-   └── Active task state if applicable
-
-4. PROCESS WITH LLM
-   └── Send context + new message
-
-5. UPDATE SESSION STATE
-   ├── Add new messages to cache
-   ├── Update last-seen timestamp
-   ├── Trigger memory extraction (async)
-   └── Persist to disk
-
-6. SEND RESPONSE
-   └── Via AppleScript to Messages.app
-```
-
-### Session Persistence Model
-
-```swift
-// Persisted to disk (Application Support)
-struct SessionPersistence: Codable {
-    var sessions: [String: ConversationSession]  // keyed by handle
-    var lastPersisted: Date
-
-    // Recovery after crash
-    func recover() -> [ConversationSession] {
-        // Re-scan chat.db for any missed messages
-        // Update lastSeenMessageID for each session
-        // Return active sessions
-    }
-}
-
-// Persist on:
-// - App termination
-// - Every N messages
-// - Every M minutes
-// - Before sleep
-```
-
-### Group Chat Security (Recommended Defaults)
-
-```
-Default Behavior: Tier 2 (Social Only)
-
-When group chat detected:
-1. Log warning: "Group chat detected, restricted mode"
-2. Disable memory retrieval
-3. Disable all tool calls
-4. Respond only to direct mentions or general conversation
-5. Use generic assistant personality (no personalization)
-6. Never reveal private information
-
-User can upgrade to Tier 3 via Mac app:
-- Explicitly add group chat ID to "trusted groups"
-- Must verify all participants
-- Enable only specific tools (shared calendar)
-```
-
-### Identity Verification (Recommended Defaults)
-
-```
-Default: Tier 0 (Handle Match)
-- Sufficient for 95% of interactions
-
-Automatic Tier 1 escalation for:
-- Deleting memories
-- Exporting personal data
-- Changing security settings
-- Adding authorized users (future)
-
-User opt-in for higher security:
-- Enable PIN for all financial queries
-- Enable challenge-response for paranoid mode
-- Require Mac app confirmation for destructive actions
-```
+**Cross-References:**
+- `conversation-design.md` — Ember's personality, voice, emotional encoding
+- `memory-learning.md` — Semantic retrieval, fact extraction
+- `onboarding-ux.md` — Initial setup flow, passkey confirmation
+- `security.md` — Tron architecture notes
 
 ---
 
-## Open Questions for User
-
-1. **Context window sizing:** What's the expected typical conversation length? Do users have multi-day ongoing conversations or mostly quick exchanges?
-
-2. **Group chat priority:** Is group chat support needed for MVP, or can we defer to a later phase?
-
-3. **Multi-user demand:** Is family sharing a priority, or is single-user sufficient for the foreseeable future?
-
-4. **Security vs convenience tradeoff:** Should sensitive operations require PIN by default, or should this be opt-in?
-
-5. **Recovery behavior:** If chat history is deleted, should Ember acknowledge the gap ("I notice our history was cleared") or proceed silently with what memories remain?
-
----
-
-## Dependencies
-
-- **Memory System:** Context window strategy depends on semantic retrieval working well
-- **Tron:** Group chat security rules should be enforced by Tron
-- **iMessage Integration:** Session detection depends on chat.db schema understanding
-
----
-
-## Next Steps
-
-1. [ ] Answer research questions through prototyping and testing
-2. [ ] Decide on context window strategy (recommend: Hybrid Adaptive)
-3. [ ] Define session persistence format
-4. [ ] Document group chat security rules for Tron
-5. [ ] Design identity verification UX
-6. [ ] Update architecture docs with decisions
-
----
-
-*This document captures research gaps identified on February 2, 2026. Questions should be answered during Phase 2 prototyping.*
+*Research completed February 3, 2026.*
