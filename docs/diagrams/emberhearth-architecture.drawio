@@ -1,0 +1,413 @@
+<mxfile host="app.diagrams.net" modified="2026-02-03T00:00:00.000Z" agent="EmberHearth Architecture" version="22.0.0" type="device">
+  <diagram name="System Overview" id="system-overview">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- LEGEND -->
+        <mxCell id="legend-box" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="200" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-title" value="&lt;b&gt;LEGEND&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="80" y="25" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-mvp" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="30" y="50" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-mvp-text" value="MVP (Phase 2-3)" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="1">
+          <mxGeometry x="55" y="50" width="100" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-full" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="30" y="75" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-full-text" value="Full System" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="1">
+          <mxGeometry x="55" y="75" width="100" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-ext" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="30" y="100" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-ext-text" value="External" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="1">
+          <mxGeometry x="55" y="100" width="100" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-future" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="130" y="50" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-future-text" value="Future" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="1">
+          <mxGeometry x="155" y="50" width="60" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- TITLE -->
+        <mxCell id="title" value="&lt;font style=&quot;font-size: 24px;&quot;&gt;&lt;b&gt;EmberHearth System Architecture&lt;/b&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="500" y="20" width="400" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- USER TOUCHPOINTS SECTION -->
+        <mxCell id="user-section" value="&lt;b&gt;USER TOUCHPOINTS&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="240" y="80" width="920" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- iMessage - MVP -->
+        <mxCell id="imessage" value="&lt;b&gt;iMessage&lt;/b&gt;&lt;br&gt;(Primary Interface)&lt;br&gt;&lt;br&gt;Personal: +1-555-XXX&lt;br&gt;Work: +1-555-YYY" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="260" y="110" width="150" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- MacOS App - MVP -->
+        <mxCell id="macos-app" value="&lt;b&gt;MacOS App&lt;/b&gt;&lt;br&gt;(Admin Interface)&lt;br&gt;&lt;br&gt;Onboarding, Settings&lt;br&gt;Data Browser" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="440" y="110" width="150" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Group Chat - Full -->
+        <mxCell id="group-chat" value="&lt;b&gt;Group Chat&lt;/b&gt;&lt;br&gt;(Social Mode)&lt;br&gt;&lt;br&gt;No tools/memory&lt;br&gt;Natural timing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="620" y="110" width="150" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Web UI - Future -->
+        <mxCell id="web-ui" value="&lt;b&gt;Web UI&lt;/b&gt;&lt;br&gt;(Future)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="800" y="110" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Voice - Future -->
+        <mxCell id="voice" value="&lt;b&gt;Voice&lt;/b&gt;&lt;br&gt;(Future)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="920" y="110" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- TRON SECTION -->
+        <mxCell id="tron-section" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FCE5CD;strokeColor=#B45F06;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="240" y="220" width="920" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="tron" value="&lt;b&gt;TRON - Security Layer&lt;/b&gt;&lt;br&gt;&lt;br&gt;Prompt injection firewall | Tool authorization | Group chat restrictions | Anomaly detection | Audit logging" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="260" y="230" width="880" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="tron-mvp-note" value="MVP: Hardcoded rules" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=2;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="270" width="100" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- CORE SECTION -->
+        <mxCell id="core-section" value="&lt;b&gt;EMBERHEARTH CORE&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="240" y="320" width="920" height="280" as="geometry" />
+        </mxCell>
+
+        <!-- Main App - MVP -->
+        <mxCell id="main-app" value="&lt;b&gt;EmberHearth.app&lt;/b&gt;&lt;br&gt;(Main Process)&lt;br&gt;&lt;hr&gt;SwiftUI UI&lt;br&gt;XPC Coordinator&lt;br&gt;Permission Manager" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="520" y="350" width="160" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- XPC Services -->
+        <mxCell id="xpc-label" value="XPC Services" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="580" y="460" width="100" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- MessageService - MVP -->
+        <mxCell id="msg-service" value="&lt;b&gt;MessageService.xpc&lt;/b&gt;&lt;hr&gt;MessageReader (SQLite)&lt;br&gt;MessageSender (AppleScript)&lt;br&gt;MessageRouter&lt;br&gt;GroupChatDetector" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="260" y="480" width="180" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- MemoryService - Mixed -->
+        <mxCell id="mem-service" value="&lt;b&gt;MemoryService.xpc&lt;/b&gt;&lt;hr&gt;MemoryDatabase&lt;br&gt;ConversationArchive&lt;br&gt;SessionState&lt;br&gt;Summarizer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="510" y="480" width="180" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="mem-service-full" value="Embeddings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="600" y="555" width="80" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- LLMService - Mixed -->
+        <mxCell id="llm-service" value="&lt;b&gt;LLMService.xpc&lt;/b&gt;&lt;hr&gt;CloudProvider&lt;br&gt;ContextBuilder&lt;br&gt;PolicyEnforcer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="760" y="480" width="180" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="llm-local" value="LocalProvider (MLX)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="770" y="555" width="120" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Ember Personality -->
+        <mxCell id="ember" value="&lt;b&gt;EMBER&lt;/b&gt;&lt;br&gt;(Personality)&lt;hr&gt;System Prompt&lt;br&gt;Voice &amp; Tone&lt;br&gt;Emotional Encoding" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673a6;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="350" width="140" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- XPC Connections -->
+        <mxCell id="xpc1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;endArrow=none;endFill=0;" edge="1" parent="1" source="main-app" target="msg-service">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="xpc2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;endArrow=none;endFill=0;" edge="1" parent="1" source="main-app" target="mem-service">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="xpc3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;endArrow=none;endFill=0;" edge="1" parent="1" source="main-app" target="llm-service">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- EXTERNAL SECTION -->
+        <mxCell id="ext-section" value="&lt;b&gt;EXTERNAL DEPENDENCIES&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="240" y="620" width="920" height="160" as="geometry" />
+        </mxCell>
+
+        <!-- iMessage Backend -->
+        <mxCell id="chat-db" value="&lt;b&gt;iMessage&lt;/b&gt;&lt;hr&gt;~/Library/Messages/chat.db&lt;br&gt;Messages.app (AppleScript)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="260" y="650" width="180" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Data Stores -->
+        <mxCell id="data-stores" value="&lt;b&gt;Data Stores&lt;/b&gt;&lt;hr&gt;personal/memory.db&lt;br&gt;personal/archive.db&lt;br&gt;work/memory.db&lt;br&gt;work/audit.log" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="460" y="650" width="150" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="data-path" value="~/Library/Application Support/EmberHearth/" style="text;html=1;strokeColor=none;fillColor=none;fontSize=9;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="450" y="755" width="200" height="15" as="geometry" />
+        </mxCell>
+
+        <!-- LLM APIs -->
+        <mxCell id="llm-apis" value="&lt;b&gt;LLM APIs&lt;/b&gt;&lt;hr&gt;Claude (Anthropic) ✓&lt;br&gt;OpenAI&lt;br&gt;Local (MLX)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="630" y="650" width="130" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Apple Frameworks -->
+        <mxCell id="apple-fw" value="&lt;b&gt;Apple Frameworks&lt;/b&gt;&lt;hr&gt;EventKit (Calendar)&lt;br&gt;Contacts&lt;br&gt;MapKit, HomeKit..." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="780" y="650" width="150" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Security -->
+        <mxCell id="security" value="&lt;b&gt;Security&lt;/b&gt;&lt;hr&gt;Keychain (API keys)&lt;br&gt;Secure Enclave (DB keys)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="950" y="650" width="150" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Connections -->
+        <mxCell id="conn1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=classic;endFill=1;" edge="1" parent="1" source="imessage" target="tron">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=classic;endFill=1;" edge="1" parent="1" source="tron" target="main-app">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="msg-service" target="chat-db">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="mem-service" target="data-stores">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="llm-service" target="llm-apis">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram name="Data Flow - Message Processing" id="data-flow">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="800" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="df-title" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;&lt;b&gt;Data Flow: Incoming Message Processing&lt;/b&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="400" y="20" width="400" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Step 1: iMessage -->
+        <mxCell id="df-step1" value="&lt;b&gt;1. New Message&lt;/b&gt;&lt;br&gt;&lt;br&gt;FSEvents detects&lt;br&gt;change in chat.db" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="120" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Step 2: MessageService -->
+        <mxCell id="df-step2" value="&lt;b&gt;2. MessageService&lt;/b&gt;&lt;br&gt;&lt;br&gt;Read message&lt;br&gt;Detect context&lt;br&gt;Check if group" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="200" y="100" width="120" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Step 3: Tron -->
+        <mxCell id="df-step3" value="&lt;b&gt;3. Tron&lt;/b&gt;&lt;br&gt;&lt;br&gt;Security check&lt;br&gt;Group? → Social only&lt;br&gt;Authorize tools" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="360" y="100" width="120" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Step 4: MemoryService -->
+        <mxCell id="df-step4" value="&lt;b&gt;4. MemoryService&lt;/b&gt;&lt;br&gt;&lt;br&gt;Retrieve session&lt;br&gt;Get memories&lt;br&gt;Get archive chunks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="520" y="100" width="130" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Step 5: Context Builder -->
+        <mxCell id="df-step5" value="&lt;b&gt;5. Build Context&lt;/b&gt;&lt;br&gt;&lt;br&gt;10% system prompt&lt;br&gt;25% recent msgs&lt;br&gt;15% memories&lt;br&gt;10% summary" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="690" y="100" width="130" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Step 6: LLM -->
+        <mxCell id="df-step6" value="&lt;b&gt;6. LLMService&lt;/b&gt;&lt;br&gt;&lt;br&gt;Send to Claude API&lt;br&gt;Stream response" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="860" y="100" width="120" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Step 7: External LLM -->
+        <mxCell id="df-step7" value="&lt;b&gt;7. LLM API&lt;/b&gt;&lt;br&gt;&lt;br&gt;Process request&lt;br&gt;Generate response" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="100" width="120" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Return flow -->
+        <mxCell id="df-step8" value="&lt;b&gt;8. Send Response&lt;/b&gt;&lt;br&gt;&lt;br&gt;AppleScript to&lt;br&gt;Messages.app" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="200" y="250" width="120" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Async memory extraction -->
+        <mxCell id="df-step9" value="&lt;b&gt;9. Async: Memory&lt;/b&gt;&lt;br&gt;&lt;br&gt;Extract facts&lt;br&gt;Update archive&lt;br&gt;Update session" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="520" y="250" width="130" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Arrows -->
+        <mxCell id="df-a1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="df-step1" target="df-step2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="df-a2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="df-step2" target="df-step3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="df-a3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="df-step3" target="df-step4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="df-a4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="df-step4" target="df-step5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="df-a5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="df-step5" target="df-step6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="df-a6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="df-step6" target="df-step7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="df-a7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=classic;dashed=1;" edge="1" parent="1" source="df-step7" target="df-step8">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1080" y="210" />
+              <mxPoint x="260" y="210" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="df-a8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#6c8ebf;strokeWidth=2;endArrow=classic;dashed=1;" edge="1" parent="1" source="df-step6" target="df-step9">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="920" y="200" />
+              <mxPoint x="720" y="200" />
+              <mxPoint x="720" y="290" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Notes -->
+        <mxCell id="df-note1" value="Solid = sync&lt;br&gt;Dashed = async/return" style="text;html=1;strokeColor=none;fillColor=none;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="350" width="120" height="30" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram name="MVP Scope" id="mvp-scope">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="mvp-title" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;&lt;b&gt;MVP Scope (Phase 2-3)&lt;/b&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="350" y="20" width="300" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- MVP Box -->
+        <mxCell id="mvp-box" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=3;opacity=30;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="400" height="480" as="geometry" />
+        </mxCell>
+        <mxCell id="mvp-label" value="&lt;b&gt;MVP SCOPE&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="50" y="80" width="100" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- MVP Items -->
+        <mxCell id="mvp-1" value="&lt;b&gt;EmberHearth.app&lt;/b&gt;&lt;br&gt;Basic SwiftUI shell" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="60" y="120" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="mvp-2" value="&lt;b&gt;Onboarding&lt;/b&gt;&lt;br&gt;Permissions, LLM setup" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="240" y="120" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="mvp-3" value="&lt;b&gt;MessageService&lt;/b&gt;&lt;br&gt;Read/write iMessage" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="60" y="190" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="mvp-4" value="&lt;b&gt;Personal Context Only&lt;/b&gt;&lt;br&gt;Single phone number" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="240" y="190" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="mvp-5" value="&lt;b&gt;MemoryService&lt;/b&gt;&lt;br&gt;Basic fact storage" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="60" y="260" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="mvp-6" value="&lt;b&gt;Session State&lt;/b&gt;&lt;br&gt;Recent messages cache" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="240" y="260" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="mvp-7" value="&lt;b&gt;LLMService&lt;/b&gt;&lt;br&gt;Claude API only" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="60" y="330" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="mvp-8" value="&lt;b&gt;Context Building&lt;/b&gt;&lt;br&gt;Basic budget allocation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="240" y="330" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="mvp-9" value="&lt;b&gt;Tron (Hardcoded)&lt;/b&gt;&lt;br&gt;Basic rules only" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="60" y="400" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="mvp-10" value="&lt;b&gt;Group Chat&lt;/b&gt;&lt;br&gt;Detect and block" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="240" y="400" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="mvp-11" value="&lt;b&gt;Identity&lt;/b&gt;&lt;br&gt;Passkey confirmation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="150" y="470" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Later Box -->
+        <mxCell id="later-box" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=3;opacity=30;" vertex="1" parent="1">
+          <mxGeometry x="480" y="70" width="240" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="later-label" value="&lt;b&gt;FULL SYSTEM (Phase 4+)&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="490" y="80" width="180" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Later Items -->
+        <mxCell id="later-1" value="Work context" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="500" y="120" width="100" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="later-2" value="Embeddings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="610" y="120" width="100" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="later-3" value="Conv. Archive" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="500" y="165" width="100" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="later-4" value="Local models" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="610" y="165" width="100" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="later-5" value="Full Tron" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="500" y="210" width="100" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="later-6" value="Group social" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="610" y="210" width="100" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="later-7" value="Apple integrations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="500" y="255" width="100" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="later-8" value="Data browser" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="610" y="255" width="100" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="later-9" value="OpenAI provider" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="500" y="300" width="100" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="later-10" value="Audit logging" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="610" y="300" width="100" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- Future Box -->
+        <mxCell id="future-box" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=3;opacity=30;" vertex="1" parent="1">
+          <mxGeometry x="480" y="410" width="240" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="future-label" value="&lt;b&gt;FUTURE / EARMARKED&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="490" y="420" width="180" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Future Items -->
+        <mxCell id="future-1" value="Multi-user roles" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="500" y="455" width="100" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="future-2" value="Family groups" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="610" y="455" width="100" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="future-3" value="Web UI" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="500" y="500" width="100" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="future-4" value="Voice interface" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="610" y="500" width="100" height="35" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
