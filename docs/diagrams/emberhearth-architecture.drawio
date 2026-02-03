@@ -1057,4 +1057,197 @@
       </root>
     </mxGraphModel>
   </diagram>
+  <diagram name="Error Handling and Resilience" id="error-handling">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- TITLE -->
+        <mxCell id="err-title" value="&lt;font style=&quot;font-size: 24px;&quot;&gt;&lt;b&gt;Error Handling and Resilience&lt;/b&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="500" y="20" width="400" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="err-subtitle" value="&lt;i&gt;&quot;The grandmother can't troubleshoot. The system must heal itself.&quot;&lt;/i&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontColor=#666666;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="55" width="500" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- DESIGN PRINCIPLES SECTION -->
+        <mxCell id="err-principles-section" value="&lt;b&gt;DESIGN PRINCIPLES&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="720" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-p1" value="&lt;b&gt;1. Never Lose Data&lt;/b&gt;&lt;hr&gt;Memory.db is years of&lt;br&gt;relationship. Protect it." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="130" width="130" height="85" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-p2" value="&lt;b&gt;2. Fail Gracefully&lt;/b&gt;&lt;hr&gt;Acknowledge failures.&lt;br&gt;Never go silent." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="200" y="130" width="130" height="85" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-p3" value="&lt;b&gt;3. Self-Heal&lt;/b&gt;&lt;hr&gt;Auto-recover from&lt;br&gt;transient failures." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="345" y="130" width="130" height="85" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-p4" value="&lt;b&gt;4. Preserve Function&lt;/b&gt;&lt;hr&gt;Subsystem failure ≠&lt;br&gt;total failure." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="490" y="130" width="130" height="85" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-p5" value="&lt;b&gt;5. Debug Possible&lt;/b&gt;&lt;hr&gt;Local logs for support&lt;br&gt;(privacy-preserving)." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="615" y="130" width="130" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- LEGEND -->
+        <mxCell id="err-legend-box" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="800" y="100" width="350" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="err-legend-title" value="&lt;b&gt;RETRY POLICY&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="920" y="105" width="100" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="err-retry" value="Attempt 1: Immediate&lt;br&gt;Attempt 2: 2s delay&lt;br&gt;Attempt 3: 4s delay&lt;br&gt;Attempt 4: 8s delay&lt;br&gt;(Give up, queue message)" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontColor=#333333;fontFamily=Courier New;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="820" y="130" width="200" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- COMPONENT FAILURE MODES -->
+        <mxCell id="err-comp-section" value="&lt;b&gt;COMPONENT FAILURE MODES&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FCE5CD;strokeColor=#B45F06;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="250" width="1110" height="260" as="geometry" />
+        </mxCell>
+
+        <!-- LLM Provider -->
+        <mxCell id="err-llm" value="&lt;b&gt;LLM Provider&lt;/b&gt;&lt;hr&gt;&lt;b&gt;Timeout:&lt;/b&gt; Retry 3x&lt;br&gt;&lt;b&gt;Rate limit:&lt;/b&gt; Backoff 5min&lt;br&gt;&lt;b&gt;Auth fail:&lt;/b&gt; Alert user&lt;br&gt;&lt;b&gt;Server 5xx:&lt;/b&gt; Queue msg&lt;br&gt;&lt;b&gt;Outage &gt;10m:&lt;/b&gt; Offline mode" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="285" width="165" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- iMessage -->
+        <mxCell id="err-imsg" value="&lt;b&gt;iMessage&lt;/b&gt;&lt;hr&gt;&lt;b&gt;chat.db locked:&lt;/b&gt; Retry 5x&lt;br&gt;&lt;b&gt;chat.db missing:&lt;/b&gt; Permission&lt;br&gt;&lt;b&gt;AppleScript timeout:&lt;/b&gt; Retry&lt;br&gt;&lt;b&gt;FSEvents stopped:&lt;/b&gt; Re-register&lt;br&gt;&lt;b&gt;Messages.app down:&lt;/b&gt; Launch" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="235" y="285" width="175" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- SQLite -->
+        <mxCell id="err-sqlite" value="&lt;b&gt;SQLite Memory&lt;/b&gt;&lt;hr&gt;&lt;b&gt;Locked:&lt;/b&gt; Retry 5x (100ms)&lt;br&gt;&lt;b&gt;Disk full:&lt;/b&gt; Alert, pause writes&lt;br&gt;&lt;b&gt;Corruption:&lt;/b&gt; Restore backup&lt;br&gt;&lt;b&gt;No backup:&lt;/b&gt; Start fresh&lt;br&gt;&lt;b&gt;Migration fail:&lt;/b&gt; Rollback" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="425" y="285" width="175" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- Apple Integrations -->
+        <mxCell id="err-apple" value="&lt;b&gt;Apple Integrations&lt;/b&gt;&lt;hr&gt;&lt;b&gt;Permission denied:&lt;/b&gt; Disable&lt;br&gt;&lt;b&gt;EventStore error:&lt;/b&gt; Retry&lt;br&gt;&lt;b&gt;iCloud conflict:&lt;/b&gt; Local wins&lt;br&gt;&lt;br&gt;&lt;i&gt;Independent failures&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="615" y="285" width="160" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- XPC Services -->
+        <mxCell id="err-xpc" value="&lt;b&gt;XPC Services&lt;/b&gt;&lt;hr&gt;&lt;b&gt;Crashed:&lt;/b&gt; Auto-restart&lt;br&gt;&lt;b&gt;Hung (30s):&lt;/b&gt; Kill, restart&lt;br&gt;&lt;b&gt;Code sign fail:&lt;/b&gt; Reinstall&lt;br&gt;&lt;b&gt;&gt;3 crashes/min:&lt;/b&gt; Safe mode" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="790" y="285" width="165" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- Network -->
+        <mxCell id="err-net" value="&lt;b&gt;Network&lt;/b&gt;&lt;hr&gt;&lt;b&gt;No internet:&lt;/b&gt; Offline mode&lt;br&gt;&lt;b&gt;Intermittent:&lt;/b&gt; Batch ops&lt;br&gt;&lt;b&gt;TLS error:&lt;/b&gt; Fail safely&lt;br&gt;&lt;i&gt;(Never bypass TLS)&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="970" y="285" width="165" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- Graceful degradation note -->
+        <mxCell id="err-degrade-note" value="&lt;b&gt;Graceful Degradation:&lt;/b&gt; Each integration independent. Calendar down? iMessage still works. LLM down? Acknowledge and queue." style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;fontSize=10;fontColor=#333333;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="55" y="420" width="680" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Queue note -->
+        <mxCell id="err-queue-note" value="&lt;b&gt;Message Queue:&lt;/b&gt; Max 100 msgs | 24hr age limit | FIFO processing | Older msgs get &quot;sorry for delay&quot; prefix" style="text;html=1;strokeColor=#6c8ebf;fillColor=#dae8fc;fontSize=10;fontColor=#333333;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="55" y="460" width="680" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- CRASH RECOVERY -->
+        <mxCell id="err-crash-section" value="&lt;b&gt;CRASH RECOVERY (launchd)&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="530" width="550" height="200" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-launchd" value="&lt;b&gt;launchd plist&lt;/b&gt;&lt;hr&gt;&lt;font face=&quot;Courier New&quot;&gt;KeepAlive:&lt;br&gt;  SuccessfulExit: false&lt;br&gt;ThrottleInterval: 10&lt;/font&gt;&lt;br&gt;&lt;br&gt;Only restart on crash&lt;br&gt;Wait 10s between restarts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="565" width="180" height="145" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-postcrash" value="&lt;b&gt;Post-Crash Recovery&lt;/b&gt;&lt;hr&gt;1. Detect crash (marker file)&lt;br&gt;2. Log crash occurrence&lt;br&gt;3. Verify DB integrity&lt;br&gt;4. Attempt recovery if needed&lt;br&gt;5. Reset to safe state&lt;br&gt;6. Notify if 2+ crashes/day" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="255" y="565" width="180" height="145" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-crash-flow" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#666666;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="err-launchd" target="err-postcrash">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-prevention" value="&lt;b&gt;Prevention&lt;/b&gt;&lt;hr&gt;• Structured error handling&lt;br&gt;• No force-unwrap in prod&lt;br&gt;• Catch at XPC boundaries&lt;br&gt;• Validate all external input" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="455" y="565" width="120" height="115" as="geometry" />
+        </mxCell>
+
+        <!-- BACKUP STRATEGY -->
+        <mxCell id="err-backup-section" value="&lt;b&gt;BACKUP STRATEGY&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="610" y="530" width="540" height="200" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-backup" value="&lt;b&gt;Retention Policy&lt;/b&gt;&lt;hr&gt;&lt;b&gt;Hourly:&lt;/b&gt; 24 backups&lt;br&gt;&lt;b&gt;Daily:&lt;/b&gt; 7 backups&lt;br&gt;&lt;b&gt;Weekly:&lt;/b&gt; 4 backups&lt;br&gt;&lt;br&gt;Location: ~/Library/&lt;br&gt;Application Support/&lt;br&gt;EmberHearth/Backups/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="625" y="565" width="150" height="150" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-backup-process" value="&lt;b&gt;Backup Process&lt;/b&gt;&lt;hr&gt;1. WAL checkpoint&lt;br&gt;2. Copy database file&lt;br&gt;3. Integrity check backup&lt;br&gt;4. Delete old per retention" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="795" y="565" width="155" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-recovery" value="&lt;b&gt;Corruption Recovery&lt;/b&gt;&lt;hr&gt;1. PRAGMA integrity_check&lt;br&gt;2. sqlite3 recover cmd&lt;br&gt;3. Restore from backup&lt;br&gt;4. Export readable, fresh DB&lt;br&gt;5. Log incident" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="970" y="565" width="160" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- HEALTH MONITORING -->
+        <mxCell id="err-health-section" value="&lt;b&gt;HEALTH MONITORING&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="750" width="550" height="160" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-startup" value="&lt;b&gt;Startup Checks&lt;/b&gt;&lt;hr&gt;• Database integrity&lt;br&gt;• Full Disk Access&lt;br&gt;• Automation permission&lt;br&gt;• API key validity&lt;br&gt;• Messages.app available" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="785" width="150" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-periodic" value="&lt;b&gt;Periodic Checks&lt;/b&gt;&lt;hr&gt;• DB quick_check (hourly)&lt;br&gt;• FSEvents alive (5 min)&lt;br&gt;• LLM connectivity (15 min)&lt;br&gt;• XPC heartbeat (30 sec)&lt;br&gt;• Disk space (hourly)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="220" y="785" width="165" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-dashboard" value="&lt;b&gt;Status Dashboard&lt;/b&gt;&lt;br&gt;(Mac app Settings → Status)&lt;hr&gt;● iMessage: Connected&lt;br&gt;● LLM: Connected (Claude)&lt;br&gt;● Memory: Healthy (1,247)&lt;br&gt;○ Calendar: Not configured" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="400" y="785" width="175" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- USER COMMUNICATION -->
+        <mxCell id="err-comm-section" value="&lt;b&gt;USER COMMUNICATION&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FCE5CD;strokeColor=#B45F06;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="610" y="750" width="540" height="160" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-via-imsg" value="&lt;b&gt;Via iMessage&lt;/b&gt;&lt;hr&gt;&quot;I'm having trouble connecting...&quot;&lt;br&gt;&quot;I've been offline, catching up...&quot;&lt;br&gt;&quot;Check API key in settings...&quot;&lt;br&gt;&quot;Sorry for delay—I had to restart&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="625" y="785" width="210" height="105" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-via-notif" value="&lt;b&gt;Via Mac Notifications&lt;/b&gt;&lt;hr&gt;• Permission needed&lt;br&gt;• Low storage warning&lt;br&gt;• Multiple crashes alert&lt;br&gt;(System-level issues)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="850" y="785" width="145" height="105" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-never" value="&lt;b&gt;NEVER&lt;/b&gt;&lt;hr&gt;❌ Technical details&lt;br&gt;❌ Error codes&lt;br&gt;❌ Scary language&lt;br&gt;&lt;br&gt;&lt;i&gt;Human terms only&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8CECC;strokeColor=#B85450;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="785" width="125" height="105" as="geometry" />
+        </mxCell>
+
+        <!-- LOGGING STRATEGY -->
+        <mxCell id="err-log-box" value="&lt;b&gt;LOGGING STRATEGY&lt;/b&gt;&lt;hr&gt;&lt;b&gt;Logged:&lt;/b&gt; Crashes (30d), Errors (14d), Warnings (7d), API metadata (7d)&lt;br&gt;&lt;b&gt;Never Logged:&lt;/b&gt; Message content, Fact content, API bodies&lt;br&gt;&lt;b&gt;Location:&lt;/b&gt; ~/Library/Logs/EmberHearth/ | Max 50MB total | User can export/delete" style="text;html=1;strokeColor=#666666;fillColor=#f5f5f5;fontSize=10;fontColor=#333333;rounded=1;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="930" width="600" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- MVP vs FULL -->
+        <mxCell id="err-mvp-box" value="&lt;b&gt;MVP REQUIREMENTS&lt;/b&gt;&lt;hr&gt;✓ LLM retry w/ backoff&lt;br&gt;✓ Message queue&lt;br&gt;✓ Daily backup&lt;br&gt;✓ Startup integrity check&lt;br&gt;✓ launchd crash recovery&lt;br&gt;✓ Basic logging&lt;br&gt;✓ iMessage error msgs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="680" y="930" width="150" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-full-box" value="&lt;b&gt;POST-MVP (v1.1+)&lt;/b&gt;&lt;hr&gt;✓ Hourly backups&lt;br&gt;✓ Full health system&lt;br&gt;✓ XPC heartbeats&lt;br&gt;✓ Diagnostic export&lt;br&gt;✓ Troubleshooting UI&lt;br&gt;✓ Backup browser" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="850" y="930" width="145" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="err-future-box" value="&lt;b&gt;FUTURE (v1.2+)&lt;/b&gt;&lt;hr&gt;✓ Anomaly detection&lt;br&gt;✓ Self-diagnostic&lt;br&gt;✓ Auto suggestions&lt;br&gt;✓ iCloud backup" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1015" y="930" width="125" height="105" as="geometry" />
+        </mxCell>
+
+        <!-- Reference -->
+        <mxCell id="err-ref" value="See: docs/specs/error-handling.md" style="text;html=1;strokeColor=none;fillColor=none;fontSize=9;fontStyle=2;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1010" width="250" height="15" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
 </mxfile>

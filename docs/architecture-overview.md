@@ -1,8 +1,8 @@
 # EmberHearth Architecture Overview
 
-**Version:** 1.1
+**Version:** 1.2
 **Date:** February 3, 2026
-**Status:** Pre-Prototype Review
+**Status:** Pre-Prototype Review (Error Handling Added)
 **Diagram:** `diagrams/emberhearth-architecture.drawio`
 
 ### Diagram Pages
@@ -19,6 +19,7 @@ The draw.io file contains 8 pages:
 | 6 | Security Layers | Defense in depth (6 layers), Tron detail |
 | 7 | Integration Services | Apple framework XPC services |
 | 8 | Ember Personality System | Three-layer model, bounded needs, user understanding, attachment-informed algorithm, configuration |
+| 9 | Error Handling and Resilience | Design principles, component failures, crash recovery, backup strategy, health monitoring |
 
 ---
 
@@ -578,11 +579,11 @@ During this architecture review, the following items were noted:
 
 ### Not Yet Researched (May Need Attention)
 
-⚠️ **Crash Recovery:** What happens if EmberHearth crashes mid-response?
-- Session state persistence helps, but need graceful recovery
+✅ **Crash Recovery:** ~~What happens if EmberHearth crashes mid-response?~~
+- **RESOLVED** — See `docs/specs/error-handling.md`: launchd auto-restart, post-crash integrity checks, safe state recovery
 
-⚠️ **Rate Limiting:** How do we handle LLM API rate limits?
-- Basic retry logic, but may need queuing for high-volume users
+✅ **Rate Limiting:** ~~How do we handle LLM API rate limits?~~
+- **RESOLVED** — See `docs/specs/error-handling.md`: exponential backoff, message queuing, offline mode
 
 ⚠️ **Attachment Handling:** Images, files in iMessage
 - Research mentions it's complex; may defer to later phase
