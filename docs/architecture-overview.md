@@ -1,13 +1,13 @@
 # EmberHearth Architecture Overview
 
-**Version:** 1.2
+**Version:** 1.3
 **Date:** February 3, 2026
-**Status:** Pre-Prototype Review (Error Handling Added)
+**Status:** Pre-Prototype Review (Autonomous Operation Added)
 **Diagram:** `diagrams/emberhearth-architecture.drawio`
 
 ### Diagram Pages
 
-The draw.io file contains 8 pages:
+The draw.io file contains 10 pages:
 
 | Page | Name | Description |
 |------|------|-------------|
@@ -20,6 +20,7 @@ The draw.io file contains 8 pages:
 | 7 | Integration Services | Apple framework XPC services |
 | 8 | Ember Personality System | Three-layer model, bounded needs, user understanding, attachment-informed algorithm, configuration |
 | 9 | Error Handling and Resilience | Design principles, component failures, crash recovery, backup strategy, health monitoring |
+| 10 | Autonomous Operation | Self-monitoring, self-healing, circuit breakers, offline mode, seamless upgrades, optional telemetry |
 
 ---
 
@@ -585,6 +586,15 @@ During this architecture review, the following items were noted:
 ✅ **Rate Limiting:** ~~How do we handle LLM API rate limits?~~
 - **RESOLVED** — See `docs/specs/error-handling.md`: exponential backoff, message queuing, offline mode
 
+✅ **Observability/Logging:** ~~How do we monitor health without enterprise tooling?~~
+- **RESOLVED** — See `docs/specs/autonomous-operation.md`: self-monitoring health state machine, circuit breakers, self-diagnostic via chat
+
+✅ **Configuration Migration:** ~~How do we handle config/schema changes across versions?~~
+- **RESOLVED** — See `docs/specs/autonomous-operation.md`: schema versioning, migration registry, forward compatibility, resumable migrations
+
+✅ **Update/Rollback Strategy:** ~~What if an update breaks something?~~
+- **RESOLVED** — See `docs/specs/autonomous-operation.md`: pre-update backups, migration failure recovery, forward-compatible resilience (no rollback needed)
+
 ⚠️ **Attachment Handling:** Images, files in iMessage
 - Research mentions it's complex; may defer to later phase
 
@@ -601,6 +611,8 @@ During this architecture review, the following items were noted:
 | `imessage.md` | chat.db schema, reading/sending, work/personal routing |
 | `security.md` | XPC services, Keychain, Secure Enclave, sandboxing |
 | `memory-learning.md` | Fact extraction, emotional encoding, decay, storage |
+| `specs/error-handling.md` | Component failures, crash recovery, backup strategy, logging |
+| `specs/autonomous-operation.md` | Self-healing, circuit breakers, seamless upgrades, optional telemetry |
 | `conversation-design.md` | Ember's personality, voice, tone, error handling |
 | `personality-design.md` | Three-layer model, bounded needs, love languages, attachment patterns |
 | `onboarding-ux.md` | Permission flow, LLM setup, first-time experience |

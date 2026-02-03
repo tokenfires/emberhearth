@@ -111,39 +111,39 @@ The full anticipation architecture (Pattern Detector → Opportunity Detector �
 
 ### What Might Be Under-Engineered
 
-**1. Error Recovery and Self-Healing**
+**1. Error Recovery and Self-Healing** ✅ RESOLVED
 
-The documentation mentions graceful degradation but doesn't detail:
-- How to recover from corrupted memory.db mid-operation
-- What happens if AppleScript automation fails intermittently
-- How to handle iCloud sync conflicts
-- Watchdog/health monitoring
+~~The documentation mentions graceful degradation but doesn't detail:~~
+~~- How to recover from corrupted memory.db mid-operation~~
+~~- What happens if AppleScript automation fails intermittently~~
+~~- How to handle iCloud sync conflicts~~
+~~- Watchdog/health monitoring~~
 
-**Gap:** Real-world deployments will hit these. Need more specificity.
+~~**Gap:** Real-world deployments will hit these. Need more specificity.~~
 
-**Recommendation:** Add a `docs/specs/error-handling.md` with specific failure modes and recovery procedures.
+**Resolution:** See `docs/specs/error-handling.md` — comprehensive specification covering component failure modes, SQLite recovery, FSEvents monitoring, launchd auto-restart, and backup strategies.
 
-**2. Observability/Debugging**
+**2. Observability/Debugging** ✅ RESOLVED
 
-How do you debug issues in production?
-- No logging strategy defined
-- No metrics collection approach
-- No way for users to report issues with context
+~~How do you debug issues in production?~~
+~~- No logging strategy defined~~
+~~- No metrics collection approach~~
+~~- No way for users to report issues with context~~
 
-**Gap:** When things go wrong, you need visibility.
+~~**Gap:** When things go wrong, you need visibility.~~
 
-**Recommendation:** Define logging levels, what gets logged, privacy considerations for logs, and how to collect debugging info.
+**Resolution:** See `docs/specs/autonomous-operation.md` — reframes observability for consumer apps as "self-monitoring." Health state machine, circuit breakers, self-diagnostic via chat, optional privacy-first telemetry (TelemetryDeck-style). The app monitors itself; grandmother doesn't need to interpret logs.
 
-**3. Configuration Migration**
+**3. Configuration Migration** ✅ RESOLVED
 
-When memory.db schema changes between versions:
-- How do you migrate data?
-- What's the rollback strategy?
-- Can users downgrade?
+~~When memory.db schema changes between versions:~~
+~~- How do you migrate data?~~
+~~- What's the rollback strategy?~~
+~~- Can users downgrade?~~
 
-**Gap:** This bites every long-running project.
+~~**Gap:** This bites every long-running project.~~
 
-**Recommendation:** Version your database schema from day one. Include migration infrastructure in MVP.
+**Resolution:** See `docs/specs/autonomous-operation.md` — schema versioning, migration registry pattern, forward compatibility rules, resumable migrations. Rollback strategy is "forward-compatible resilience" — the app heals forward rather than rolling back (Sparkle 2 doesn't support downgrade anyway).
 
 **4. Testing Strategy Depth**
 

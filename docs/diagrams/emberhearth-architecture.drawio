@@ -1250,4 +1250,224 @@
       </root>
     </mxGraphModel>
   </diagram>
+  <diagram name="Autonomous Operation" id="autonomous-operation">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- TITLE -->
+        <mxCell id="auto-title" value="&lt;font style=&quot;font-size: 24px;&quot;&gt;&lt;b&gt;Autonomous Operation&lt;/b&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="500" y="20" width="400" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="auto-subtitle" value="&lt;i&gt;Self-Monitoring • Self-Healing • Seamless Upgrades&lt;/i&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontColor=#666666;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="55" width="500" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="auto-philosophy" value="&lt;b&gt;The Grandmother Test:&lt;/b&gt; If grandmother sees an error dialog, we've already failed." style="text;html=1;strokeColor=#B45F06;fillColor=#FCE5CD;fontSize=11;fontColor=#333333;rounded=1;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="400" y="85" width="600" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- HEALTH STATE MACHINE -->
+        <mxCell id="auto-state-section" value="&lt;b&gt;HEALTH STATE MACHINE&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="130" width="520" height="200" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-healthy" value="&lt;b&gt;HEALTHY&lt;/b&gt;&lt;hr&gt;All systems go&lt;br&gt;&lt;i&gt;User: unaware&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="60" y="170" width="110" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-degraded" value="&lt;b&gt;DEGRADED&lt;/b&gt;&lt;hr&gt;Non-critical down&lt;br&gt;&lt;i&gt;User: unaware&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="200" y="170" width="110" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-healing" value="&lt;b&gt;HEALING&lt;/b&gt;&lt;hr&gt;Recovery active&lt;br&gt;&lt;i&gt;User: brief pause&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="60" y="260" width="110" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-impaired" value="&lt;b&gt;IMPAIRED&lt;/b&gt;&lt;hr&gt;Critical down&lt;br&gt;&lt;i&gt;User: told nicely&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8CECC;strokeColor=#B85450;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="200" y="260" width="110" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- State arrows -->
+        <mxCell id="auto-arr-hd" value="issue" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#666666;endArrow=classic;fontSize=9;" edge="1" parent="1" source="auto-healthy" target="auto-degraded">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="auto-arr-dh" value="healed" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;endArrow=classic;fontSize=9;" edge="1" parent="1" source="auto-degraded" target="auto-healthy">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="255" y="250" /><mxPoint x="115" y="250" /></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="auto-arr-hheal" value="critical" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#B85450;endArrow=classic;fontSize=9;" edge="1" parent="1" source="auto-healthy" target="auto-healing">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="auto-arr-healh" value="success" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;endArrow=classic;fontSize=9;" edge="1" parent="1" source="auto-healing" target="auto-healthy">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="40" y="295" /><mxPoint x="40" y="205" /></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="auto-arr-heali" value="fails" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#B85450;endArrow=classic;fontSize=9;" edge="1" parent="1" source="auto-healing" target="auto-impaired">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Key insight -->
+        <mxCell id="auto-insight" value="&lt;b&gt;Key Insight:&lt;/b&gt; User only notices IMPAIRED state.&lt;br&gt;The other three are invisible to them." style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;fontSize=10;fontColor=#333333;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="180" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- CIRCUIT BREAKER -->
+        <mxCell id="auto-cb-section" value="&lt;b&gt;CIRCUIT BREAKER PATTERN&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="580" y="130" width="560" height="200" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-cb-closed" value="&lt;b&gt;CLOSED&lt;/b&gt;&lt;hr&gt;Normal operation&lt;br&gt;Requests go through" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="600" y="170" width="120" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-cb-open" value="&lt;b&gt;OPEN&lt;/b&gt;&lt;hr&gt;Fail immediately&lt;br&gt;No network calls" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8CECC;strokeColor=#B85450;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="850" y="170" width="120" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-cb-half" value="&lt;b&gt;HALF-OPEN&lt;/b&gt;&lt;hr&gt;Test one request&lt;br&gt;Decide: close or open" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="725" y="260" width="120" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-cb-arr1" value="failures &gt; 4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#B85450;endArrow=classic;fontSize=9;" edge="1" parent="1" source="auto-cb-closed" target="auto-cb-open">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="auto-cb-arr2" value="5 min timeout" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#666666;endArrow=classic;fontSize=9;" edge="1" parent="1" source="auto-cb-open" target="auto-cb-half">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="auto-cb-arr3" value="success" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;endArrow=classic;fontSize=9;" edge="1" parent="1" source="auto-cb-half" target="auto-cb-closed">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="660" y="295" /></Array></mxGeometry>
+        </mxCell>
+
+        <!-- CB config table -->
+        <mxCell id="auto-cb-table" value="&lt;table style=&quot;font-size:10px;&quot;&gt;&lt;tr&gt;&lt;th&gt;Service&lt;/th&gt;&lt;th&gt;Threshold&lt;/th&gt;&lt;th&gt;Open Time&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;LLM API&lt;/td&gt;&lt;td&gt;4 fails&lt;/td&gt;&lt;td&gt;5 min&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;iMessage&lt;/td&gt;&lt;td&gt;3 fails&lt;/td&gt;&lt;td&gt;30 sec&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Calendar&lt;/td&gt;&lt;td&gt;2 fails&lt;/td&gt;&lt;td&gt;2 min&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="text;html=1;strokeColor=#666666;fillColor=#f5f5f5;fontSize=10;fontColor=#333333;rounded=1;overflow=fill;" vertex="1" parent="1">
+          <mxGeometry x="990" y="170" width="130" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- COMPONENT HEALTH MONITORS -->
+        <mxCell id="auto-monitor-section" value="&lt;b&gt;COMPONENT HEALTH MONITORS&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FCE5CD;strokeColor=#B45F06;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="350" width="1100" height="180" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-mon-llm" value="&lt;b&gt;LLM Monitor&lt;/b&gt;&lt;hr&gt;Check: 15 min&lt;br&gt;&lt;b&gt;Auto-heal:&lt;/b&gt;&lt;br&gt;• Retry backoff&lt;br&gt;• Respect rate limits&lt;br&gt;• Offline mode&lt;br&gt;• Background ping" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="385" width="130" height="125" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-mon-imsg" value="&lt;b&gt;iMessage Monitor&lt;/b&gt;&lt;hr&gt;Check: 5 min&lt;br&gt;&lt;b&gt;Auto-heal:&lt;/b&gt;&lt;br&gt;• Re-register FSEvents&lt;br&gt;• Retry chat.db locks&lt;br&gt;• Launch Messages.app&lt;br&gt;• Path detection" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="200" y="385" width="140" height="125" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-mon-sqlite" value="&lt;b&gt;SQLite Monitor&lt;/b&gt;&lt;hr&gt;Check: 1 hour&lt;br&gt;&lt;b&gt;Auto-heal:&lt;/b&gt;&lt;br&gt;• VACUUM, reindex&lt;br&gt;• WAL checkpoint&lt;br&gt;• Restore backup&lt;br&gt;• Recovery cmd" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="355" y="385" width="130" height="125" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-mon-xpc" value="&lt;b&gt;XPC Monitor&lt;/b&gt;&lt;hr&gt;Check: 30 sec&lt;br&gt;&lt;b&gt;Auto-heal:&lt;/b&gt;&lt;br&gt;• Wake signal&lt;br&gt;• Kill + restart&lt;br&gt;• Safe mode&lt;br&gt;• Crash tracking" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="500" y="385" width="130" height="125" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-mon-net" value="&lt;b&gt;Network Monitor&lt;/b&gt;&lt;hr&gt;Check: On demand&lt;br&gt;&lt;b&gt;Auto-heal:&lt;/b&gt;&lt;br&gt;• Detect offline&lt;br&gt;• Queue operations&lt;br&gt;• Batch on restore&lt;br&gt;• Never bypass TLS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="645" y="385" width="140" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- Offline mode detail -->
+        <mxCell id="auto-offline" value="&lt;b&gt;OFFLINE MODE&lt;/b&gt;&lt;hr&gt;✓ Queue messages (max 100)&lt;br&gt;✓ Send &quot;I'll respond soon&quot;&lt;br&gt;✓ Local memory access&lt;br&gt;✗ AI responses&lt;br&gt;✗ Tool use&lt;br&gt;&lt;br&gt;On recovery: &quot;Let me catch up...&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673a6;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="800" y="385" width="175" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- Self diagnostic -->
+        <mxCell id="auto-diagnostic" value="&lt;b&gt;SELF-DIAGNOSTIC&lt;/b&gt;&lt;hr&gt;User: &quot;Ember, are you ok?&quot;&lt;br&gt;&lt;br&gt;Ember: &quot;I'm running well!&lt;br&gt;• Messages: ✓&lt;br&gt;• Memory: 1,247 facts ✓&lt;br&gt;• Calendar: ✓&lt;br&gt;Everything looks good!&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="990" y="385" width="140" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- SEAMLESS UPGRADES -->
+        <mxCell id="auto-upgrade-section" value="&lt;b&gt;SEAMLESS UPGRADES&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="550" width="720" height="210" as="geometry" />
+        </mxCell>
+
+        <!-- Update pipeline -->
+        <mxCell id="auto-up-detect" value="&lt;b&gt;Sparkle&lt;/b&gt;&lt;br&gt;Detects update" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="590" width="90" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-up-pre" value="&lt;b&gt;Pre-Update&lt;/b&gt;&lt;hr&gt;Backup DBs&lt;br&gt;Export config&lt;br&gt;Record version" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="165" y="580" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-up-install" value="&lt;b&gt;Install&lt;/b&gt;&lt;br&gt;(Sparkle)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="285" y="590" width="80" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-up-post" value="&lt;b&gt;Post-Update&lt;/b&gt;&lt;hr&gt;Run migrations&lt;br&gt;Verify integrity&lt;br&gt;Health check" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="385" y="580" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-up-run" value="&lt;b&gt;Normal&lt;/b&gt;&lt;br&gt;Operation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="505" y="590" width="80" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Arrows -->
+        <mxCell id="auto-up-arr1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#666666;endArrow=classic;" edge="1" parent="1" source="auto-up-detect" target="auto-up-pre">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="auto-up-arr2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#666666;endArrow=classic;" edge="1" parent="1" source="auto-up-pre" target="auto-up-install">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="auto-up-arr3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#666666;endArrow=classic;" edge="1" parent="1" source="auto-up-install" target="auto-up-post">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="auto-up-arr4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#666666;endArrow=classic;" edge="1" parent="1" source="auto-up-post" target="auto-up-run">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Migration safety -->
+        <mxCell id="auto-mig-rules" value="&lt;b&gt;MIGRATION SAFETY RULES&lt;/b&gt;&lt;hr&gt;✓ Additive changes only (new columns w/ defaults)&lt;br&gt;✓ Never delete data in migration&lt;br&gt;✓ Transactions for atomicity&lt;br&gt;✓ Resumable (checkpoints for large migrations)&lt;br&gt;✓ Forward compatible (new reads old)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="680" width="290" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Failure recovery -->
+        <mxCell id="auto-mig-fail" value="&lt;b&gt;IF MIGRATION FAILS&lt;/b&gt;&lt;hr&gt;• DB corruption → Restore backup, retry&lt;br&gt;• Config invalid → Reset, preserve fields&lt;br&gt;• Disk full → Cleanup, retry&lt;br&gt;• Interrupted → Resume from checkpoint&lt;br&gt;&lt;br&gt;&lt;b&gt;Never show error to user!&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8CECC;strokeColor=#B85450;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="360" y="680" width="230" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- User experience -->
+        <mxCell id="auto-up-ux" value="&lt;b&gt;USER EXPERIENCE&lt;/b&gt;&lt;hr&gt;Success: &quot;(nothing—just works)&quot;&lt;br&gt;&lt;br&gt;Partial data loss:&lt;br&gt;&quot;I had a hiccup during my update&lt;br&gt;and lost some recent memories.&lt;br&gt;I still remember the important stuff!&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673a6;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="605" y="580" width="200" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- OPTIONAL TELEMETRY -->
+        <mxCell id="auto-telem-section" value="&lt;b&gt;OPTIONAL HEALTH REPORTING (Post-MVP)&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="780" y="550" width="360" height="210" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-telem-yes" value="&lt;b&gt;COLLECTED (if opted in)&lt;/b&gt;&lt;hr&gt;• App version&lt;br&gt;• OS version&lt;br&gt;• Health state&lt;br&gt;• Crash count&lt;br&gt;• Migration status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="795" y="590" width="130" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-telem-no" value="&lt;b&gt;NEVER COLLECTED&lt;/b&gt;&lt;hr&gt;❌ Message content&lt;br&gt;❌ Memory content&lt;br&gt;❌ User identity&lt;br&gt;❌ API keys&lt;br&gt;❌ IP address" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8CECC;strokeColor=#B85450;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="940" y="590" width="130" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-telem-note" value="Uses TelemetryDeck or similar privacy-first service.&lt;br&gt;User can opt out at any time. No functionality lost." style="text;html=1;strokeColor=#666666;fillColor=#f5f5f5;fontSize=9;fontColor=#333333;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="795" y="710" width="275" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- MVP vs POST-MVP -->
+        <mxCell id="auto-mvp" value="&lt;b&gt;MVP&lt;/b&gt;&lt;hr&gt;✓ 4-state health machine&lt;br&gt;✓ LLM circuit breaker&lt;br&gt;✓ Offline message queue&lt;br&gt;✓ Pre-update backup&lt;br&gt;✓ Migration registry&lt;br&gt;✓ Self-diagnostic chat" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="780" width="150" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-postmvp" value="&lt;b&gt;POST-MVP (v1.1)&lt;/b&gt;&lt;hr&gt;✓ Full circuit breakers&lt;br&gt;✓ XPC heartbeats&lt;br&gt;✓ Health score&lt;br&gt;✓ Status dashboard&lt;br&gt;✓ Opt-in telemetry&lt;br&gt;✓ Resumable migrations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="210" y="780" width="150" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auto-future" value="&lt;b&gt;FUTURE (v1.2+)&lt;/b&gt;&lt;hr&gt;✓ Predictive health&lt;br&gt;✓ Community dashboard&lt;br&gt;✓ Local model fallback&lt;br&gt;✓ Auto issue reporting" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="380" y="780" width="150" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Reference -->
+        <mxCell id="auto-ref" value="See: docs/specs/autonomous-operation.md" style="text;html=1;strokeColor=none;fillColor=none;fontSize=9;fontStyle=2;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="910" width="250" height="15" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
 </mxfile>
