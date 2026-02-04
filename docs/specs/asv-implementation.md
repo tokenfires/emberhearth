@@ -79,6 +79,238 @@ CREATE TABLE person_asv (
 -- Index for quick lookups
 CREATE INDEX idx_ember_asv_timestamp ON ember_asv(timestamp);
 CREATE INDEX idx_person_asv_person ON person_asv(person_id, timestamp);
+
+-- Schema version tracking
+CREATE TABLE asv_schema_meta (
+    version INTEGER NOT NULL,
+    migrated_at DATETIME NOT NULL,
+    migration_notes TEXT
+);
+INSERT INTO asv_schema_meta (version, migrated_at, migration_notes)
+VALUES (1, datetime('now'), 'Initial 7-axis ASV schema');
+```
+
+---
+
+## Schema Evolution and Migration
+
+The ASV model may evolve as research progresses. Historical data must migrate cleanly to new schemas without loss.
+
+### Design Principles
+
+1. **Never delete raw data** — Archive old format, don't overwrite
+2. **Additive changes are safe** — New columns with defaults don't break old data
+3. **Semantic changes need mapping** — If axis meaning changes, define explicit transform
+4. **Version everything** — Track which schema version each record was created under
+
+### Schema Version Tracking
+
+Every ASV record includes its schema version:
+
+```sql
+-- Add to both tables
+ALTER TABLE ember_asv ADD COLUMN schema_version INTEGER DEFAULT 1;
+ALTER TABLE person_asv ADD COLUMN schema_version INTEGER DEFAULT 1;
+```
+
+### Migration Scenarios
+
+#### Scenario A: Adding a New Axis
+
+**Example:** Adding an 8th axis for "social connection" (alone↔connected)
+
+```sql
+-- 1. Add new column with neutral default
+ALTER TABLE ember_asv ADD COLUMN social_connection REAL DEFAULT 0.0;
+ALTER TABLE person_asv ADD COLUMN social_connection REAL DEFAULT 0.0;
+
+-- 2. Update schema version
+UPDATE asv_schema_meta SET version = 2, migrated_at = datetime('now'),
+    migration_notes = 'Added social_connection axis (v2)';
+
+-- 3. Mark existing records as v1 (they have inferred social_connection = 0.0)
+-- New records will be v2 with actual values
+```
+
+**Code handling:**
+```swift
+func loadASV(from row: SQLiteRow) -> AffectiveStateVector {
+    var asv = AffectiveStateVector()
+    asv.angerAcceptance = row["anger_acceptance"]
+    // ... other axes ...
+
+    // Handle schema evolution
+    if row["schema_version"] >= 2 {
+        asv.socialConnection = row["social_connection"]
+    } else {
+        // v1 records: infer from other data or use neutral
+        asv.socialConnection = 0.0  // Unknown, treat as neutral
+    }
+    return asv
+}
+```
+
+#### Scenario B: Removing an Axis
+
+**Example:** Removing temporal axis if research shows it's redundant with hope/interest
+
+```sql
+-- 1. DON'T delete the column - keep for historical analysis
+-- 2. Add a "deprecated" marker
+ALTER TABLE ember_asv ADD COLUMN temporal_deprecated BOOLEAN DEFAULT FALSE;
+
+-- 3. Update schema version
+UPDATE asv_schema_meta SET version = 3, migrated_at = datetime('now'),
+    migration_notes = 'Deprecated temporal axis - now derived from despair_hope (v3)';
+
+-- 4. New records won't populate temporal, but old data preserved
+```
+
+**Code handling:**
+```swift
+func loadASV(from row: SQLiteRow) -> AffectiveStateVector {
+    var asv = AffectiveStateVector()
+    // ... load other axes ...
+
+    if row["schema_version"] < 3 {
+        // v1/v2: temporal was explicit
+        asv.temporal = row["temporal"]
+    } else {
+        // v3+: derive temporal from despair_hope
+        asv.temporal = deriveTemporalFromHope(asv.despairHope)
+    }
+    return asv
+}
+
+func deriveTemporalFromHope(_ hope: Double) -> Double {
+    // Future-focused correlates with hope; past-focused with despair
+    return hope * 0.7  // Damped correlation
+}
+```
+
+#### Scenario C: Changing Axis Semantics
+
+**Example:** Changing boredom↔interest to apathy↔engagement (broader meaning)
+
+```sql
+-- 1. Rename column to indicate semantic change
+ALTER TABLE ember_asv RENAME COLUMN bored_interest TO apathy_engagement;
+
+-- 2. Add mapping note
+UPDATE asv_schema_meta SET version = 4, migrated_at = datetime('now'),
+    migration_notes = 'Renamed bored_interest to apathy_engagement - same scale, broader semantics (v4)';
+```
+
+**Code handling:**
+```swift
+// Old data is semantically compatible (boredom ⊂ apathy, interest ⊂ engagement)
+// No transform needed, just use new name
+```
+
+#### Scenario D: Changing Scale
+
+**Example:** Changing intensity from 0.0-1.0 to -1.0 to +1.0
+
+```sql
+-- 1. Create new column with new scale
+ALTER TABLE ember_asv ADD COLUMN intensity_v2 REAL;
+
+-- 2. Migrate existing data with transform
+UPDATE ember_asv SET intensity_v2 = (intensity * 2.0) - 1.0;
+
+-- 3. Keep old column for audit trail
+-- 4. Update schema version
+UPDATE asv_schema_meta SET version = 5, migrated_at = datetime('now'),
+    migration_notes = 'Changed intensity scale from [0,1] to [-1,1] (v5)';
+```
+
+### Migration Registry
+
+Maintain a registry of all migrations:
+
+```swift
+struct ASVMigration {
+    let fromVersion: Int
+    let toVersion: Int
+    let description: String
+    let migrate: (SQLiteConnection) throws -> Void
+}
+
+let asvMigrations: [ASVMigration] = [
+    ASVMigration(fromVersion: 1, toVersion: 2,
+        description: "Add social_connection axis",
+        migrate: { db in
+            try db.execute("ALTER TABLE ember_asv ADD COLUMN social_connection REAL DEFAULT 0.0")
+            try db.execute("ALTER TABLE person_asv ADD COLUMN social_connection REAL DEFAULT 0.0")
+        }),
+    // ... additional migrations ...
+]
+
+func migrateASVSchema(db: SQLiteConnection, targetVersion: Int) throws {
+    let currentVersion = try db.scalar("SELECT version FROM asv_schema_meta") as! Int
+
+    for migration in asvMigrations where migration.fromVersion >= currentVersion
+                                      && migration.toVersion <= targetVersion {
+        try migration.migrate(db)
+        try db.execute("""
+            UPDATE asv_schema_meta
+            SET version = \(migration.toVersion),
+                migrated_at = datetime('now'),
+                migration_notes = '\(migration.description)'
+            """)
+    }
+}
+```
+
+### Data Export for Analysis
+
+Before major migrations, export data for offline analysis:
+
+```swift
+func exportASVForAnalysis(db: SQLiteConnection) -> URL {
+    let exportPath = FileManager.default.temporaryDirectory
+        .appendingPathComponent("asv_export_\(Date().ISO8601Format()).json")
+
+    let emberASVs = try db.prepare("SELECT * FROM ember_asv").map { row in
+        // Convert to JSON-serializable format
+    }
+
+    let personASVs = try db.prepare("SELECT * FROM person_asv").map { row in
+        // Convert to JSON-serializable format
+    }
+
+    let export = ASVExport(
+        exportDate: Date(),
+        schemaVersion: currentSchemaVersion,
+        emberASVs: emberASVs,
+        personASVs: personASVs
+    )
+
+    try JSONEncoder().encode(export).write(to: exportPath)
+    return exportPath
+}
+```
+
+### Rollback Strategy
+
+If a migration causes issues:
+
+1. **Don't rollback the schema** — Forward-only migrations are safer
+2. **Fix forward** — Create a new migration that corrects the issue
+3. **Use archived data** — Old columns are preserved, so data isn't lost
+
+```swift
+// Example: v5 intensity scale change caused issues, fix in v6
+ASVMigration(fromVersion: 5, toVersion: 6,
+    description: "Revert intensity scale change - keep both columns",
+    migrate: { db in
+        // Restore original scale interpretation
+        try db.execute("""
+            UPDATE ember_asv
+            SET intensity_v2 = intensity  -- Use original 0-1 value
+            WHERE schema_version = 5
+            """)
+    })
 ```
 
 ---

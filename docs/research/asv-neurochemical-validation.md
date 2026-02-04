@@ -2,15 +2,19 @@
 
 **Purpose:** Validate the Affective State Vector (ASV) design against neuroscience research
 **Date:** February 4, 2026
-**Status:** Research Complete
+**Status:** Research Complete (with Open Questions)
 
 ---
 
 ## Executive Summary
 
-The ASV's 7-axis emotional model is **well-grounded in neuroscience**. Six of seven axes have direct or strong indirect support from neurochemical research. The temporal axis (past↔future orientation) is cognitive rather than neurochemical, but remains useful for an AI assistant context.
+The ASV's 7-axis emotional model is **well-grounded in neuroscience**. All seven axes have neurochemical support, though the temporal axis connection was discovered late in research via dopamine's role in temporal processing.
 
-**Recommendation:** Proceed with current ASV design. No modifications required.
+**Key Finding:** Dopamine modulates not just reward/interest but also **time perception itself**. ADHD research demonstrates this clearly—dopamine dysregulation causes "time blindness," and medication that restores dopamine balance also normalizes time perception.
+
+**Recommendation:** Proceed with current ASV design. Flag temporal axis for potential future refinement as research evolves.
+
+**Open Questions:** See "Open Research Questions" section below.
 
 ---
 
@@ -189,21 +193,140 @@ This model has been **empirically validated for 40+ years** across cultures.
 | **fear↔trust** | Oxytocin (trust), Cortisol/NE (fear) | ✅ Strong | Oxytocin increases trust; cortisol/NE mediate fear response |
 | **despair↔hope** | Dopamine (anticipation) | ✅ Moderate | Dopamine drives anticipation of future rewards; low DA → anhedonia |
 | **boredom↔interest** | Dopamine + Norepinephrine | ✅ Strong | Lövheim: high DA + high NE = Interest/Excitement |
-| **temporal** | Cognitive (not neurochemical) | ⚠️ Indirect | No direct neurochemical mapping, but useful for AI context |
+| **temporal** | Dopamine (time perception) | ✅ Moderate | Dopamine modulates temporal processing; ADHD time blindness demonstrates this |
 | **valence** | Russell's validated dimension | ✅ Strong | Core dimension in affect research for 40+ years |
 | **intensity** | Norepinephrine (arousal) | ✅ Strong | NE is primary arousal/attention modulator |
 
 ---
 
-## The Temporal Axis
+## The Temporal Axis — Revisited
 
-The temporal axis (past↔future orientation) is the only dimension without direct neurochemical support. However:
+Initial analysis categorized the temporal axis as "cognitive, not neurochemical." Further research revealed this was incorrect.
 
-1. **It's cognitively valid:** Rumination (past-focused) and worry (future-focused) are recognized psychological phenomena
-2. **Dopamine provides indirect support:** Dopamine is about *anticipation* of future reward, suggesting future orientation has neurochemical components
-3. **It's practically useful:** For an AI assistant, knowing whether the user is dwelling on past events or planning future actions is valuable context
+### Dopamine and Time Perception
 
-**Recommendation:** Keep the temporal axis. It serves a different but complementary purpose to the neurochemical axes.
+Research shows dopamine **directly modulates temporal processing**:
+
+- **Basal ganglia and striatum:** Time perception (hundreds of ms to seconds) depends on dopaminergic pathways
+- **Prefrontal cortex:** Time estimation is associated with dopaminergic signaling
+- **Optogenetic studies:** Stimulating/inhibiting dopamine neurons makes mice behave as if time moves faster or slower
+- **Human studies:** Fast phasic dopamine signals → underestimation of time intervals; slow tonic dopamine decreases → poorer temporal precision
+
+### ADHD as Evidence
+
+ADHD provides strong evidence for dopamine-temporal connection:
+
+- **Time blindness** affects up to 90% of people with ADHD
+- ADHD involves dopamine dysregulation in prefrontal cortex and striatum
+- When ADHD medication restores dopamine balance, "time clicks into place"
+- Research: "Temporal processing differences [are] a core ADHD feature related to dopaminergic dysfunction"
+
+### Implications for ASV
+
+The temporal axis may **partially overlap** with dopamine-driven axes (despair↔hope, boredom↔interest):
+
+- Future-orientation correlates with dopamine-driven anticipation
+- Past-rumination may correlate with low dopamine states
+
+**Open Question:** Is temporal orientation (past↔future) capturing something distinct from hope/interest, or is it redundant? This warrants future analysis of ASV data to detect correlation patterns.
+
+**Current Recommendation:** Keep the temporal axis. Even if partially correlated with other axes, the explicit past/future framing provides useful semantic context for an AI assistant.
+
+---
+
+## Additional Neurochemical Systems
+
+Beyond the primary monoamines, several other systems influence emotional processing:
+
+### Endocannabinoid System (ECS)
+
+- Acts as a "regulatory buffer system for emotional responses"
+- Ensures appropriate reaction to stressful events
+- CB1 receptors on glutamatergic terminals → anxiolysis
+- CB1 receptors on GABAergic terminals → can facilitate anxiety
+- Critical for fear extinction learning
+
+**ASV Relevance:** May influence the *stability* of emotional states rather than specific axes.
+
+### Neuropeptides
+
+| Neuropeptide | Function | Notes |
+|--------------|----------|-------|
+| **Orexin** | Arousal, wakefulness, reward-seeking | Maximal during positive emotion, anger; minimal during sleep |
+| **Substance P** | Stress, pain, mood | Modulates monoamine nuclei (NE, DA, 5-HT) |
+| **NPY** | Anxiety regulation | Bidirectional effects on arousal |
+| **Neuropeptide S** | Stress and arousal modulation | Interacts with orexin system |
+
+**ASV Relevance:** These likely act as modulators of the primary axes rather than representing distinct dimensions.
+
+### The Neurochemical Hierarchy
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  LAYER 1: Substrate                                             │
+│  Glutamate (excitatory) ←→ GABA (inhibitory)                   │
+│  Base signal propagation                                        │
+├─────────────────────────────────────────────────────────────────┤
+│  LAYER 2: Monoamine Modulators (Lövheim Trio)                   │
+│  Serotonin · Dopamine · Norepinephrine                          │
+│  Tune emotional/cognitive state                                 │
+├─────────────────────────────────────────────────────────────────┤
+│  LAYER 3: Social/Stress Hormones                                │
+│  Oxytocin (bonding) · Cortisol (threat)                         │
+│  Handle social and stress contexts                              │
+├─────────────────────────────────────────────────────────────────┤
+│  LAYER 4: Buffer Systems                                        │
+│  Endocannabinoid system                                         │
+│  Emotional response regulation/stability                        │
+├─────────────────────────────────────────────────────────────────┤
+│  LAYER 5: Neuropeptide Fine-Tuning                              │
+│  Orexin · Substance P · NPY · etc.                              │
+│  Context-specific modulation                                    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+The ASV primarily captures Layers 2-3, which is appropriate for a practical emotional model.
+
+---
+
+## Open Research Questions
+
+These questions are flagged for future investigation as ASV data accumulates:
+
+### 1. Temporal Axis Redundancy
+
+**Question:** Is the temporal axis (past↔future) capturing something distinct, or is it highly correlated with despair↔hope and boredom↔interest?
+
+**Why it matters:** If temporal is redundant, it could be collapsed into existing axes. If distinct, it validates keeping 7 dimensions.
+
+**How to investigate:** Analyze stored ASV data for correlation patterns between temporal and other dopamine-influenced axes.
+
+### 2. Intensity vs Valence Interaction
+
+**Question:** Should intensity modulate the other axes multiplicatively, or remain independent?
+
+**Neurochemical basis:** Norepinephrine (intensity) "ignites local hotspots" and amplifies selective attention. This suggests intensity might *amplify* other emotional states rather than exist independently.
+
+**Current approach:** Treat as independent for simplicity. Revisit if word translations feel off.
+
+### 3. Missing Dimensions?
+
+**Question:** Are there emotional dimensions the ASV fails to capture?
+
+**Candidates:**
+- **Social context** (alone ↔ connected) — Oxytocin partially captures this
+- **Agency** (helpless ↔ in-control) — May correlate with hope/fear
+- **Cognitive load** (overwhelmed ↔ clear) — Practical for AI but may not be "emotional"
+
+**Current stance:** The 7-axis model is sufficient. Resist adding dimensions without strong evidence of gaps.
+
+### 4. Individual Baseline Variance
+
+**Question:** Do different people have different "resting" ASV states, and should Ember track per-person baselines?
+
+**Neurochemical basis:** Genetic variations affect monoamine transporter density, meaning people have different baseline neurochemical states.
+
+**Implication for ASV:** What feels like 0.0 (neutral) for one person might be +0.3 for another. Ember may need to learn individual baselines over time.
 
 ---
 
@@ -213,23 +336,30 @@ The temporal axis (past↔future orientation) is the only dimension without dire
 
 The ASV maps remarkably well to established neuroscience:
 
-1. **Two axes map directly to Russell's Circumplex** (valence, arousal/intensity) - the most validated model in affect research
-2. **Four axes map to specific neurochemical systems** (serotonin→anger, oxytocin→trust, dopamine→interest/hope, NE→intensity)
-3. **One axis (temporal) is cognitive** but practically useful
+1. **Two axes map directly to Russell's Circumplex** (valence, arousal/intensity) — the most validated model in affect research
+2. **Five axes map to specific neurochemical systems**:
+   - Serotonin → anger↔acceptance
+   - Oxytocin → fear↔trust
+   - Dopamine → despair↔hope, boredom↔interest, temporal
+   - Norepinephrine → intensity
+3. **The temporal axis has stronger neurochemical grounding than initially thought** — dopamine directly modulates time perception
 
-### No Design Changes Needed
+### No Design Changes Needed (Currently)
 
 The original ASV design anticipated the neurochemical basis well. The axes are:
-- Orthogonal enough to capture distinct emotional dimensions
 - Grounded in real neuroscience
 - Practical for AI assistant use cases
+- Flexible enough to accommodate future refinements
+
+**However:** Flag the open research questions above for future analysis once ASV data accumulates.
 
 ### Implementation Note
 
-The user's proposed implementation (using the LLM to translate percentages to emotionally resonant words) is elegant because:
+The LLM-based word translation approach is elegant because:
 1. It avoids hardcoding emotion↔word mappings
 2. It leverages the LLM's training on human emotional language
 3. It allows the system to express subtle gradations (e.g., "62% between joy and despair")
+4. It's culture/language agnostic — the LLM handles localization
 
 ---
 
@@ -259,3 +389,21 @@ The user's proposed implementation (using the LLM to translate percentages to em
 ### Cortisol and Stress
 - [Cortisol increases the return of fear by strengthening amygdala signaling](https://pubmed.ncbi.nlm.nih.gov/29529523/)
 - [Understanding the stress response - Harvard Health](https://www.health.harvard.edu/staying-healthy/understanding-the-stress-response)
+
+### Dopamine and Temporal Processing
+- [Dopamine and the interdependency of time perception and reward](https://pmc.ncbi.nlm.nih.gov/articles/PMC9062982/)
+- [Dopamine, time perception, and future time perspective](https://pmc.ncbi.nlm.nih.gov/articles/PMC6182591/)
+- [Dopamine Cells Influence Our Perception of Time - Simons Foundation](https://www.simonsfoundation.org/2017/01/20/dopamine-cells-influence-our-perception-of-time/)
+- [Sub-second and multi-second dopamine dynamics underlie variability in human time perception](https://www.medrxiv.org/content/10.1101/2024.02.09.24302276v1)
+
+### ADHD and Time Blindness
+- [Clinical Implications of the Perception of Time in ADHD](https://pmc.ncbi.nlm.nih.gov/articles/PMC6556068/)
+- [Time Perception is a Focal Symptom of ADHD in Adults](https://pmc.ncbi.nlm.nih.gov/articles/PMC8293837/)
+
+### Endocannabinoid System
+- [The endocannabinoid system in anxiety, fear memory and habituation](https://pmc.ncbi.nlm.nih.gov/articles/PMC3267552/)
+- [The endocannabinoid system in modulating fear, anxiety, and stress](https://www.tandfonline.com/doi/full/10.31887/DCNS.2020.22.3/rmaldonado)
+
+### Neuropeptides
+- [Protective Role of Neuropeptides in Depression and Anxiety](https://pmc.ncbi.nlm.nih.gov/articles/PMC9952193/)
+- [The Orexin/Hypocretin System and Adaptation to Stress](https://www.mdpi.com/2227-9059/12/2/448)
