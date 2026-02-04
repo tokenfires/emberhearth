@@ -1121,9 +1121,9 @@ The output of this reflective process becomes part of the prompt to the main LLM
 - Positive feedback on expansions → weight similar expansions higher
 - The system learns the user's tolerance for tangential helpfulness
 
-### Emotional Encoding: The Salience Foundation
+### The Affective State Vector (ASV): The Salience Foundation
 
-*This section describes a novel multi-dimensional model for encoding emotional state, derived from neurochemical principles and years of independent research. This encoding enables true salience—the system knows not just what was said, but why it mattered.*
+*This section describes a novel multi-dimensional model for encoding emotional state—the Affective State Vector (ASV)—derived from neurochemical principles and years of independent research. The ASV enables true salience—the system knows not just what was said, but why it mattered.*
 
 #### The Problem with Existing Emotional Models
 
@@ -1140,6 +1140,10 @@ Existing approaches to emotional encoding in AI are inadequate:
 Consider a neuron's function at the simplest level: take in chemically-encoded information, transform it, pass it forward with a signal indicating "I'm related *in this kind of way*." With 32+ identified neurochemicals (and likely more), the encoding is rich and multi-channel.
 
 Consider serotonin specifically: a neuron with *no* serotonin vs. one *saturated* with it would process and re-encode information differently. The neurochemical state influences how data is transformed and passed on. This suggests emotional states aren't labels applied to experiences—they're part of the encoding mechanism itself.
+
+#### The Affective State Vector (ASV)
+
+EmberHearth encodes emotional states as a 7-dimensional vector called the **Affective State Vector (ASV)**. Rather than discrete labels like "happy" or "angry," the ASV represents emotions as continuous values across multiple axes—capturing the nuanced, multi-channel nature of actual emotional experience.
 
 #### The Emotional Axes: True Opposites
 
@@ -1238,12 +1242,12 @@ Attentive <──────────(center = moderate)──────�
 
 This axis allows encoding of intensity independent of emotional type. You can be mildly interested or intensely interested; mildly afraid or paralyzed with fear.
 
-#### The Complete Encoding
+#### The Complete ASV Encoding
 
-Each axis becomes a numeric value. A single emotional state is a vector:
+Each axis becomes a numeric value. The complete ASV is a 7-element vector:
 
 ```
-emotional_state = [
+ASV = [
     anger_acceptance,      // -1.0 (anger) to +1.0 (acceptance)
     fear_trust,            // -1.0 (fear) to +1.0 (trust)
     despair_hope,          // -1.0 (despair) to +1.0 (hope/joy)
@@ -1254,10 +1258,10 @@ emotional_state = [
 ]
 ```
 
-This can be stored as bytes (0-255 per axis), integers, or floats depending on precision needs. It can be:
-- **Recorded** alongside memories (this fact was learned in *this* emotional state)
+The ASV can be stored as bytes (0-255 per axis), integers, or floats depending on precision needs. It can be:
+- **Recorded** alongside memories (this fact was learned in *this* ASV)
 - **Played back** to reconstruct emotional context
-- **Compared** to find emotionally similar experiences
+- **Compared** to find emotionally similar experiences (ASV distance)
 - **Averaged** to understand emotional patterns over time
 
 #### The Movable Midpoint: Disposition and Personality
@@ -1302,35 +1306,35 @@ The midpoint becomes a **personality encoding**. A more cautious AI has a midpoi
 
 #### Application to Salience
 
-This emotional encoding solves the salience problem:
+The ASV solves the salience problem:
 
-**Without emotional encoding:**
+**Without ASV:**
 - Memory: "User mentioned their mother is sick"
 - Retrieval: Keyword/semantic match only
 - Problem: System doesn't know this is *important*
 
-**With emotional encoding:**
-- Memory: "User mentioned their mother is sick" + emotional_state: [-0.3, -0.5, -0.6, 0.2, -0.2, -0.7, 0.9]
+**With ASV:**
+- Memory: "User mentioned their mother is sick" + ASV: [-0.3, -0.5, -0.6, 0.2, -0.2, -0.7, 0.9]
   - (Slight anger, significant fear, strong despair tendency, moderate interest, past-oriented, very negative, high intensity)
-- Retrieval: Can search by emotional similarity, not just semantic
+- Retrieval: Can search by ASV similarity, not just semantic
 - Result: System knows this memory carries weight; it was encoded with fear, despair, and high intensity
 
-**Emotional similarity search:**
+**ASV similarity search:**
 
-When the user mentions something related to family health, the system can find memories with similar emotional signatures—even if the words are different. "My dad's test results" might retrieve the mother-sick memory because the emotional encoding is similar, not because the words match.
+When the user mentions something related to family health, the system can find memories with similar ASV signatures—even if the words are different. "My dad's test results" might retrieve the mother-sick memory because the ASV is similar, not because the words match.
 
 #### Implementation Considerations
 
 **Storage schema addition:**
 
 ```sql
--- Add emotional encoding to interactions and knowledge
-ALTER TABLE interactions ADD COLUMN emotional_state BLOB;  -- 7 floats packed
-ALTER TABLE knowledge ADD COLUMN emotional_state BLOB;
-ALTER TABLE events ADD COLUMN emotional_state BLOB;
+-- Add ASV to interactions and knowledge
+ALTER TABLE interactions ADD COLUMN asv BLOB;  -- 7 floats packed
+ALTER TABLE knowledge ADD COLUMN asv BLOB;
+ALTER TABLE events ADD COLUMN asv BLOB;
 
--- Index for emotional similarity (would need custom extension or app-level)
--- Emotional distance = weighted euclidean distance across axes
+-- Index for ASV similarity (would need custom extension or app-level)
+-- ASV distance = weighted euclidean distance across axes
 ```
 
 **Emotional inference:**
@@ -1386,9 +1390,9 @@ The computational requirements for full emotional encoding, salience scoring, te
 │     • Extract facts, preferences, relationships                 │
 │     • Link new knowledge to source interactions                 │
 │                                                                  │
-│  2. EMOTIONAL ENCODING                                           │
+│  2. ASV COMPUTATION                                              │
 │     • Analyze interactions for emotional content                │
-│     • Compute emotional state vectors with full deliberation    │
+│     • Compute Affective State Vectors with full deliberation    │
 │     • Tag memories with salience scores                         │
 │                                                                  │
 │  3. VECTOR INDEXING                                              │
@@ -1921,9 +1925,9 @@ As of early 2026, models like Qwen 2.5 and DeepSeek are hitting benchmarks near 
 23. **Intrusion Calibration:** How to learn user's tolerance for proactive contact? What signals indicate "too much" vs "helpful"?
 24. **Emergency Detection:** What confidence threshold is appropriate for escalation actions?
 
-### Emotional Encoding Model
+### Affective State Vector (ASV) Research
 
-25. **Axis Validation:** Do the proposed emotional axes (anger↔acceptance, fear↔trust, hope↔despair, interest↔boredom) align with psychological research? Are there missing primary axes?
+25. **Axis Validation:** Do the proposed ASV axes (anger↔acceptance, fear↔trust, hope↔despair, interest↔boredom) align with psychological research? Are there missing primary axes?
 26. **Inference Accuracy:** How reliably can emotional state be inferred from text? What signals beyond words (punctuation, response time, topic) improve accuracy?
 27. **Encoding Precision:** What numeric precision is needed per axis? Is a byte (0-255) sufficient, or do certain axes need higher resolution?
 28. **Similarity Metrics:** What distance function best captures "emotional similarity" for retrieval? Euclidean? Weighted? Should certain axes weight higher?
