@@ -1,8 +1,8 @@
 # EmberHearth Architecture Overview
 
-**Version:** 1.3
-**Date:** February 3, 2026
-**Status:** Pre-Prototype Review (Autonomous Operation Added)
+**Version:** 1.4
+**Date:** February 4, 2026
+**Status:** Pre-Prototype Review (ASV Implementation Added)
 **Diagram:** `diagrams/emberhearth-architecture.drawio`
 
 ### Diagram Pages
@@ -614,6 +614,8 @@ During this architecture review, the following items were noted:
 | `specs/error-handling.md` | Component failures, crash recovery, backup strategy, logging |
 | `specs/autonomous-operation.md` | Self-healing, circuit breakers, seamless upgrades, optional telemetry |
 | `specs/token-awareness.md` | Usage tracking, budget enforcement, adaptive quality, projections |
+| `specs/asv-implementation.md` | Affective State Vector storage, LLM word translation, prompt injection |
+| `research/asv-neurochemical-validation.md` | Neurochemical basis validation (serotonin, dopamine, oxytocin, etc.) |
 | `conversation-design.md` | Ember's personality, voice, tone, error handling |
 | `personality-design.md` | Three-layer model, bounded needs, love languages, attachment patterns |
 | `onboarding-ux.md` | Permission flow, LLM setup, first-time experience |
