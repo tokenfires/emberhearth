@@ -269,50 +269,95 @@ The full anticipation architecture (Pattern Detector → Opportunity Detector �
 
 ### Critical Gaps
 
-**1. Offline Mode**
+**1. Offline Mode** ✅ RESOLVED
 
-What happens when internet is unavailable?
-- Claude API requires internet
-- User sends iMessage, gets... nothing?
-- Need graceful offline response
+~~What happens when internet is unavailable?~~
+~~- Claude API requires internet~~
+~~- User sends iMessage, gets... nothing?~~
+~~- Need graceful offline response~~
 
-**Recommendation:** Implement basic offline acknowledgment: "I'm temporarily offline. I'll respond when connectivity returns."
+~~**Recommendation:** Implement basic offline acknowledgment: "I'm temporarily offline. I'll respond when connectivity returns."~~
 
-**2. Rate Limiting / Cost Controls**
+**Resolution:** See `docs/specs/offline-mode.md` — Comprehensive offline handling including:
+- Connectivity state machine (online/degraded/offline)
+- Message queue system with priority classification
+- Rate-limited acknowledgment templates
+- Recovery and catch-up processing
+- Offline-capable operations (calendar, reminders, contacts)
+- Menu bar status indicator
 
-Heavy API usage could cost users $50-100+/month. How do you:
-- Track usage
-- Warn before expensive operations
-- Set user-defined limits
-- Handle exceeded limits gracefully
+**2. Rate Limiting / Cost Controls** ✅ RESOLVED
 
-**Recommendation:** Build usage tracking into MVP. Display estimated costs. Allow budget caps.
+~~Heavy API usage could cost users $50-100+/month. How do you:~~
+~~- Track usage~~
+~~- Warn before expensive operations~~
+~~- Set user-defined limits~~
+~~- Handle exceeded limits gracefully~~
 
-**3. Backup and Restore**
+~~**Recommendation:** Build usage tracking into MVP. Display estimated costs. Allow budget caps.~~
 
-Memory.db contains years of user's life. If it's lost:
-- User loses their relationship with Ember
-- No way to recover
+**Resolution:** See `docs/specs/token-awareness.md` — Comprehensive cost control system including:
+- Menu bar usage indicator with quick popup
+- Two-tier transparency (grandmother-simple vs power-user detailed)
+- Hard spending cap enforcement
+- Adaptive quality tiers (Premium → Standard → Efficient → Minimal → Paused)
+- Budget configuration in onboarding
+- Ember proactively communicates about budget
+- Historical usage tracking
 
-**Recommendation:** Automatic local backups. Consider Time Machine integration. Manual export option.
+**3. Backup and Restore** ✅ RESOLVED
 
-**4. Terms of Service Handling**
+~~Memory.db contains years of user's life. If it's lost:~~
+~~- User loses their relationship with Ember~~
+~~- No way to recover~~
 
-Anthropic's ToS prohibits automated access via consumer subscriptions. EmberHearth requires API access.
+~~**Recommendation:** Automatic local backups. Consider Time Machine integration. Manual export option.~~
 
-**Question:** Is this made clear enough to users? Do they understand they need an API key, not a Claude Pro subscription?
+**Resolution:** See `docs/specs/update-recovery.md` — Comprehensive backup system including:
+- Three backup types: Update (pre-update snapshots), Daily (7-day retention), Manual (forever)
+- Backup contents: memory.db, conversations.db, config.json, checksums
+- Restore process with integrity verification and safety backup
+- Data export in portable JSON format
+- User-accessible backup management in Settings
 
-**Recommendation:** Onboarding should explicitly explain API vs. subscription, with cost expectations.
+**4. Terms of Service Handling** ✅ RESOLVED
 
-**5. Crisis/Safety Protocols**
+~~Anthropic's ToS prohibits automated access via consumer subscriptions. EmberHearth requires API access.~~
 
-Legal-ethical-considerations.md mentions crisis detection, but:
-- What specific phrases trigger crisis protocol?
-- What resources are surfaced?
-- How do you avoid false positives?
-- What's the liability exposure?
+~~**Question:** Is this made clear enough to users? Do they understand they need an API key, not a Claude Pro subscription?~~
 
-**Recommendation:** Define explicit crisis detection patterns. Test extensively. Include clear disclaimer about not being a substitute for professional help.
+~~**Recommendation:** Onboarding should explicitly explain API vs. subscription, with cost expectations.~~
+
+**Resolution:** See `docs/specs/api-setup-guide.md` — Clear ToS/API onboarding including:
+- Explicit "API key ≠ subscription" explanation before provider selection
+- "What's an API key?" expandable with gym membership vs utility meter analogy
+- Provider-specific format validation (detects email, password, wrong prefix)
+- Step-by-step guides for Anthropic Console and OpenAI Platform
+- Cost expectations ($5-30/month typical) integrated into onboarding
+- Error handling for common mistakes (subscription credentials, expired keys)
+- FAQ addressing billing confusion
+
+**5. Crisis/Safety Protocols** ✅ RESOLVED
+
+~~Legal-ethical-considerations.md mentions crisis detection, but:~~
+~~- What specific phrases trigger crisis protocol?~~
+~~- What resources are surfaced?~~
+~~- How do you avoid false positives?~~
+~~- What's the liability exposure?~~
+
+~~**Recommendation:** Define explicit crisis detection patterns. Test extensively. Include clear disclaimer about not being a substitute for professional help.~~
+
+**Resolution:** See `docs/specs/crisis-safety-protocols.md` — Comprehensive safety system including:
+- Three-tier detection (Immediate Crisis → Serious Concern → Potential Concern)
+- 50+ detection patterns with regex matching
+- False positive filtering (idioms, fiction, news context)
+- Context-aware analysis (conversation history, hypothetical indicators)
+- Tier-appropriate response templates (resource referral, NO therapeutic engagement)
+- Crisis resources database (988, Crisis Text Line, specialized resources)
+- Local-only logging with 90-day retention
+- Onboarding disclaimer and ToS language
+- Repeat trigger handling and edge cases (minors, professionals)
+- Legal framework compliance (NY Safeguards Law, CA SB 243)
 
 ### Nice-to-Have Gaps (Not Critical)
 
