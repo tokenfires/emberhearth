@@ -1,13 +1,13 @@
 # EmberHearth Architecture Overview
 
-**Version:** 1.4
-**Date:** February 4, 2026
-**Status:** Pre-Prototype Review (ASV Implementation Added)
+**Version:** 1.5
+**Date:** February 5, 2026
+**Status:** Pre-Prototype Review (Multi-Agent & Security Specs Added)
 **Diagram:** `diagrams/emberhearth-architecture.drawio`
 
 ### Diagram Pages
 
-The draw.io file contains 10 pages:
+The draw.io file contains 12 pages:
 
 | Page | Name | Description |
 |------|------|-------------|
@@ -15,12 +15,14 @@ The draw.io file contains 10 pages:
 | 2 | Data Flow - Message Processing | Step-by-step message handling |
 | 3 | MVP Scope | Visual breakdown of MVP vs later phases |
 | 4 | Plugin System | Plugin Manager, Runtime, API, permissions |
-| 5 | LLM Orchestration | Four modes, adaptive routing, local agents |
-| 6 | Security Layers | Defense in depth (6 layers), Tron detail |
+| 5 | LLM Orchestration | Four modes, adaptive routing, local agents, **Ralph Loop quality cycles** |
+| 6 | Security Layers | Defense in depth (6 layers), Tron detail — **see `specs/tron-security.md` for full pipeline** |
 | 7 | Integration Services | Apple framework XPC services |
-| 8 | Ember Personality System | Three-layer model, bounded needs, user understanding, attachment-informed algorithm, configuration |
+| 8 | Ember Personality System | Three-layer model, bounded needs, **ASV as identity anchor**, attachment-informed algorithm, configuration |
 | 9 | Error Handling and Resilience | Design principles, component failures, crash recovery, backup strategy, health monitoring |
 | 10 | Autonomous Operation | Self-monitoring, self-healing, circuit breakers, offline mode, seamless upgrades, optional telemetry |
+| 11 | **Multi-Agent Architecture** 🟠 | Task Agents (ephemeral, parallel) vs Cognitive Agents (persistent, background), hybrid local/cloud execution |
+| 12 | **Cognitive Background Agents** 🟠 | Memory Agent, Attunement Agent, Context Agent, Emotion Agent — continuous presence, autonomous curiosity |
 
 ---
 
@@ -260,7 +262,8 @@ LLMService.xpc
 ├── LocalProvider 🔵
 │   ├── MLX runtime
 │   ├── Model management
-│   └── Quantization support
+│   ├── Quantization support
+│   └── Ralph Loop quality cycles (spec→action→review→iterate)
 │
 ├── ContextBuilder
 │   ├── Assembles context from components
@@ -273,6 +276,17 @@ LLMService.xpc
     ├── Work context: may require local-only
     └── Coordinates with Tron
 ```
+
+**Ralph Loop for Local Agents (Future):**
+
+Local models (MLX) use iterative quality cycles to match cloud model quality:
+- **Spec Phase:** Clear requirements before execution
+- **Action Phase:** Execute with fresh context
+- **Review Phase:** Structured self-check prompts
+- **Iterate Phase:** Fix issues, re-review until quality threshold met
+
+Dynamic quality cycles based on task complexity — Ember judges when enough is enough.
+See `research/iterative-quality-loops.md` for full specification.
 
 **Context Budget (from 1.9 research):**
 ```
@@ -294,22 +308,43 @@ LLMService.xpc
 
 The security enforcement layer that sits between user input and Ember.
 
+> **Full Specification:** See `specs/tron-security.md` for comprehensive design including threat model, inbound/outbound pipelines, credential detection patterns, PII scanning, and tiered user override system.
+
 | Aspect | Description |
 |--------|-------------|
 | **Technology** | TBD (may be separate process or integrated) |
 | **Responsibilities** | Prompt injection defense, tool authorization, anomaly detection |
 | **MVP Scope** | Hardcoded rules in main app |
 
-**From VISION.md:**
+**Core Pipelines (from tron-security.md):**
 ```
-Tron Responsibilities:
-├── Inbound filtering (signature + ML for prompt injection)
-├── Outbound monitoring (credential detection, behavior anomalies)
-├── Retrospective scanning (continuous threat hunting)
-├── Community signature database (auto-updated)
-├── Tool call authorization
-├── Group chat restriction enforcement
-└── Audit logging
+Tron Security Architecture:
+├── Inbound Pipeline
+│   ├── Prompt injection defense (signatures, heuristics, spotlighting)
+│   ├── Known-bad pattern detection (20+ credential patterns)
+│   ├── PII scanning (SSN, credit cards, etc.)
+│   └── Content classification
+│
+├── Outbound Pipeline
+│   ├── Credential leak detection
+│   ├── PII exfiltration prevention
+│   ├── Behavior anomaly detection
+│   └── Response validation
+│
+├── Tool Authorization
+│   ├── Per-tool risk classification
+│   ├── Context-aware approval
+│   └── Rate limiting
+│
+├── Tiered User Override System
+│   ├── Auto-allow (user trusts certain patterns)
+│   ├── Confirm (ask before proceeding)
+│   └── Block (never allow, even if requested)
+│
+└── Audit Logging
+    ├── Tamper-evident logging
+    ├── Security event recording
+    └── Forensic trail
 ```
 
 **Ember-Tron Coordination (from 1.9 research):**
@@ -344,9 +379,9 @@ Not a separate service—Ember is the personality that emerges from the system p
 
 | Aspect | Description |
 |--------|-------------|
-| **Defined In** | `conversation-design.md` |
+| **Defined In** | `conversation-design.md`, `specs/asv-implementation.md` |
 | **Responsibilities** | Personality, voice, tone, emotional awareness |
-| **Implementation** | System prompt + behavior rules |
+| **Implementation** | System prompt + behavior rules + ASV state |
 
 **Key Personality Traits (from research):**
 - Warm, curious, capable, present, honest, evolving
@@ -354,6 +389,21 @@ Not a separate service—Ember is the personality that emerges from the system p
 - Adapts verbosity to user signals
 - Uses emotional encoding for memory salience
 - Has public (group) vs private (1:1) awareness
+
+**ASV as Identity Anchor:**
+
+The Affective State Vector provides Ember with a concrete internal state distinct from context. This solves a common problem agents face: existential confusion about self vs system vs context.
+
+```
+ASV Provides:
+├── Concrete answer to "How am I feeling?" (no recursive self-analysis)
+├── Continuity of state across conversations (emotional memory)
+├── Internal/external distinction that grounds identity
+├── Substrate for emotional expression that isn't pure performance
+└── Identity anchor: "I know who I am because I can feel my state"
+```
+
+> **Full Specification:** See `specs/asv-implementation.md` for ASV storage, LLM translation, and the feedback loop architecture discussion.
 
 **System Prompt Components:**
 ```
@@ -364,7 +414,58 @@ Not a separate service—Ember is the personality that emerges from the system p
 5. Current context (personal vs work)
 6. Group chat restrictions (if applicable)
 7. Active task state (if any)
+8. Current ASV state (translated to natural language)
 ```
+
+---
+
+### 7. Multi-Agent Architecture 🟠
+
+> **Full Specification:** See `research/multi-agent-orchestration.md` for complete design.
+
+A future enhancement that enables parallel task execution and continuous background processing. Not MVP, but architecturally significant.
+
+**Two Agent Categories:**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  MULTI-AGENT ARCHITECTURE                                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  TASK AGENTS (Ephemeral)                 COGNITIVE AGENTS (Persistent)      │
+│  ├── Spawned for specific tasks          ├── Always running in background   │
+│  ├── Parallel execution                  ├── Maintain continuous state      │
+│  ├── Die when task completes             ├── Create "presence" feeling      │
+│  ├── Local models (MLX) for cost         └── Feed insights to Ember         │
+│  └── Ralph Loop for quality                                                 │
+│                                                                             │
+│  Examples:                               Examples:                          │
+│  • Calendar lookup agent                 • Memory Agent (consolidation)     │
+│  • Web research agent                    • Attunement Agent (user patterns) │
+│  • File processing agent                 • Context Agent (anticipation)     │
+│  • Email draft agent                     • Emotion Agent (ASV maintenance)  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Hybrid Local/Cloud Execution:**
+
+| Role | Model | Purpose |
+|------|-------|---------|
+| Ember (Foundation) | Claude API | Planning, synthesis, complex reasoning |
+| Task Agents | MLX local | Execution, iteration, cost-efficient parallel work |
+| Cognitive Agents | MLX local | Background processing, continuous presence |
+
+**Ralph Loop Integration:**
+
+Task agents use iterative quality cycles (spec → action → review → iterate) to ensure quality despite using smaller local models. See `research/iterative-quality-loops.md`.
+
+**Autonomous Curiosity (Future):**
+
+Cognitive agents don't just wait for invocation — they pursue information based on Ember's internal state:
+- Open loops in memory create curiosity markers
+- Encoded relevance (not computed at query time) drives exploration
+- Creates genuine presence rather than reactive responses
 
 ---
 
@@ -498,15 +599,20 @@ Ember needs to check calendar
 
 ### Future/Earmarked 🟠
 
-| Feature | Phase |
-|---------|-------|
-| Multi-user roles | Phase 5+ |
-| Family group exception | Future |
-| Work re-validation (SMS) | Future (needs server) |
-| Web UI | Future |
-| Voice interface | Future |
-| Workbench (Docker sandbox) | Future |
-| 911/emergency safeguards | Future |
+| Feature | Phase | Spec |
+|---------|-------|------|
+| **Multi-Agent Orchestration** | Phase 4+ | `research/multi-agent-orchestration.md` |
+| **Cognitive Background Agents** | Phase 5+ | `research/multi-agent-orchestration.md` |
+| **Ralph Loop Quality Cycles** | Phase 4+ | `research/iterative-quality-loops.md` |
+| **Full Tron Security Layer** | Phase 4+ | `specs/tron-security.md` |
+| Multi-user roles | Phase 5+ | — |
+| Family group exception | Future | — |
+| Work re-validation (SMS) | Future (needs server) | — |
+| Web UI | Future | — |
+| Voice interface | Future | — |
+| Workbench (Docker sandbox) | Future | — |
+| 911/emergency safeguards | Future | — |
+| **Embodied Emotion (Hardware)** | Horizon | `specs/asv-implementation.md` |
 
 ---
 
@@ -605,37 +711,61 @@ During this architecture review, the following items were noted:
 
 ## Cross-Reference to Research Documents
 
+### Specifications
+
 | Document | Primary Topics |
 |----------|----------------|
-| `VISION.md` | Overall philosophy, Tron concept, architecture vision |
-| `imessage.md` | chat.db schema, reading/sending, work/personal routing |
-| `security.md` | XPC services, Keychain, Secure Enclave, sandboxing |
-| `memory-learning.md` | Fact extraction, emotional encoding, decay, storage |
+| `specs/tron-security.md` | **Full Tron security layer**: threat model, inbound/outbound pipelines, credential detection, PII scanning, tiered overrides, audit logging |
+| `specs/asv-implementation.md` | Affective State Vector storage, LLM word translation, **ASV as identity anchor**, **emotion feedback loop architecture** |
 | `specs/error-handling.md` | Component failures, crash recovery, backup strategy, logging |
 | `specs/autonomous-operation.md` | Self-healing, circuit breakers, seamless upgrades, optional telemetry |
 | `specs/token-awareness.md` | Usage tracking, budget enforcement, adaptive quality, projections |
-| `specs/asv-implementation.md` | Affective State Vector storage, LLM word translation, prompt injection |
+
+### Research - Architecture
+
+| Document | Primary Topics |
+|----------|----------------|
+| `research/multi-agent-orchestration.md` | **Task Agents vs Cognitive Agents**, hybrid local/cloud execution, autonomous curiosity, presence architecture |
+| `research/iterative-quality-loops.md` | **Ralph Loop adaptation**: spec→action→review→iterate, dynamic quality cycles, self-check prompts |
 | `research/asv-neurochemical-validation.md` | Neurochemical basis validation (serotonin, dopamine, oxytocin, etc.) |
-| `conversation-design.md` | Ember's personality, voice, tone, error handling |
-| `personality-design.md` | Three-layer model, bounded needs, love languages, attachment patterns |
-| `onboarding-ux.md` | Permission flow, LLM setup, first-time experience |
-| `session-management.md` | Context window, sessions, groups, identity |
-| `local-models.md` | MLX, model selection, performance |
-| `work-personal-contexts.md` | Dual context architecture |
-| `macos-apis.md` | Apple framework capabilities |
-| `safari-integration.md` | Bookmarks, history, AppleScript, Safari extensions |
-| `legal-ethical-considerations.md` | AI companion failures, legal frameworks, ethical design, safeguards |
-| `active-data-intake.md` | Continuous monitoring, FSEvents, event queue, Anticipation Engine feed |
+| `research/active-data-intake.md` | Continuous monitoring, FSEvents, event queue, Anticipation Engine feed |
+
+### Research - Integration
+
+| Document | Primary Topics |
+|----------|----------------|
+| `research/imessage.md` | chat.db schema, reading/sending, work/personal routing |
+| `research/security.md` | XPC services, Keychain, Secure Enclave, sandboxing |
+| `research/local-models.md` | MLX, model selection, performance |
+| `research/macos-apis.md` | Apple framework capabilities |
+| `research/safari-integration.md` | Bookmarks, history, AppleScript, Safari extensions |
+
+### Research - Design
+
+| Document | Primary Topics |
+|----------|----------------|
+| `VISION.md` | Overall philosophy, Tron concept, architecture vision |
+| `research/memory-learning.md` | Fact extraction, emotional encoding, decay, storage |
+| `research/conversation-design.md` | Ember's personality, voice, tone, error handling |
+| `research/personality-design.md` | Three-layer model, bounded needs, love languages, attachment patterns |
+| `research/onboarding-ux.md` | Permission flow, LLM setup, first-time experience |
+| `research/session-management.md` | Context window, sessions, groups, identity |
+| `research/work-personal-contexts.md` | Dual context architecture |
+| `research/legal-ethical-considerations.md` | AI companion failures, legal frameworks, ethical design, safeguards |
 
 ---
 
 ## Next Steps
 
 1. ✅ Review this document for gaps
-2. ✅ Create draw.io diagram with color coding (7 pages)
-3. ⏳ Break work into trackable units (Pivotal Tracker discussion)
-4. ⏳ Proceed to Phase 2 prototyping
+2. ✅ Create draw.io diagram with color coding (10 pages)
+3. ⏳ **Update draw.io with new pages:** Multi-Agent Architecture (Page 11), Cognitive Background Agents (Page 12)
+4. ⏳ **Update Page 5** (LLM Orchestration) with Ralph Loop quality cycles
+5. ⏳ **Update Page 6** (Security Layers) to reference full Tron spec
+6. ⏳ **Update Page 8** (Ember Personality) with ASV identity anchor concept
+7. ⏳ Break work into trackable units (Pivotal Tracker discussion)
+8. ⏳ Proceed to Phase 2 prototyping
 
 ---
 
-*Architecture overview compiled February 3, 2026.*
+*Architecture overview compiled February 3, 2026. Updated February 5, 2026 with multi-agent, security spec, and ASV enhancements.*
