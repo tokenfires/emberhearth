@@ -162,16 +162,20 @@ The full anticipation architecture (Pattern Detector → Opportunity Detector �
 - `docs/testing/prompt-regression-testing.md` — YAML-based test definitions, assertion types (content/tone/behavioral), statistical analysis for LLM non-determinism, baseline management, flakiness detection, and CI integration
 - `docs/testing/security-penetration-protocol.md` — Attack vector categories (prompt injection, credential detection, authorization bypass, data exfiltration, AppleScript injection), Tron verification, manual red team protocol, pass/fail criteria, and incident response integration
 
-**5. Update/Rollback Flow**
+**5. Update/Rollback Flow** ✅ RESOLVED
 
-Sparkle is mentioned, but:
-- What if an update breaks something?
-- How does the user roll back?
-- Are database formats forward/backward compatible?
+~~Sparkle is mentioned, but:~~
+~~- What if an update breaks something?~~
+~~- How does the user roll back?~~
+~~- Are database formats forward/backward compatible?~~
 
-**Gap:** First botched update will create user trust issues.
+~~**Gap:** First botched update will create user trust issues.~~
 
-**Recommendation:** Explicit rollback support. Test upgrade/downgrade paths.
+~~**Recommendation:** Explicit rollback support. Test upgrade/downgrade paths.~~
+
+**Resolution:** Comprehensive update/recovery system specified across two documents:
+- `docs/specs/autonomous-operation.md` — Schema versioning, migration registry, forward compatibility rules, migration failure recovery, "heal forward" philosophy
+- `docs/specs/update-recovery.md` — User-facing recovery paths, post-update health verification, backup system (update/daily/manual), data export/import for portability, communicating issues via Ember, edge cases (corrupted backup, disk full, manual downgrade, Sparkle rollback)
 
 ---
 
