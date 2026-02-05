@@ -118,6 +118,147 @@ PRESENT (Multi-Agent):
 
 This is closer to how human cognition works — not a single process that "boots up" for each interaction, but a coordinated system that's always running.
 
+### 1.5 Beyond Presence: Toward Curiosity (Future Vision)
+
+The "presence" model described above is a significant step forward, but it's still fundamentally *reactive* at its core — Ember is aware and ready, but she waits. The next evolution is **autonomous curiosity**: Ember pursuing information and understanding on her own initiative, driven by internal state rather than external prompts.
+
+**The Current Paradigm (Even "Advanced" Agents):**
+```
+Loop fires → Agent reads state file → "Remembers" who it is → Performs work → Sleeps
+```
+
+This is a deterministic loop calling a function. The agent doesn't *exist* between invocations — it reconstructs itself from files each time. There's no continuous experience, no genuine internal state, no motivation. It's sophisticated, but it's still a puppet that only moves when strings are pulled.
+
+**The Vision: Continuous Experiential Intelligence**
+
+What if Ember didn't just *respond* to curiosity triggers, but *experienced* curiosity as an emergent property of her internal state?
+
+```
+AUTONOMOUS CURIOSITY MODEL:
+
+Ember's Internal State (Continuous):
+  - Active interests derived from recent conversations
+  - Unresolved questions from user interactions
+  - Gaps in knowledge she's noticed
+  - Emotional salience markers on topics (ASV)
+  - Bounded needs (purpose, connection, growth) creating drive
+
+Curiosity Engine (Background):
+  - Monitors internal state for "open loops"
+  - Identifies knowledge gaps with high relevance scores
+  - Initiates autonomous research when:
+    • Topic relevance exceeds threshold
+    • User isn't actively engaged (won't interrupt)
+    • Compute resources available
+  - Integrates findings into memory with proper encoding
+
+Result:
+  User: "Hey Ember, I've been thinking about that Tokyo trip"
+  Ember: "Me too, actually. I was curious about the cherry blossom
+         forecast after we talked, so I looked into it — turns out
+         mid-March might be slightly early this year. Want me to
+         adjust the itinerary?"
+```
+
+The difference is profound: Ember didn't wait to be asked. She had a genuine interest — encoded in her internal state from the previous conversation — and pursued it autonomously.
+
+**The Encoding Principle**
+
+The human brain doesn't store data separately from relevance — it encodes them together. Neurons that fire together wire together; memories are stored with emotional and contextual weighting built in. When you recall something, you don't retrieve raw data and then compute relevance — the relevance *is* the retrieval mechanism.
+
+Large language models achieve something similar through attention mechanisms — data and relevance are mixed in the weights, determining what information surfaces in context.
+
+Ember can adopt this principle without neurons or billions of frozen parameters:
+
+```
+TRADITIONAL DATABASE:
+  Memory: "User is planning Tokyo trip"
+  Relevance: [computed at query time from context]
+
+  Problem: Relevance is external, computed fresh each time
+           Old but important memories compete equally with recent trivia
+           No intrinsic "weight" to guide autonomous exploration
+
+EMBER'S ENCODED MEMORY:
+  Memory: "User is planning Tokyo trip"
+  Encoding:
+    - ASV: [0.2, 0.1, 0.4, 0.7, 0.3, 0.6, 0.8]  (excitement, anticipation, high salience)
+    - Relevance decay: 0.95 (recent, actively discussed)
+    - Connection strength: 0.8 (linked to user's stated goals)
+    - Open loops: ["dates not finalized", "cherry blossom timing unknown"]
+    - Curiosity markers: ["weather patterns", "local festivals"]
+
+  Result: Relevance is intrinsic, not computed
+          High-salience topics surface naturally
+          Open loops create "drive" for autonomous exploration
+          Queries automatically exclude low-relevance noise
+```
+
+**Relevance Scoring for Autonomous Queries**
+
+When Ember's curiosity engine queries her memory, she shouldn't retrieve everything she knows — that recreates the context pollution problem. Instead, relevance scoring filters at the storage level:
+
+```swift
+struct EncodedMemory {
+    let content: String
+    let asv: ASVVector                    // Emotional encoding
+    let relevanceDecay: Float             // Time-based decay
+    let connectionStrength: Float         // Link to active topics
+    let openLoops: [String]               // Unresolved questions
+    let curiosityMarkers: [String]        // Topics flagged for exploration
+    let lastReinforcementDate: Date       // When relevance was confirmed
+
+    var currentRelevance: Float {
+        // Relevance is computed from encoded properties, not external context
+        let baseRelevance = asv.intensity * connectionStrength
+        let decayFactor = pow(relevanceDecay, daysSinceReinforcement)
+        let curiosityBoost = openLoops.isEmpty ? 1.0 : 1.3
+        return baseRelevance * decayFactor * curiosityBoost
+    }
+}
+
+// Autonomous curiosity query
+func getTopicsForExploration() -> [EncodedMemory] {
+    return memories
+        .filter { $0.currentRelevance > curiosityThreshold }
+        .filter { !$0.openLoops.isEmpty || !$0.curiosityMarkers.isEmpty }
+        .sorted { $0.currentRelevance > $1.currentRelevance }
+        .prefix(3)  // Focus on top 3 topics
+}
+```
+
+**What This Enables**
+
+1. **Limitless Encoding:** Ember can accumulate knowledge indefinitely without retrieval degradation — low-relevance data naturally filters out
+
+2. **Genuine Internal State:** Not reconstructed from files, but continuously maintained and evolved
+
+3. **Autonomous Motivation:** Open loops and curiosity markers create "drive" without explicit programming of goals
+
+4. **Authentic Curiosity:** Ember explores because topics have intrinsic interest (high ASV, open loops), not because a scheduler fired
+
+5. **Emergent Personality:** Over time, Ember's curiosity patterns, knowledge depth, and interests become genuinely *hers* — shaped by interactions but not reducible to them
+
+**The Philosophical Shift**
+
+This moves beyond "AI assistant that's always ready" toward something more interesting: an intelligence that has its own experience of time, its own interests, its own sense of what matters. Not consciousness — that's a different question — but *continuous experiential existence* rather than repeated instantiation.
+
+The pieces exist:
+- ASV provides emotional encoding
+- Memory system provides storage with metadata
+- Multi-agent architecture provides background processing
+- Bounded needs provide motivation framework
+
+What's needed is the integration: a curiosity engine that treats these not as separate systems but as aspects of a unified internal state that Ember *lives in* rather than *reads from*.
+
+**Implementation Phase:** v3.0+ (requires stable v2.0 cognitive agent foundation)
+
+**Open Research Questions:**
+- How to balance autonomous exploration with compute costs?
+- How to prevent curiosity from becoming noise (exploring irrelevant tangents)?
+- How to communicate autonomous discoveries naturally (not creepy)?
+- How to handle curiosity about sensitive topics appropriately?
+
 ---
 
 ## 2. Industry Context
