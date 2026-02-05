@@ -125,6 +125,7 @@ See [ADR Index](docs/architecture/decisions/README.md) for the full list and pro
 ### Specifications
 | Document | Description |
 |----------|-------------|
+| [Tron Security](docs/specs/tron-security.md) | **Security layer spec — prompt injection, credential detection, tool authorization** |
 | [ASV Implementation](docs/specs/asv-implementation.md) | Anticipatory Salience Value system spec |
 | [Autonomous Operation](docs/specs/autonomous-operation.md) | Background operation and proactive behavior |
 | [Error Handling](docs/specs/error-handling.md) | Error management and recovery |
