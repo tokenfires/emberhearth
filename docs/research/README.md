@@ -42,6 +42,7 @@ This directory contains research findings, explorations, and analysis conducted 
 | Document | Description |
 |----------|-------------|
 | [Iterative Quality Loops](iterative-quality-loops.md) | **Ralph Loop technique adapted for Ember — spec→action→review→iterate** |
+| [Multi-Agent Orchestration](multi-agent-orchestration.md) | **Gastown-inspired parallel agents, cognitive background system, hybrid local/cloud** |
 
 ---
 
