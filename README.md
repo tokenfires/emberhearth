@@ -116,3 +116,7 @@ MIT License — See [LICENSE](LICENSE)
 We're not yet accepting contributions as the project is in early research phase. Once the foundation is solid, we'll open up for community involvement.
 
 Watch this repo to stay updated!
+
+---
+
+*Last verified: 2026-02-05*
