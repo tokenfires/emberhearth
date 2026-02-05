@@ -145,17 +145,22 @@ The full anticipation architecture (Pattern Detector → Opportunity Detector �
 
 **Resolution:** See `docs/specs/autonomous-operation.md` — schema versioning, migration registry pattern, forward compatibility rules, resumable migrations. Rollback strategy is "forward-compatible resilience" — the app heals forward rather than rolling back (Sparkle 2 doesn't support downgrade anyway).
 
-**4. Testing Strategy Depth**
+**4. Testing Strategy Depth** ✅ RESOLVED
 
-The testing strategy document is good but light on:
-- How to test iMessage integration without a human
-- How to test Calendar/Reminders in CI
-- Prompt regression testing specifics
-- Security penetration testing protocols
+~~The testing strategy document is good but light on:~~
+~~- How to test iMessage integration without a human~~
+~~- How to test Calendar/Reminders in CI~~
+~~- Prompt regression testing specifics~~
+~~- Security penetration testing protocols~~
 
-**Gap:** Testing system integrations is genuinely hard.
+~~**Gap:** Testing system integrations is genuinely hard.~~
 
-**Recommendation:** Create mock frameworks for system APIs. Define explicit red team testing before release.
+~~**Recommendation:** Create mock frameworks for system APIs. Define explicit red team testing before release.~~
+
+**Resolution:** Comprehensive testing specifications created:
+- `docs/testing/system-api-mocking.md` — Protocol-based mock frameworks for iMessage (chat.db, AppleScript), EventKit (Calendar/Reminders), with testing tiers (Unit → Integration → Local → Staging), CI configuration, and dependency injection patterns
+- `docs/testing/prompt-regression-testing.md` — YAML-based test definitions, assertion types (content/tone/behavioral), statistical analysis for LLM non-determinism, baseline management, flakiness detection, and CI integration
+- `docs/testing/security-penetration-protocol.md` — Attack vector categories (prompt injection, credential detection, authorization bypass, data exfiltration, AppleScript injection), Tron verification, manual red team protocol, pass/fail criteria, and incident response integration
 
 **5. Update/Rollback Flow**
 
