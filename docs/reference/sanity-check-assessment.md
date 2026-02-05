@@ -361,7 +361,7 @@ The full anticipation architecture (Pattern Detector → Opportunity Detector �
 
 ### Nice-to-Have Gaps (Not Critical)
 
-**1. Multi-Language Support**
+**1. Multi-Language Support** 🟡 DEFERRED
 
 Documentation is English-only. What about non-English users?
 - Ember personality in other languages?
@@ -369,20 +369,32 @@ Documentation is English-only. What about non-English users?
 
 **Assessment:** Defer. English-first for MVP is reasonable.
 
-**2. Data Portability**
+**Deferral Rationale:** LLMs handle multilingual input naturally. Ember's personality prompts and UI can be localized post-MVP. Memory system stores user content as-is regardless of language. No architectural changes needed—purely a localization effort for v1.2+.
 
-Can users export their data to another system?
-- Memory facts
-- Conversation archive
-- Preferences
+**2. Data Portability** ✅ RESOLVED
 
-**Assessment:** Important for trust. Include basic JSON export in MVP.
+~~Can users export their data to another system?~~
+~~- Memory facts~~
+~~- Conversation archive~~
+~~- Preferences~~
 
-**3. Family/Shared Access**
+~~**Assessment:** Important for trust. Include basic JSON export in MVP.~~
+
+**Resolution:** See `docs/specs/update-recovery.md` Part 4: Data Export (Portability) — Full export system including:
+- Open format export directory with README
+- `memories.json` with all facts in readable JSON
+- `conversations/` directory with monthly archives
+- `settings.json` for non-sensitive preferences
+- Import capability with merge vs replace options
+- User-accessible in Settings → Advanced → Data Management
+
+**3. Family/Shared Access** 🟡 DEFERRED
 
 Documentation explicitly defers multi-user. This is correct.
 
 **Assessment:** Single-user MVP is right. Don't scope creep here.
+
+**Deferral Rationale:** Multi-user adds significant complexity: memory isolation, permission models, identity confusion for Ember. The architecture supports future extension (XPC services, separate memory stores), but implementation is Phase 3+ at earliest. Focus on making single-user experience excellent first.
 
 ---
 
