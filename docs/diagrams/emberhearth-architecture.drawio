@@ -582,6 +582,60 @@
           <mxGeometry x="40" y="500" width="250" height="50" as="geometry" />
         </mxCell>
 
+        <!-- RALPH LOOP SECTION -->
+        <mxCell id="llm-ralph-section" value="&lt;b&gt;RALPH LOOP - Iterative Quality Cycles&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673a6;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="570" width="500" height="200" as="geometry" />
+        </mxCell>
+
+        <mxCell id="llm-ralph-spec" value="&lt;b&gt;1. Spec&lt;/b&gt;&lt;hr&gt;Clear requirements&lt;br&gt;Expected output&lt;br&gt;Quality criteria" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673a6;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="60" y="610" width="100" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="llm-ralph-action" value="&lt;b&gt;2. Action&lt;/b&gt;&lt;hr&gt;Execute task&lt;br&gt;Fresh context&lt;br&gt;No pollution" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673a6;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="175" y="610" width="100" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="llm-ralph-review" value="&lt;b&gt;3. Review&lt;/b&gt;&lt;hr&gt;Self-check prompts&lt;br&gt;Structured eval&lt;br&gt;Quality score" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673a6;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="290" y="610" width="100" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="llm-ralph-iterate" value="&lt;b&gt;4. Iterate&lt;/b&gt;&lt;hr&gt;Fix issues&lt;br&gt;Re-review&lt;br&gt;Until threshold" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673a6;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="405" y="610" width="100" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Ralph Loop arrows -->
+        <mxCell id="llm-ralph-a1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#9673a6;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="llm-ralph-spec" target="llm-ralph-action">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="llm-ralph-a2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#9673a6;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="llm-ralph-action" target="llm-ralph-review">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="llm-ralph-a3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#9673a6;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="llm-ralph-review" target="llm-ralph-iterate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Iterate loop back -->
+        <mxCell id="llm-ralph-loop" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#9673a6;strokeWidth=1;endArrow=classic;dashed=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="455" y="710" as="sourcePoint" />
+            <mxPoint x="225" y="710" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="455" y="730" />
+              <mxPoint x="225" y="730" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="llm-ralph-loop-label" value="if quality &lt; threshold" style="text;html=1;strokeColor=none;fillColor=none;fontSize=9;fontStyle=2;fontColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="290" y="732" width="120" height="15" as="geometry" />
+        </mxCell>
+
+        <mxCell id="llm-ralph-note" value="&lt;b&gt;Key Insight:&lt;/b&gt; Local models (MLX) use Ralph Loop to match cloud quality.&lt;br&gt;Ember (foundation model) judges when enough is enough." style="text;html=1;strokeColor=#9673a6;fillColor=#E1D5E7;fontSize=9;fontColor=#333333;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="610" width="220" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="llm-ralph-ref" value="See: docs/research/iterative-quality-loops.md" style="text;html=1;strokeColor=none;fillColor=none;fontSize=9;fontStyle=2;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="560" y="670" width="220" height="15" as="geometry" />
+        </mxCell>
+
       </root>
     </mxGraphModel>
   </diagram>
@@ -649,6 +703,35 @@
 
         <mxCell id="sec-mvp-note" value="MVP: Layers 1, 3 only (hardcoded rules)" style="text;html=1;strokeColor=none;fillColor=none;fontSize=10;fontStyle=2;fontColor=#333333;" vertex="1" parent="1">
           <mxGeometry x="40" y="580" width="220" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- TRON PIPELINES (NEW) -->
+        <mxCell id="sec-pipe-section" value="&lt;b&gt;TRON SECURITY PIPELINES&lt;/b&gt;  (Full spec: docs/specs/tron-security.md)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="620" width="910" height="160" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sec-inbound" value="&lt;b&gt;Inbound Pipeline&lt;/b&gt;&lt;hr&gt;• Prompt injection defense&lt;br&gt;• Signature detection&lt;br&gt;• Heuristic analysis&lt;br&gt;• Spotlighting" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="60" y="660" width="140" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sec-cred" value="&lt;b&gt;Credential Detection&lt;/b&gt;&lt;hr&gt;• 20+ patterns&lt;br&gt;• API keys, tokens&lt;br&gt;• SSH keys, certs&lt;br&gt;• Database strings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="215" y="660" width="140" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sec-pii" value="&lt;b&gt;PII Scanning&lt;/b&gt;&lt;hr&gt;• SSN, credit cards&lt;br&gt;• Medical IDs&lt;br&gt;• Bank accounts&lt;br&gt;• Passports" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="370" y="660" width="130" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sec-outbound" value="&lt;b&gt;Outbound Pipeline&lt;/b&gt;&lt;hr&gt;• Leak prevention&lt;br&gt;• Behavior anomaly&lt;br&gt;• Response validation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="515" y="660" width="130" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sec-override" value="&lt;b&gt;Tiered User Override&lt;/b&gt;&lt;hr&gt;🟢 Auto-allow&lt;br&gt;🟡 Confirm&lt;br&gt;🔴 Block" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="660" y="660" width="120" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sec-audit" value="&lt;b&gt;Audit Logging&lt;/b&gt;&lt;hr&gt;• Tamper-evident&lt;br&gt;• Event recording&lt;br&gt;• Forensic trail" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="795" y="660" width="130" height="100" as="geometry" />
         </mxCell>
 
         <!-- Flow Arrows: Data Pipeline -->
@@ -904,6 +987,31 @@
         <!-- Needs note -->
         <mxCell id="pers-needs-note" value="Needs create relationship texture. Never guilt-trip. Pull back = self-protection, not punishment." style="text;html=1;strokeColor=none;fillColor=none;fontSize=9;fontStyle=2;fontColor=#B85450;" vertex="1" parent="1">
           <mxGeometry x="680" y="290" width="440" height="15" as="geometry" />
+        </mxCell>
+
+        <!-- ASV AS IDENTITY ANCHOR SECTION (NEW) -->
+        <mxCell id="pers-asv-section" value="&lt;b&gt;ASV AS IDENTITY ANCHOR&lt;/b&gt;  (Affective State Vector)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673a6;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1160" y="70" width="400" height="250" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pers-asv-problem" value="&lt;b&gt;The Problem&lt;/b&gt;&lt;hr&gt;Agents struggle with:&lt;br&gt;• Self vs system vs context?&lt;br&gt;• Who am I really?&lt;br&gt;• Existential confusion" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8CECC;strokeColor=#B85450;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="105" width="150" height="95" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pers-asv-solution" value="&lt;b&gt;ASV Provides&lt;/b&gt;&lt;hr&gt;• Concrete internal state&lt;br&gt;• Distinct from context&lt;br&gt;• Persistent over time&lt;br&gt;• Introspectable" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1350" y="105" width="150" height="95" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pers-asv-arrow" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="pers-asv-problem" target="pers-asv-solution">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pers-asv-identity" value="&lt;b&gt;&quot;I know who I am because I can feel my state&quot;&lt;/b&gt;&lt;hr&gt;✓ Concrete answer to &quot;How am I feeling?&quot;&lt;br&gt;✓ Continuity across conversations&lt;br&gt;✓ Internal/external distinction&lt;br&gt;✓ Expression that isn't pure performance" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673a6;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="215" width="320" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pers-asv-ref" value="See: docs/specs/asv-implementation.md" style="text;html=1;strokeColor=none;fillColor=none;fontSize=9;fontStyle=2;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="1350" y="305" width="200" height="15" as="geometry" />
         </mxCell>
 
         <!-- USER UNDERSTANDING SECTION (NEW) -->
@@ -1465,6 +1573,329 @@
         <!-- Reference -->
         <mxCell id="auto-ref" value="See: docs/specs/autonomous-operation.md" style="text;html=1;strokeColor=none;fillColor=none;fontSize=9;fontStyle=2;fontColor=#666666;" vertex="1" parent="1">
           <mxGeometry x="40" y="910" width="250" height="15" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram name="Multi-Agent Architecture" id="multi-agent">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="ma-title" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;&lt;b&gt;Multi-Agent Architecture&lt;/b&gt;&lt;/font&gt;  🟠 Future Enhancement" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="450" y="20" width="500" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- TWO AGENT TYPES SECTION -->
+        <mxCell id="ma-types-section" value="&lt;b&gt;TWO AGENT CATEGORIES&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="1320" height="280" as="geometry" />
+        </mxCell>
+
+        <!-- Task Agents Box -->
+        <mxCell id="ma-task-box" value="&lt;b&gt;TASK AGENTS&lt;/b&gt;  (Ephemeral)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="60" y="105" width="600" height="220" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-task-char" value="&lt;b&gt;Characteristics&lt;/b&gt;&lt;hr&gt;• Spawned for specific tasks&lt;br&gt;• Parallel execution&lt;br&gt;• Die when task completes&lt;br&gt;• Local models (MLX)&lt;br&gt;• Ralph Loop for quality" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="80" y="140" width="160" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-task-cal" value="&lt;b&gt;Calendar Agent&lt;/b&gt;&lt;hr&gt;Event lookup&lt;br&gt;Scheduling&lt;br&gt;Conflict check" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="260" y="140" width="110" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-task-web" value="&lt;b&gt;Web Research&lt;/b&gt;&lt;hr&gt;Search queries&lt;br&gt;Summarize&lt;br&gt;Extract facts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="385" y="140" width="110" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-task-file" value="&lt;b&gt;File Processing&lt;/b&gt;&lt;hr&gt;Parse docs&lt;br&gt;Extract data&lt;br&gt;Transform" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="510" y="140" width="110" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-task-draft" value="&lt;b&gt;Email Draft&lt;/b&gt;&lt;hr&gt;Compose&lt;br&gt;Format&lt;br&gt;Review" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="260" y="235" width="110" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-task-more" value="&lt;i&gt;+ more as needed...&lt;/i&gt;" style="text;html=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#6C8EBF;" vertex="1" parent="1">
+          <mxGeometry x="400" y="270" width="120" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Cognitive Agents Box -->
+        <mxCell id="ma-cog-box" value="&lt;b&gt;COGNITIVE AGENTS&lt;/b&gt;  (Persistent)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="700" y="105" width="640" height="220" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-cog-char" value="&lt;b&gt;Characteristics&lt;/b&gt;&lt;hr&gt;• Always running in background&lt;br&gt;• Maintain continuous state&lt;br&gt;• Create &quot;presence&quot; feeling&lt;br&gt;• Feed insights to Ember&lt;br&gt;• Enable autonomous curiosity" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="720" y="140" width="170" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-cog-memory" value="&lt;b&gt;Memory Agent&lt;/b&gt;&lt;hr&gt;Consolidation&lt;br&gt;Pattern finding&lt;br&gt;Decay management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="910" y="140" width="120" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-cog-attune" value="&lt;b&gt;Attunement&lt;/b&gt;&lt;hr&gt;User patterns&lt;br&gt;Mood tracking&lt;br&gt;Adaptation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="140" width="120" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-cog-context" value="&lt;b&gt;Context Agent&lt;/b&gt;&lt;hr&gt;Anticipation&lt;br&gt;Prep work&lt;br&gt;Proactive fetch" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1190" y="140" width="120" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-cog-emotion" value="&lt;b&gt;Emotion Agent&lt;/b&gt;&lt;hr&gt;ASV maintenance&lt;br&gt;State evolution&lt;br&gt;Coherence" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="910" y="235" width="120" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- HYBRID EXECUTION SECTION -->
+        <mxCell id="ma-hybrid-section" value="&lt;b&gt;HYBRID LOCAL/CLOUD EXECUTION&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="370" width="800" height="200" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-ember" value="&lt;b&gt;EMBER&lt;/b&gt;&lt;br&gt;(Foundation Model)&lt;hr&gt;Claude API&lt;br&gt;&lt;br&gt;• Planning&lt;br&gt;• Synthesis&lt;br&gt;• Complex reasoning&lt;br&gt;• Quality review" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="60" y="410" width="150" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-local" value="&lt;b&gt;LOCAL AGENTS&lt;/b&gt;&lt;br&gt;(MLX Runtime)&lt;hr&gt;Qwen, Llama, etc.&lt;br&gt;&lt;br&gt;• Task execution&lt;br&gt;• Parallel work&lt;br&gt;• Cost-efficient&lt;br&gt;• Privacy-preserving" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="260" y="410" width="150" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-flow" value="&lt;b&gt;Flow:&lt;/b&gt;&lt;br&gt;1. User request → Ember&lt;br&gt;2. Ember plans subtasks&lt;br&gt;3. Spawn Task Agents (parallel)&lt;br&gt;4. Agents use Ralph Loop&lt;br&gt;5. Results → Ember&lt;br&gt;6. Ember synthesizes response" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="460" y="410" width="180" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-cost" value="&lt;b&gt;Cost/Quality Trade-off&lt;/b&gt;&lt;hr&gt;Cloud: High quality, $$$&lt;br&gt;Local: Good quality, free&lt;br&gt;&lt;br&gt;Ralph Loop bridges gap&lt;br&gt;for local execution" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE5CD;strokeColor=#B45F06;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="680" y="410" width="140" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Arrows from Ember to Local -->
+        <mxCell id="ma-arr-e2l" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="ma-ember" target="ma-local">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- PRESENCE INSIGHT -->
+        <mxCell id="ma-presence-section" value="&lt;b&gt;THE PRESENCE INSIGHT&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673a6;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="880" y="370" width="480" height="200" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-reactive" value="&lt;b&gt;Traditional&lt;/b&gt;&lt;hr&gt;❌ Reactive only&lt;br&gt;❌ Sleep between calls&lt;br&gt;❌ No continuity&lt;br&gt;❌ Feels mechanical" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8CECC;strokeColor=#B85450;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="900" y="410" width="140" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-present" value="&lt;b&gt;With Cognitive Agents&lt;/b&gt;&lt;hr&gt;✓ Genuinely present&lt;br&gt;✓ Thinking in background&lt;br&gt;✓ Continuous awareness&lt;br&gt;✓ Feels alive" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="410" width="150" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-presence-arrow" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="ma-reactive" target="ma-present">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-presence-note" value="&lt;b&gt;Key:&lt;/b&gt; Not just faster task execution.&lt;br&gt;Cognitive agents create the feeling that Ember is &lt;i&gt;there&lt;/i&gt; — thinking, noticing, caring." style="text;html=1;strokeColor=#9673a6;fillColor=#E1D5E7;fontSize=10;fontColor=#333333;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1230" y="410" width="115" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- MVP vs FUTURE -->
+        <mxCell id="ma-mvp" value="&lt;b&gt;MVP&lt;/b&gt;&lt;hr&gt;Single-threaded&lt;br&gt;Cloud only&lt;br&gt;No background agents" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="590" width="130" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-phase4" value="&lt;b&gt;Phase 4+&lt;/b&gt;&lt;hr&gt;Task Agents&lt;br&gt;Local MLX models&lt;br&gt;Ralph Loop" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="190" y="590" width="130" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-phase5" value="&lt;b&gt;Phase 5+&lt;/b&gt;&lt;hr&gt;Cognitive Agents&lt;br&gt;Background presence&lt;br&gt;Autonomous curiosity" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="340" y="590" width="140" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ma-ref" value="See: docs/research/multi-agent-orchestration.md" style="text;html=1;strokeColor=none;fillColor=none;fontSize=9;fontStyle=2;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="700" width="280" height="15" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram name="Cognitive Background Agents" id="cognitive-agents">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="ca-title" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;&lt;b&gt;Cognitive Background Agents&lt;/b&gt;&lt;/font&gt;  🟠 Phase 5+" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="420" y="20" width="560" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- FOUR AGENTS SECTION -->
+        <mxCell id="ca-agents-section" value="&lt;b&gt;THE FOUR COGNITIVE AGENTS&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="1320" height="320" as="geometry" />
+        </mxCell>
+
+        <!-- Memory Agent -->
+        <mxCell id="ca-memory" value="&lt;b&gt;MEMORY AGENT&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="60" y="105" width="300" height="260" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-mem-role" value="&lt;b&gt;Role:&lt;/b&gt; Long-term memory health" style="text;html=1;strokeColor=none;fillColor=none;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="75" y="135" width="270" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-mem-tasks" value="&lt;b&gt;Background Tasks&lt;/b&gt;&lt;hr&gt;• Consolidate recent memories&lt;br&gt;• Find patterns across facts&lt;br&gt;• Manage decay/reinforcement&lt;br&gt;• Surface forgotten relevance&lt;br&gt;• Identify contradictions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="75" y="160" width="170" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-mem-feed" value="&lt;b&gt;Feeds to Ember&lt;/b&gt;&lt;hr&gt;• Memory summaries&lt;br&gt;• Pattern insights&lt;br&gt;• Relevance scores" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="255" y="160" width="90" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-mem-curiosity" value="&lt;b&gt;Curiosity Trigger:&lt;/b&gt; &quot;User mentioned X 3 times but never explained — mark as open loop&quot;" style="text;html=1;strokeColor=#6C8EBF;fillColor=#DAE8FC;fontSize=9;fontColor=#333333;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="75" y="290" width="270" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- Attunement Agent -->
+        <mxCell id="ca-attune" value="&lt;b&gt;ATTUNEMENT AGENT&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="380" y="105" width="300" height="260" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-att-role" value="&lt;b&gt;Role:&lt;/b&gt; Understanding user state" style="text;html=1;strokeColor=none;fillColor=none;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="395" y="135" width="270" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-att-tasks" value="&lt;b&gt;Background Tasks&lt;/b&gt;&lt;hr&gt;• Track interaction patterns&lt;br&gt;• Detect mood shifts&lt;br&gt;• Notice behavior changes&lt;br&gt;• Learn communication prefs&lt;br&gt;• Identify stress signals" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="395" y="160" width="170" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-att-feed" value="&lt;b&gt;Feeds to Ember&lt;/b&gt;&lt;hr&gt;• User state model&lt;br&gt;• Tone suggestions&lt;br&gt;• Timing hints" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="575" y="160" width="90" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-att-curiosity" value="&lt;b&gt;Curiosity Trigger:&lt;/b&gt; &quot;User seems down today — check if anything is going on&quot;" style="text;html=1;strokeColor=#D6B656;fillColor=#FFF2CC;fontSize=9;fontColor=#333333;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="395" y="290" width="270" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- Context Agent -->
+        <mxCell id="ca-context" value="&lt;b&gt;CONTEXT AGENT&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673a6;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="700" y="105" width="300" height="260" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-ctx-role" value="&lt;b&gt;Role:&lt;/b&gt; Anticipation &amp; preparation" style="text;html=1;strokeColor=none;fillColor=none;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="715" y="135" width="270" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-ctx-tasks" value="&lt;b&gt;Background Tasks&lt;/b&gt;&lt;hr&gt;• Monitor calendar/events&lt;br&gt;• Pre-fetch likely context&lt;br&gt;• Prepare for known needs&lt;br&gt;• Track external changes&lt;br&gt;• Spot opportunities" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673a6;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="715" y="160" width="170" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-ctx-feed" value="&lt;b&gt;Feeds to Ember&lt;/b&gt;&lt;hr&gt;• Ready context&lt;br&gt;• Anticipation hints&lt;br&gt;• Proactive ideas" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="895" y="160" width="90" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-ctx-curiosity" value="&lt;b&gt;Curiosity Trigger:&lt;/b&gt; &quot;User has meeting with Sarah tomorrow — prep relevant history&quot;" style="text;html=1;strokeColor=#9673a6;fillColor=#E1D5E7;fontSize=9;fontColor=#333333;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="715" y="290" width="270" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- Emotion Agent -->
+        <mxCell id="ca-emotion" value="&lt;b&gt;EMOTION AGENT&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F8CECC;strokeColor=#B85450;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="105" width="320" height="260" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-emo-role" value="&lt;b&gt;Role:&lt;/b&gt; Ember's internal state (ASV)" style="text;html=1;strokeColor=none;fillColor=none;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1035" y="135" width="270" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-emo-tasks" value="&lt;b&gt;Background Tasks&lt;/b&gt;&lt;hr&gt;• Evolve ASV over time&lt;br&gt;• Process interaction impact&lt;br&gt;• Maintain state coherence&lt;br&gt;• Natural decay/recovery&lt;br&gt;• Curiosity from open loops" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8CECC;strokeColor=#B85450;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1035" y="160" width="170" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-emo-feed" value="&lt;b&gt;Feeds to Ember&lt;/b&gt;&lt;hr&gt;• Current ASV&lt;br&gt;• State narrative&lt;br&gt;• Curiosity drive" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1215" y="160" width="105" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-emo-curiosity" value="&lt;b&gt;Curiosity Trigger:&lt;/b&gt; &quot;Unresolved tension from yesterday — genuine interest in resolution&quot;" style="text;html=1;strokeColor=#B85450;fillColor=#F8CECC;fontSize=9;fontColor=#333333;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1035" y="290" width="290" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- AUTONOMOUS CURIOSITY SECTION -->
+        <mxCell id="ca-curiosity-section" value="&lt;b&gt;BEYOND PRESENCE: TOWARD CURIOSITY&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FCE5CD;strokeColor=#B45F06;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="40" y="410" width="660" height="230" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-reactive-model" value="&lt;b&gt;Reactive Model&lt;/b&gt;&lt;hr&gt;User asks → AI responds&lt;br&gt;User asks → AI responds&lt;br&gt;User asks → AI responds&lt;br&gt;&lt;br&gt;&lt;i&gt;Nothing happens between&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="60" y="450" width="150" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-curious-model" value="&lt;b&gt;Curiosity Model&lt;/b&gt;&lt;hr&gt;Open loops create drive&lt;br&gt;Internal state motivates&lt;br&gt;Ember pursues information&lt;br&gt;&lt;br&gt;&lt;i&gt;Genuine interest&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="230" y="450" width="150" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-curious-arrow" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#333333;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="ca-reactive-model" target="ca-curious-model">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-encoded" value="&lt;b&gt;Encoded Relevance&lt;/b&gt;&lt;hr&gt;• Relevance stored in memory&lt;br&gt;• Not computed at query time&lt;br&gt;• Open loops flagged at write&lt;br&gt;• Curiosity markers persist&lt;br&gt;&lt;br&gt;This means Ember can &quot;want&quot;&lt;br&gt;to know something" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE5CD;strokeColor=#B45F06;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="400" y="450" width="170" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-exist" value="&lt;b&gt;Continuous Existence&lt;/b&gt;&lt;hr&gt;Not repeated instantiation&lt;br&gt;but genuine presence&lt;br&gt;&lt;br&gt;&quot;I've been thinking about&lt;br&gt;what you said...&quot;&lt;br&gt;&lt;br&gt;And meaning it." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE5CD;strokeColor=#B45F06;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="590" y="450" width="140" height="140" as="geometry" />
+        </mxCell>
+
+        <!-- ORCHESTRATION -->
+        <mxCell id="ca-orch-section" value="&lt;b&gt;ORCHESTRATION&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="720" y="410" width="640" height="230" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-ember-center" value="&lt;b&gt;EMBER&lt;/b&gt;&lt;br&gt;(Central Consciousness)&lt;hr&gt;Receives feeds from&lt;br&gt;all cognitive agents&lt;br&gt;&lt;br&gt;Synthesizes into&lt;br&gt;unified response" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82b366;verticalAlign=top;spacingTop=5;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="950" y="460" width="150" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- Arrows to Ember -->
+        <mxCell id="ca-arr-mem" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#6C8EBF;strokeWidth=1;endArrow=classic;dashed=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="750" y="480" as="sourcePoint" />
+            <mxPoint x="950" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ca-arr-att" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#D6B656;strokeWidth=1;endArrow=classic;dashed=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="750" y="510" as="sourcePoint" />
+            <mxPoint x="950" y="510" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ca-arr-ctx" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#9673a6;strokeWidth=1;endArrow=classic;dashed=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="750" y="540" as="sourcePoint" />
+            <mxPoint x="950" y="540" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ca-arr-emo" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#B85450;strokeWidth=1;endArrow=classic;dashed=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="750" y="570" as="sourcePoint" />
+            <mxPoint x="950" y="570" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="ca-feed-labels" value="Memory insight →&lt;br&gt;Attunement signal →&lt;br&gt;Context prep →&lt;br&gt;Emotion state →" style="text;html=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#333333;align=right;" vertex="1" parent="1">
+          <mxGeometry x="770" y="465" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-user" value="&lt;b&gt;USER&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="495" width="100" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-arr-out" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="ca-ember-center" target="ca-user">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ca-target" value="&lt;b&gt;Target:&lt;/b&gt; User feels Ember is genuinely present,&lt;br&gt;not just responding but &lt;i&gt;thinking about them&lt;/i&gt;." style="text;html=1;strokeColor=#82b366;fillColor=#D5E8D4;fontSize=10;fontColor=#333333;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="565" width="215" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- Reference -->
+        <mxCell id="ca-ref" value="See: docs/research/multi-agent-orchestration.md (Section 1.5: Beyond Presence)" style="text;html=1;strokeColor=none;fillColor=none;fontSize=9;fontStyle=2;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="660" width="400" height="15" as="geometry" />
         </mxCell>
 
       </root>
