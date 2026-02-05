@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\ndocs: Add verification timestamp to README\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.microsoft.com)",
+      "WebFetch(domain:arxiv.org)",
+      "WebFetch(domain:www.nature.com)",
+      "WebFetch(domain:ghuntley.com)",
+      "WebFetch(domain:addyosmani.com)",
+      "WebFetch(domain:dev.to)",
+      "WebFetch(domain:block.github.io)",
+      "WebFetch(domain:claytonfarr.github.io)",
+      "WebFetch(domain:www.chrismdp.com)",
+      "WebFetch(domain:blog.codacy.com)",
+      "WebFetch(domain:steve-yegge.medium.com)",
+      "WebFetch(domain:justin.abrah.ms)",
+      "WebFetch(domain:paddo.dev)"
+    ]
+  }
+}
