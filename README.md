@@ -91,9 +91,67 @@ See [docs/NEXT-STEPS.md](docs/NEXT-STEPS.md) for the roadmap.
 
 ## Documentation
 
-- [Vision Document](docs/VISION.md) — Full vision, architecture, and design philosophy
-- [Next Steps](docs/NEXT-STEPS.md) — Development roadmap and research tasks
-- [Research Notes](docs/research/) — Findings from exploration
+### Core Documents
+| Document | Description |
+|----------|-------------|
+| [Vision](docs/VISION.md) | Full vision, architecture, and design philosophy |
+| [Next Steps](docs/NEXT-STEPS.md) | Development roadmap and current tasks |
+| [Architecture Overview](docs/architecture-overview.md) | System design and component relationships |
+
+### Release Planning
+| Document | Description |
+|----------|-------------|
+| [MVP Work-Up](docs/releases/MVP.md) | Pre-coding review and phase breakdown |
+| [MVP Scope](docs/releases/mvp-scope.md) | Detailed MVP feature requirements |
+| [Feature Matrix](docs/releases/feature-matrix.md) | Feature availability across releases |
+
+### Architecture Decisions (ADRs)
+| ADR | Decision |
+|-----|----------|
+| [ADR-0001](docs/architecture/decisions/0001-xpc-service-isolation.md) | XPC Service Isolation |
+| [ADR-0002](docs/architecture/decisions/0002-distribute-outside-app-store.md) | Distribute Outside App Store |
+| [ADR-0003](docs/architecture/decisions/0003-imessage-primary-interface.md) | iMessage as Primary Interface |
+| [ADR-0004](docs/architecture/decisions/0004-no-shell-execution.md) | No Shell Execution |
+| [ADR-0005](docs/architecture/decisions/0005-safari-read-only-default.md) | Safari Read-Only by Default |
+| [ADR-0006](docs/architecture/decisions/0006-sandboxed-web-tool.md) | Sandboxed Web Tool |
+| [ADR-0007](docs/architecture/decisions/0007-sqlite-memory-storage.md) | SQLite Memory Storage |
+| [ADR-0008](docs/architecture/decisions/0008-claude-api-primary-llm.md) | Claude API as Primary LLM |
+| [ADR-0009](docs/architecture/decisions/0009-tron-security-layer.md) | TRON Security Layer |
+| [ADR-0010](docs/architecture/decisions/0010-fsevents-data-monitoring.md) | FSEvents Data Monitoring |
+| [ADR-0011](docs/architecture/decisions/0011-bounded-needs-personality.md) | Bounded Needs Personality |
+
+See [ADR Index](docs/architecture/decisions/README.md) for the full list and process.
+
+### Specifications
+| Document | Description |
+|----------|-------------|
+| [ASV Implementation](docs/specs/asv-implementation.md) | Anticipatory Salience Value system spec |
+| [Autonomous Operation](docs/specs/autonomous-operation.md) | Background operation and proactive behavior |
+| [Error Handling](docs/specs/error-handling.md) | Error management and recovery |
+| [Token Awareness](docs/specs/token-awareness.md) | Context window and token management |
+
+### Research
+| Document | Description |
+|----------|-------------|
+| [Research Index](docs/research/README.md) | **Full index of all research documents** |
+| [iMessage](docs/research/imessage.md) | iMessage integration approaches |
+| [macOS APIs](docs/research/macos-apis.md) | System framework capabilities |
+| [Security](docs/research/security.md) | Security primitives and architecture |
+| [Local Models](docs/research/local-models.md) | On-device LLM feasibility |
+
+### Reference
+| Document | Description |
+|----------|-------------|
+| [Moltbot Analysis](docs/reference/MOLTBOT-ANALYSIS.md) | Analysis of predecessor project |
+| [Sanity Check Assessment](docs/reference/sanity-check-assessment.md) | Feasibility validation |
+| [Sanity Check Summary](docs/reference/sanity-check-summary.md) | Executive summary of validation |
+| [Twitch Streaming Guide](docs/reference/twitch-streaming-guide.md) | Guide for development streams |
+
+### Other
+| Document | Description |
+|----------|-------------|
+| [Build & Release](docs/deployment/build-and-release.md) | Deployment and distribution process |
+| [Testing Strategy](docs/testing/strategy.md) | Testing approach and coverage |
 
 ---
 

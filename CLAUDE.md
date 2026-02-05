@@ -6,29 +6,42 @@ This file provides context and instructions for Claude Code when working on this
 
 EmberHearth is a secure, accessible, always-on personal AI assistant for macOS. The primary interface is iMessage, with a native Mac app for configuration.
 
-**Key Documents:**
-- `docs/VISION.md` — Full vision, architecture, design philosophy
-- `docs/NEXT-STEPS.md` — Development roadmap and current phase
+**Quick Navigation:**
+- `README.md` — Full documentation index with links to all docs
+- `docs/VISION.md` — Vision, architecture, design philosophy
+- `docs/NEXT-STEPS.md` — Development roadmap and current tasks
+- `docs/architecture-overview.md` — System design and components
+- `docs/research/README.md` — Index of all research documents
 
 ## Project Structure
 
 ```
 emberhearth/
-├── README.md           # Project overview
-├── LICENSE             # MIT License
-├── CLAUDE.md           # This file - instructions for Claude
+├── README.md               # Project overview + DOCUMENTATION INDEX
+├── CLAUDE.md               # This file - instructions for Claude
 ├── docs/
-│   ├── VISION.md       # Vision document
-│   ├── NEXT-STEPS.md   # Roadmap and tasks
-│   └── research/       # Research notes
-│       ├── imessage.md
-│       ├── macos-apis.md
-│       ├── local-models.md
-│       └── security.md
-├── src/                # Source code (Swift/SwiftUI)
-├── tests/              # Test files
-└── .github/            # GitHub configuration
+│   ├── VISION.md           # Vision document
+│   ├── NEXT-STEPS.md       # Roadmap and tasks
+│   ├── architecture-overview.md
+│   ├── architecture/
+│   │   └── decisions/      # ADRs (0001-0011+)
+│   ├── releases/           # MVP.md, mvp-scope.md, feature-matrix.md
+│   ├── specs/              # Implementation specifications
+│   ├── research/           # Research findings (see README.md inside)
+│   │   ├── README.md       # INDEX of all research docs
+│   │   └── integrations/   # Apple app integration research
+│   ├── reference/          # Analysis, sanity checks, guides
+│   ├── deployment/         # Build and release docs
+│   └── testing/            # Testing strategy
+├── src/                    # Source code (Swift/SwiftUI)
+├── tests/                  # Test files
+└── .github/                # GitHub configuration
 ```
+
+**Finding Documentation:**
+1. Start at `README.md` for the master index
+2. For research topics, check `docs/research/README.md`
+3. For architectural decisions, see `docs/architecture/decisions/README.md`
 
 ## Core Principles (Always Follow)
 
