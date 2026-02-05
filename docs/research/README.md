@@ -37,6 +37,14 @@ This directory contains research findings, explorations, and analysis conducted 
 
 ---
 
+## Quality & Iteration
+
+| Document | Description |
+|----------|-------------|
+| [Iterative Quality Loops](iterative-quality-loops.md) | **Ralph Loop technique adapted for Ember — spec→action→review→iterate** |
+
+---
+
 ## System Integration Research
 
 | Document | Description |
