@@ -146,7 +146,14 @@ See [ADR Index](docs/architecture/decisions/README.md) for the full list and pro
 | [Moltbot Analysis](docs/reference/MOLTBOT-ANALYSIS.md) | Analysis of predecessor project |
 | [Sanity Check Assessment](docs/reference/sanity-check-assessment.md) | Feasibility validation |
 | [Sanity Check Summary](docs/reference/sanity-check-summary.md) | Executive summary of validation |
+| [Documentation Assessment v2](docs/reference/documentation-assessment-v2.md) | **Comprehensive documentation review** |
+| [Prompt Engineering Mastery](docs/reference/prompt-engineering-mastery.md) | LLM prompt engineering training guide |
 | [Twitch Streaming Guide](docs/reference/twitch-streaming-guide.md) | Guide for development streams |
+
+### Implementation
+| Document | Description |
+|----------|-------------|
+| [Implementation Guide](docs/IMPLEMENTATION-GUIDE.md) | **AI-assisted development workflow guide** |
 
 ### Other
 | Document | Description |
