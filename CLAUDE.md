@@ -1,47 +1,57 @@
 # EmberHearth - Claude Code Instructions
 
-This file provides context and instructions for Claude Code when working on this repository.
+This file provides permanent, phase-independent instructions for all Claude Code sessions.
 
-## Project Overview
+Phase-specific guidance (coding standards, workflow, current priorities) lives in a separate doc linked below. **Always read the phase doc before starting work.**
+
+---
+
+## FIRST THING EVERY SESSION
+
+> **Before doing any work, confirm the active phase with the user.**
+>
+> Say something like: *"The active phase is [phase name]. Is that still current, or has the project moved on?"*
+>
+> Wait for confirmation before proceeding. The user juggles multiple responsibilities and may have forgotten to update the phase pointer after completing previous work.
+
+---
+
+## Active Phase
+
+**Current:** MVP Construction ("Spark")
+**Phase instructions:** [`docs/claude/construction-mvp.md`](docs/claude/construction-mvp.md)
+**Workplan:** [`docs/v1-workplan.md`](docs/v1-workplan.md)
+
+*To change phases: update the three fields above and point to the appropriate phase doc in `docs/claude/`.*
+
+---
+
+## Project Identity
 
 EmberHearth is a secure, accessible, always-on personal AI assistant for macOS. The primary interface is iMessage, with a native Mac app for configuration.
 
-**Quick Navigation:**
-- `README.md` — Full documentation index with links to all docs
-- `docs/VISION.md` — Vision, architecture, design philosophy
-- `docs/NEXT-STEPS.md` — Development roadmap and current tasks
-- `docs/architecture-overview.md` — System design and components
-- `docs/research/README.md` — Index of all research documents
+- **Product name:** EmberHearth (display) or `emberhearth` (code/paths)
+- **Language:** Swift + SwiftUI (native macOS)
+- **Deployment target:** macOS 13.0 (Ventura)+
+- **Distribution:** Outside Mac App Store (Developer ID + notarization)
 
-## Project Structure
+---
 
-```
-emberhearth/
-├── README.md               # Project overview + DOCUMENTATION INDEX
-├── CLAUDE.md               # This file - instructions for Claude
-├── docs/
-│   ├── VISION.md           # Vision document
-│   ├── NEXT-STEPS.md       # Roadmap and tasks
-│   ├── architecture-overview.md
-│   ├── architecture/
-│   │   └── decisions/      # ADRs (0001-0011+)
-│   ├── releases/           # MVP.md, mvp-scope.md, feature-matrix.md
-│   ├── specs/              # Implementation specifications
-│   ├── research/           # Research findings (see README.md inside)
-│   │   ├── README.md       # INDEX of all research docs
-│   │   └── integrations/   # Apple app integration research
-│   ├── reference/          # Analysis, sanity checks, guides
-│   ├── deployment/         # Build and release docs
-│   └── testing/            # Testing strategy
-├── src/                    # Source code (Swift/SwiftUI)
-├── tests/                  # Test files
-└── .github/                # GitHub configuration
-```
+## Documentation Map
 
-**Finding Documentation:**
-1. Start at `README.md` for the master index
-2. For research topics, check `docs/research/README.md`
-3. For architectural decisions, see `docs/architecture/decisions/README.md`
+| What you need | Where to find it |
+|---|---|
+| Master doc index | [`README.md`](README.md) |
+| Vision & philosophy | [`docs/VISION.md`](docs/VISION.md) |
+| Architecture & components | [`docs/architecture-overview.md`](docs/architecture-overview.md) |
+| Current task list | [`docs/v1-workplan.md`](docs/v1-workplan.md) |
+| Roadmap & progress | [`docs/NEXT-STEPS.md`](docs/NEXT-STEPS.md) |
+| All research | [`docs/research/README.md`](docs/research/README.md) |
+| ADRs | [`docs/architecture/decisions/README.md`](docs/architecture/decisions/README.md) |
+| All specs | [`docs/specs/README.md`](docs/specs/README.md) |
+| Phase instructions | [`docs/claude/`](docs/claude/) |
+
+---
 
 ## Core Principles (Always Follow)
 
@@ -51,44 +61,16 @@ emberhearth/
 4. **Privacy** — All personal data stays local. No cloud sync of user memories.
 5. **Simplicity** — If it requires explanation to non-technical users, simplify it.
 
-## Naming Conventions
+---
 
-- **Product name:** EmberHearth (display) or `emberhearth` (code/paths)
-- **Swift:** Follow Apple's Swift style guide
-- **Files:** lowercase with hyphens for docs, PascalCase for Swift files
-
-## Current Phase
-
-**Phase 1: Research** — We're exploring:
-- iMessage integration approaches
-- macOS security primitives (sandbox, XPC, Keychain)
-- Apple framework capabilities (EventKit, HomeKit, etc.)
-- Local model feasibility
-
-Research findings go in `docs/research/`.
-
-## When Making Changes
-
-1. **Read the vision first** — Understand why before implementing what
-2. **Small, focused commits** — One logical change per commit
-3. **Update docs** — Keep NEXT-STEPS.md progress tracking current
-4. **Test accessibility** — VoiceOver should work on all UI
-
-## Key Technical Decisions
-
-- **Language:** Swift + SwiftUI (native macOS)
-- **Primary Interface:** iMessage (inherits Apple accessibility)
-- **Secondary Interface:** Native Mac app (configuration/admin)
-- **Memory Storage:** SQLite with encryption
-- **LLM Integration:** API-based initially, local model support planned
-
-## Security Boundaries
+## Security Boundaries (Never Bend)
 
 **Never do:**
-- Shell/command execution
-- Expose credentials in logs or UI
-- Send personal data to external services (except chosen LLM provider)
+- Shell/command execution of any kind
+- Expose credentials in logs, UI, or comments
+- Send personal data to external services (except the chosen LLM provider)
 - Store API keys in plaintext
+- Force-unwrap optionals in production code
 
 **Always do:**
 - Use Keychain for secrets
@@ -96,9 +78,21 @@ Research findings go in `docs/research/`.
 - Log security-relevant events
 - Sandbox file access to approved locations
 
-## Questions?
+---
 
-If unclear about direction, check:
-1. `docs/VISION.md` — For philosophy and architecture
-2. `docs/NEXT-STEPS.md` — For current priorities
-3. Ask the user — When in doubt, clarify before implementing
+## Naming Conventions
+
+- **Swift files:** `PascalCase.swift`
+- **Doc files:** `lowercase-with-hyphens.md`
+- **Types/protocols:** `PascalCase`
+- **Functions/properties:** `camelCase`
+- **Constants:** `camelCase` (Swift convention, not SCREAMING_SNAKE)
+
+---
+
+## When In Doubt
+
+1. Read the phase doc for current workflow expectations
+2. Check `docs/VISION.md` for philosophy
+3. Check the relevant spec or research doc
+4. **Ask the user** — always prefer asking over guessing

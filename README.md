@@ -125,11 +125,16 @@ See [ADR Index](docs/architecture/decisions/README.md) for the full list and pro
 ### Specifications
 | Document | Description |
 |----------|-------------|
-| [Tron Security](docs/specs/tron-security.md) | **Security layer spec — prompt injection, credential detection, tool authorization** |
+| [Specs Index](docs/specs/README.md) | **Full index of all specification documents** |
+| [Tron Security](docs/specs/tron-security.md) | Security layer spec — prompt injection, credential detection, tool authorization |
 | [ASV Implementation](docs/specs/asv-implementation.md) | Anticipatory Salience Value system spec |
+| [API Setup Guide](docs/specs/api-setup-guide.md) | API configuration and setup |
 | [Autonomous Operation](docs/specs/autonomous-operation.md) | Background operation and proactive behavior |
+| [Crisis Safety Protocols](docs/specs/crisis-safety-protocols.md) | Safety protocols for crisis scenarios |
 | [Error Handling](docs/specs/error-handling.md) | Error management and recovery |
+| [Offline Mode](docs/specs/offline-mode.md) | Offline operation capabilities |
 | [Token Awareness](docs/specs/token-awareness.md) | Context window and token management |
+| [Update & Recovery](docs/specs/update-recovery.md) | Update and recovery procedures |
 
 ### Research
 | Document | Description |
@@ -154,12 +159,26 @@ See [ADR Index](docs/architecture/decisions/README.md) for the full list and pro
 | Document | Description |
 |----------|-------------|
 | [Implementation Guide](docs/IMPLEMENTATION-GUIDE.md) | **AI-assisted development workflow guide** |
+| [Claude Phase Instructions](docs/claude/README.md) | **Phase-specific instructions for Claude Code sessions** |
 
-### Other
+### Testing
+| Document | Description |
+|----------|-------------|
+| [Testing Index](docs/testing/README.md) | **Full index of all testing documents** |
+| [Testing Strategy](docs/testing/strategy.md) | Testing approach and coverage |
+| [Prompt Regression Testing](docs/testing/prompt-regression-testing.md) | Regression testing for LLM prompts |
+| [Security Penetration Protocol](docs/testing/security-penetration-protocol.md) | Security penetration testing procedures |
+| [System API Mocking](docs/testing/system-api-mocking.md) | Mocking strategy for system APIs |
+
+### Deployment
 | Document | Description |
 |----------|-------------|
 | [Build & Release](docs/deployment/build-and-release.md) | Deployment and distribution process |
-| [Testing Strategy](docs/testing/strategy.md) | Testing approach and coverage |
+
+### Workplans
+| Document | Description |
+|----------|-------------|
+| [V1 Workplan](docs/v1-workplan.md) | Version 1 development workplan |
 
 ---
 
