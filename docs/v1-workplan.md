@@ -6,6 +6,8 @@
 
 **Rule of thumb:** If a session touches more than ~3 implementation files + tests, commit and start fresh.
 
+**Caution:** If a workplan item takes more than two sessions, that's a signal to revisit the spec rather than push through.
+
 ---
 
 ## 1.0 "Spark" — MVP
