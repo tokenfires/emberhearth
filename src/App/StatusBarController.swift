@@ -133,6 +133,7 @@ final class StatusBarController: NSObject {
     ///   ─────────────────────
     ///   Settings...                  [opens settings window]
     ///   About EmberHearth            [shows about panel]
+    ///   Launch at Login              [toggle, checkmark reflects state]
     ///   ─────────────────────
     ///   Quit EmberHearth             [terminates app]
     private func buildMenu() {
