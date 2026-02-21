@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Automation permission for controlling Messages.app via AppleScript -->
+    <key>com.apple.security.automation.apple-events</key>
+    <true/>
+
+    <!-- File access for user-selected files (settings import/export) -->
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+
+    <!-- Read access to chat.db for iMessage integration -->
+    <!-- Note: Full Disk Access is a system permission granted by user, not an entitlement -->
+    <!-- This temporary exception allows reading the Messages database path -->
+    <key>com.apple.security.temporary-exception.files.absolute-path.read-only</key>
+    <array>
+        <string>/Users/</string>
+    </array>
+
+    <!-- Network access for LLM API calls -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+
+    <!-- Keychain access for storing API keys securely -->
+    <key>com.apple.security.keychain-access-groups</key>
+    <array>
+        <string>$(AppIdentifierPrefix)com.emberhearth.app</string>
+    </array>
+</dict>
+</plist>

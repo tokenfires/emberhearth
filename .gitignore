@@ -1,0 +1,44 @@
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+*.xcuserstate
+*.xcschemes/
+DerivedData/
+build/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.moved-aside
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# macOS
+.DS_Store
+*.dSYM
+*.dSYM.zip
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+*.app
+*.ipa
+*.framework
+*.dylib
+
+# Signing
+*.mobileprovision
+*.provisionprofile
+
+# Environment / Secrets
+.env
+*.env
+credentials.json
