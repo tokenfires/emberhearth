@@ -42,7 +42,7 @@
   - Files: MessageMonitor.swift, FSEventsWatcher.swift
   - Verify: New iMessages are detected within seconds of arrival
 
-- [ ] **M2.3 — AppleScript message sending**
+- [x] **M2.3 — AppleScript message sending**
   Send iMessages via NSAppleScript controlling Messages.app. Normalize phone numbers to E.164 format. Handle send failures with retry logic. Request Automation permission for Messages.app.
   - Files: MessageSender.swift, PhoneNumberUtils.swift
   - Verify: Can send a test message to a configured phone number
@@ -241,6 +241,7 @@
 |------|------|-------|
 | Feb 20, 2026 | Task 0003 — M1.2 (menu bar presence) | StatusBarController with NSStatusItem, flame.fill icon, 5 health states, dropdown menu (title/status/Settings.../About/Quit), VoiceOver labels. Build + tests pass. Launch-at-login (Task 0004) still pending to complete M1.2. |
 | Feb 20, 2026 | Task 0004 — M1.2 (launch at login) | LaunchAtLoginManager using SMAppService.mainApp (singleton). Toggle in menu bar dropdown with checkmark state and VoiceOver labels. AppDelegate calls synchronize() on launch (defaults to enabled on first run). 4 new tests pass. M1.2 now complete. |
+| Feb 20, 2026 | Task 0102 — M2.3 (AppleScript message sender) | MessageSender using NSAppleScript only (ADR-0004 compliant). E.164 phone validation, text sanitization (backslash-before-quote order), message chunking at sentence/word boundaries, 1s rate limiting, structured error enum. 20 tests pass. Fixed two spec bugs: regex needed `{0,14}` for 1-digit E.164 numbers; injection test replaced broken `contains("\" &")` with unescaped-quote regex check. |
 
 ---
 
