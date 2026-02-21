@@ -49,9 +49,6 @@ final class MessageSenderTests: XCTestCase {
     }
 
     func testSanitizeBackslashesBeforeQuotes() {
-        // Backslash before quote: \ " should become \\ \"
-        // If we escaped quotes first, \" would become \\\" (wrong)
-        // By escaping backslashes first: \ becomes \\, then " becomes \" = \\ \"
         XCTAssertEqual(
             MessageSender.sanitizeForAppleScript("test\\\"inject"),
             "test\\\\\\\"inject"
@@ -59,13 +56,10 @@ final class MessageSenderTests: XCTestCase {
     }
 
     func testSanitizeAppleScriptInjectionAttempt() {
-        // Attempt to break out of the string and execute arbitrary AppleScript
         let malicious = "\" & do shell script \"rm -rf /\" & \""
         let sanitized = MessageSender.sanitizeForAppleScript(malicious)
-        // No unescaped double quotes should remain (regex: " not preceded by \)
         let hasUnescapedQuote = sanitized.range(of: #"(?<!\\)""#, options: .regularExpression) != nil
         XCTAssertFalse(hasUnescapedQuote, "Sanitized output must not contain unescaped double quotes")
-        // Escaped quotes must be present, proving sanitization occurred
         XCTAssertTrue(sanitized.contains("\\\""))
     }
 
@@ -74,7 +68,6 @@ final class MessageSenderTests: XCTestCase {
     }
 
     func testSanitizeNewlines() {
-        // Newlines are valid in AppleScript strings
         let text = "Line 1\nLine 2"
         XCTAssertEqual(MessageSender.sanitizeForAppleScript(text), "Line 1\nLine 2")
     }
@@ -93,7 +86,6 @@ final class MessageSenderTests: XCTestCase {
     }
 
     func testLongMessageSplitAtSentence() {
-        // Create a message that's > 100 chars with clear sentence boundaries
         let sentence1 = String(repeating: "A", count: 60) + ". "
         let sentence2 = String(repeating: "B", count: 60) + ". "
         let message = sentence1 + sentence2
@@ -105,21 +97,18 @@ final class MessageSenderTests: XCTestCase {
     }
 
     func testLongMessageSplitAtSpace() {
-        // Message without sentence boundaries
         let words = (0..<30).map { _ in "word" }.joined(separator: " ")
         let chunks = MessageSender.splitMessage(words, maxLength: 50)
 
         for chunk in chunks {
             XCTAssertLessThanOrEqual(chunk.count, 50)
         }
-        // Reconstruct should contain all words
         let reconstructed = chunks.joined(separator: " ")
         XCTAssertEqual(reconstructed.components(separatedBy: "word").count,
                        words.components(separatedBy: "word").count)
     }
 
     func testHardSplitWhenNoBreakpoints() {
-        // Single long word with no spaces or punctuation
         let longWord = String(repeating: "x", count: 250)
         let chunks = MessageSender.splitMessage(longWord, maxLength: 100)
 
@@ -127,7 +116,6 @@ final class MessageSenderTests: XCTestCase {
         for chunk in chunks {
             XCTAssertLessThanOrEqual(chunk.count, 100)
         }
-        // All characters should be preserved
         let total = chunks.reduce(0) { $0 + $1.count }
         XCTAssertEqual(total, 250)
     }
@@ -192,17 +180,35 @@ final class MessageSenderTests: XCTestCase {
         }
     }
 
+    // MARK: - Error Description Tests
+
+    func testErrorDescriptions() {
+        let cases: [(MessageSenderError, String)] = [
+            (.invalidPhoneNumber(number: "+bad"), "Invalid phone number format"),
+            (.emptyMessage, "Cannot send an empty message"),
+            (.messageTooLong(length: 20000, maxLength: 10000), "too long"),
+            (.appleScriptFailed(errorDescription: "test"), "test"),
+            (.automationPermissionDenied, "Automation permission not granted"),
+            (.buddyNotFound(phoneNumber: "+15551234567"), "+15551234567"),
+        ]
+
+        for (error, expectedSubstring) in cases {
+            let description = error.errorDescription ?? ""
+            XCTAssertTrue(
+                description.contains(expectedSubstring),
+                "\(error) description should contain '\(expectedSubstring)', got: '\(description)'"
+            )
+        }
+    }
+
     // MARK: - Security Verification Tests
 
     func testNoShellExecutionInSource() throws {
-        // Read the source file and verify no shell execution patterns exist
-        // This is a compile-time check embedded in tests for extra safety
         let sourceFile = #file
         let sourceDir = (sourceFile as NSString).deletingLastPathComponent
         let senderPath = (sourceDir as NSString)
             .deletingLastPathComponent + "/src/Core/MessageSender.swift"
 
-        // If we can read the file, check for forbidden patterns
         if let source = try? String(contentsOfFile: senderPath, encoding: .utf8) {
             XCTAssertFalse(source.contains("Process("), "SECURITY: Process() is PROHIBITED")
             XCTAssertFalse(source.contains("NSTask"), "SECURITY: NSTask is PROHIBITED")

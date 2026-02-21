@@ -44,9 +44,10 @@ final class MessageSender: @unchecked Sendable {
     private let logger = Logger(subsystem: "com.emberhearth.core", category: "MessageSender")
 
     /// The timestamp of the last successful message send. Used for rate limiting.
+    /// Only accessed from `sendQueue` to prevent data races.
     private var lastSendTime: Date?
 
-    /// Serial queue for synchronizing send operations.
+    /// Serial queue for synchronizing send operations and protecting `lastSendTime`.
     private let sendQueue = DispatchQueue(label: "com.emberhearth.messagesender")
 
     // MARK: - Public Methods
@@ -61,20 +62,17 @@ final class MessageSender: @unchecked Sendable {
     ///   - phoneNumber: The recipient phone number in E.164 format (e.g., "+15551234567").
     /// - Throws: `MessageSenderError` if validation fails or sending fails.
     func send(message: String, to phoneNumber: String) async throws {
-        // Validate phone number format
         guard Self.isValidE164PhoneNumber(phoneNumber) else {
             logger.error("Invalid phone number format: \(phoneNumber, privacy: .private)")
             throw MessageSenderError.invalidPhoneNumber(number: phoneNumber)
         }
 
-        // Validate message is not empty
         let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedMessage.isEmpty else {
             logger.error("Attempted to send empty message")
             throw MessageSenderError.emptyMessage
         }
 
-        // Validate message length
         guard trimmedMessage.count <= Self.maxTotalLength else {
             logger.error("Message too long: \(trimmedMessage.count) chars (max: \(Self.maxTotalLength))")
             throw MessageSenderError.messageTooLong(
@@ -83,14 +81,11 @@ final class MessageSender: @unchecked Sendable {
             )
         }
 
-        // Split into chunks if needed
         let chunks = Self.splitMessage(trimmedMessage, maxLength: Self.maxChunkLength)
 
         logger.info("Sending \(chunks.count) chunk(s) to \(phoneNumber, privacy: .private)")
 
-        // Send each chunk
         for (index, chunk) in chunks.enumerated() {
-            try await enforceRateLimit()
             try await executeSendScript(message: chunk, to: phoneNumber)
             logger.info("Sent chunk \(index + 1)/\(chunks.count)")
         }
@@ -106,7 +101,6 @@ final class MessageSender: @unchecked Sendable {
     /// - Parameter number: The phone number to validate.
     /// - Returns: True if the number is valid E.164 format.
     static func isValidE164PhoneNumber(_ number: String) -> Bool {
-        // E.164: + followed by 1-15 digits (first digit non-zero, 0-14 additional)
         let pattern = #"^\+[1-9]\d{0,14}$"#
         return number.range(of: pattern, options: .regularExpression) != nil
     }
@@ -119,16 +113,14 @@ final class MessageSender: @unchecked Sendable {
     /// - Backslashes (\) — doubled to \\
     /// - Double quotes (") — escaped to \"
     ///
-    /// This prevents AppleScript injection attacks where message content could
-    /// break out of the string literal and execute arbitrary AppleScript.
+    /// **Order matters:** Backslashes are escaped first so that the backslashes
+    /// introduced by quote-escaping are not themselves doubled.
     ///
     /// - Parameter text: The raw message text.
     /// - Returns: The sanitized text safe for AppleScript string interpolation.
     static func sanitizeForAppleScript(_ text: String) -> String {
         var sanitized = text
-        // Escape backslashes FIRST (before escaping quotes, which adds backslashes)
         sanitized = sanitized.replacingOccurrences(of: "\\", with: "\\\\")
-        // Escape double quotes
         sanitized = sanitized.replacingOccurrences(of: "\"", with: "\\\"")
         return sanitized
     }
@@ -158,20 +150,16 @@ final class MessageSender: @unchecked Sendable {
                 break
             }
 
-            // Take a window of maxLength characters
             let endIndex = remaining.index(remaining.startIndex, offsetBy: maxLength)
             let window = remaining[remaining.startIndex..<endIndex]
 
-            // Try to find a sentence boundary (. ! ?) followed by a space
             var splitIndex: String.Index?
 
-            // Search backwards from the end of the window for sentence punctuation
             let sentenceEnders: [Character] = [".", "!", "?"]
             var searchIndex = window.index(before: window.endIndex)
             while searchIndex > window.startIndex {
                 let char = window[searchIndex]
                 if sentenceEnders.contains(char) {
-                    // Check if next char is a space or end of string
                     let nextIndex = window.index(after: searchIndex)
                     if nextIndex == window.endIndex || window[nextIndex] == " " {
                         splitIndex = window.index(after: searchIndex)
@@ -180,13 +168,11 @@ final class MessageSender: @unchecked Sendable {
                 }
                 searchIndex = window.index(before: searchIndex)
 
-                // Don't search more than halfway back
                 if window.distance(from: window.startIndex, to: searchIndex) < maxLength / 2 {
                     break
                 }
             }
 
-            // Fallback: split at last space
             if splitIndex == nil {
                 searchIndex = window.index(before: window.endIndex)
                 while searchIndex > window.startIndex {
@@ -202,7 +188,6 @@ final class MessageSender: @unchecked Sendable {
                 }
             }
 
-            // Last resort: hard split at maxLength
             let actualSplitIndex = splitIndex ?? endIndex
 
             let chunk = String(remaining[remaining.startIndex..<actualSplitIndex])
@@ -220,25 +205,13 @@ final class MessageSender: @unchecked Sendable {
 
     // MARK: - Private Methods
 
-    /// Enforces the rate limit between message sends.
-    ///
-    /// If the last message was sent less than `rateLimitInterval` ago,
-    /// this method waits for the remaining time before returning.
-    private func enforceRateLimit() async throws {
-        if let lastSend = lastSendTime {
-            let elapsed = Date().timeIntervalSince(lastSend)
-            if elapsed < Self.rateLimitInterval {
-                let waitTime = Self.rateLimitInterval - elapsed
-                logger.debug("Rate limiting: waiting \(waitTime, format: .fixed(precision: 2))s")
-                try await Task.sleep(nanoseconds: UInt64(waitTime * 1_000_000_000))
-            }
-        }
-    }
-
     /// Executes the AppleScript to send a single message.
     ///
     /// This is the ONLY method that executes AppleScript. The template is hardcoded.
     /// Only the phone number and sanitized message text are interpolated.
+    ///
+    /// Rate limiting and `lastSendTime` are managed entirely within `sendQueue`
+    /// to prevent data races under concurrent callers.
     ///
     /// - Parameters:
     ///   - message: The message text (will be sanitized).
@@ -249,7 +222,6 @@ final class MessageSender: @unchecked Sendable {
         let sanitizedPhoneNumber = Self.sanitizeForAppleScript(phoneNumber)
 
         // HARDCODED AppleScript template — DO NOT make this dynamic.
-        // Only sanitizedPhoneNumber and sanitizedMessage are variable.
         let scriptSource = """
             tell application "Messages"
                 set targetBuddy to buddy "\(sanitizedPhoneNumber)" of service "iMessage"
@@ -257,12 +229,20 @@ final class MessageSender: @unchecked Sendable {
             end tell
             """
 
-        // Execute on a background thread since AppleScript is synchronous
-        let result: Result<Void, MessageSenderError> = await withCheckedContinuation { continuation in
-            sendQueue.async { [weak self] in
-                guard let self = self else {
-                    continuation.resume(returning: .failure(.messagesAppNotAvailable))
-                    return
+        let rateLimitInterval = Self.rateLimitInterval
+        let logger = self.logger
+
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            sendQueue.async { [self] in
+                // Rate limiting inside the serial queue prevents concurrent callers
+                // from bypassing the interval check.
+                if let lastSend = self.lastSendTime {
+                    let elapsed = Date().timeIntervalSince(lastSend)
+                    if elapsed < rateLimitInterval {
+                        let waitTime = rateLimitInterval - elapsed
+                        logger.debug("Rate limiting: waiting \(waitTime, format: .fixed(precision: 2))s")
+                        Thread.sleep(forTimeInterval: waitTime)
+                    }
                 }
 
                 var errorDict: NSDictionary?
@@ -273,36 +253,48 @@ final class MessageSender: @unchecked Sendable {
                     let errorNumber = errorDict[NSAppleScript.errorNumber] as? Int ?? -1
                     let errorMessage = errorDict[NSAppleScript.errorMessage] as? String ?? "Unknown AppleScript error"
 
-                    self.logger.error("AppleScript error \(errorNumber): \(errorMessage, privacy: .public)")
+                    logger.error("AppleScript error \(errorNumber): \(errorMessage, privacy: .public)")
 
-                    // Categorize the error
-                    if errorMessage.contains("not authorized") || errorMessage.contains("permission") {
-                        continuation.resume(returning: .failure(
-                            .appleScriptFailed(errorDescription: "Automation permission not granted. Go to System Settings > Privacy & Security > Automation and enable EmberHearth for Messages.")
-                        ))
-                    } else if errorMessage.contains("buddy") || errorMessage.contains("Can't get buddy") {
-                        continuation.resume(returning: .failure(
-                            .buddyNotFound(phoneNumber: phoneNumber)
-                        ))
-                    } else {
-                        continuation.resume(returning: .failure(
-                            .appleScriptFailed(errorDescription: errorMessage)
-                        ))
-                    }
+                    let senderError = Self.categorizeAppleScriptError(
+                        errorNumber: errorNumber,
+                        errorMessage: errorMessage,
+                        phoneNumber: phoneNumber
+                    )
+                    continuation.resume(throwing: senderError)
                 } else {
                     self.lastSendTime = Date()
-                    self.logger.info("Message sent successfully to \(phoneNumber, privacy: .private)")
-                    continuation.resume(returning: .success(()))
+                    logger.info("Message sent successfully to \(phoneNumber, privacy: .private)")
+                    continuation.resume()
                 }
             }
         }
+    }
 
-        // Unwrap the result
-        switch result {
-        case .success:
-            return
-        case .failure(let error):
-            throw error
+    // MARK: - Error Categorization
+
+    /// Maps an AppleScript error to a `MessageSenderError`.
+    ///
+    /// Uses `errorNumber` as the primary signal with message text as a fallback,
+    /// since error numbers are stable across macOS versions while messages may change.
+    private static func categorizeAppleScriptError(
+        errorNumber: Int,
+        errorMessage: String,
+        phoneNumber: String
+    ) -> MessageSenderError {
+        // -1743: user cancelled / not authorized (Automation permission)
+        // -1744: permission denied
+        if errorNumber == -1743 || errorNumber == -1744
+            || errorMessage.localizedCaseInsensitiveContains("not authorized")
+            || errorMessage.localizedCaseInsensitiveContains("permission") {
+            return .automationPermissionDenied
         }
+
+        // -1728: Can't get <reference> (buddy not found)
+        if errorNumber == -1728
+            || errorMessage.localizedCaseInsensitiveContains("buddy") {
+            return .buddyNotFound(phoneNumber: phoneNumber)
+        }
+
+        return .appleScriptFailed(errorDescription: errorMessage)
     }
 }

@@ -11,18 +11,11 @@ enum MessageSenderError: LocalizedError {
     /// The message exceeds the maximum allowed length.
     case messageTooLong(length: Int, maxLength: Int)
 
-    /// Messages.app is not running and could not be activated.
-    case messagesAppNotAvailable
-
-    /// The AppleScript execution failed.
-    /// This can happen if:
-    /// - Automation permission has not been granted
-    /// - The buddy (phone number) was not found in Messages
-    /// - Messages.app encountered an internal error
+    /// The AppleScript execution failed with an unrecognized error.
     case appleScriptFailed(errorDescription: String)
 
-    /// Rate limit exceeded. Too many messages sent in a short time.
-    case rateLimitExceeded(retryAfter: TimeInterval)
+    /// The user has not granted Automation permission for Messages.app.
+    case automationPermissionDenied
 
     /// The phone number was not found as a buddy in Messages.app.
     case buddyNotFound(phoneNumber: String)
@@ -35,12 +28,10 @@ enum MessageSenderError: LocalizedError {
             return "Cannot send an empty message."
         case .messageTooLong(let length, let maxLength):
             return "Message is too long (\(length) characters). Maximum is \(maxLength) characters."
-        case .messagesAppNotAvailable:
-            return "Messages.app is not available. Please ensure it is installed and running."
         case .appleScriptFailed(let description):
             return "Failed to send message via AppleScript: \(description)"
-        case .rateLimitExceeded(let retryAfter):
-            return "Rate limit exceeded. Please wait \(Int(retryAfter)) seconds before sending another message."
+        case .automationPermissionDenied:
+            return "Automation permission not granted. Go to System Settings > Privacy & Security > Automation and enable EmberHearth for Messages."
         case .buddyNotFound(let phoneNumber):
             return "Could not find '\(phoneNumber)' in Messages. Ensure this contact uses iMessage."
         }
