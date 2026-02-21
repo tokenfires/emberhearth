@@ -239,7 +239,7 @@
 
 | Date | Item | Notes |
 |------|------|-------|
-| — | — | — |
+| Feb 20, 2026 | Task 0003 — M1.2 (menu bar presence) | StatusBarController with NSStatusItem, flame.fill icon, 5 health states, dropdown menu (title/status/Settings.../About/Quit), VoiceOver labels. Build + tests pass. Launch-at-login (Task 0004) still pending to complete M1.2. |
 
 ---
 

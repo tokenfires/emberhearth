@@ -2,13 +2,18 @@
 // EmberHearth
 //
 // NSApplicationDelegate for system-level integration.
-// Manages app lifecycle events, menu bar presence (future),
+// Manages app lifecycle events, menu bar presence,
 // and other system hooks that SwiftUI doesn't directly support.
 
 import AppKit
 import SwiftUI
 
 class AppDelegate: NSObject, NSApplicationDelegate {
+
+    // MARK: - Properties
+
+    /// The menu bar controller that manages the NSStatusItem and dropdown menu.
+    private let statusBarController = StatusBarController()
 
     // MARK: - Application Lifecycle
 
@@ -18,13 +23,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // programmatically to ensure the app runs without a Dock icon.
         NSApp.setActivationPolicy(.accessory)
 
+        // Set up the menu bar icon and dropdown menu
+        statusBarController.setup()
+
+        // Set initial state to "starting" — will transition to "healthy"
+        // once all subsystems are initialized (future tasks).
+        statusBarController.updateState(.starting)
+
+        // Simulate transition to healthy after a brief delay.
+        // In production, this will be driven by actual health checks (M5+).
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+            self?.statusBarController.updateState(.healthy)
+        }
+
         // Bring the main window to front on first launch
         NSApp.activate(ignoringOtherApps: true)
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        // Clean shutdown: flush pending writes, close database connections.
-        // Placeholder for future cleanup logic.
+        // Clean shutdown: remove status bar item, flush pending writes.
+        statusBarController.teardown()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ application: NSApplication) -> Bool {
