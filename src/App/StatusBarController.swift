@@ -74,6 +74,9 @@ final class StatusBarController: NSObject {
     /// Menu item that displays the current status (updated dynamically).
     private var statusMenuItem: NSMenuItem?
 
+    /// Menu item for the Launch at Login toggle.
+    private var launchAtLoginMenuItem: NSMenuItem?
+
     /// The app version string, read from the bundle.
     private var appVersion: String {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.1.0"
@@ -176,6 +179,21 @@ final class StatusBarController: NSObject {
         aboutItem.setAccessibilityLabel("Show information about EmberHearth")
         menu.addItem(aboutItem)
 
+        let launchItem = NSMenuItem(
+            title: "Launch at Login",
+            action: #selector(toggleLaunchAtLogin),
+            keyEquivalent: ""
+        )
+        launchItem.target = self
+        launchItem.state = LaunchAtLoginManager.shared.isEnabled ? .on : .off
+        launchItem.setAccessibilityLabel(
+            LaunchAtLoginManager.shared.isEnabled
+                ? "Launch at Login is enabled. Click to disable."
+                : "Launch at Login is disabled. Click to enable."
+        )
+        self.launchAtLoginMenuItem = launchItem
+        menu.addItem(launchItem)
+
         menu.addItem(NSMenuItem.separator())
 
         let quitItem = NSMenuItem(
@@ -247,9 +265,34 @@ final class StatusBarController: NSObject {
         )
     }
 
+    /// Toggles the Launch at Login setting and updates the menu checkbox.
+    @objc private func toggleLaunchAtLogin() {
+        let newState = !LaunchAtLoginManager.shared.isEnabled
+        let success = LaunchAtLoginManager.shared.setEnabled(newState)
+
+        if success {
+            refreshLaunchAtLoginState()
+        }
+    }
+
     /// Terminates the application.
     @objc private func quitApp() {
         NSApplication.shared.terminate(nil)
+    }
+
+    // MARK: - State Refresh
+
+    /// Updates the Launch at Login menu item to reflect the current system state.
+    /// Call this when the menu is about to open to catch external changes
+    /// (e.g., user changed setting in System Settings).
+    func refreshLaunchAtLoginState() {
+        let isEnabled = LaunchAtLoginManager.shared.isEnabled
+        launchAtLoginMenuItem?.state = isEnabled ? .on : .off
+        launchAtLoginMenuItem?.setAccessibilityLabel(
+            isEnabled
+                ? "Launch at Login is enabled. Click to disable."
+                : "Launch at Login is disabled. Click to enable."
+        )
     }
 
     // MARK: - Cleanup

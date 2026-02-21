@@ -30,6 +30,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // once all subsystems are initialized (future tasks).
         statusBarController.updateState(.starting)
 
+        // Synchronize launch-at-login state with user preference.
+        // On first launch, this defaults to enabled.
+        LaunchAtLoginManager.shared.synchronize()
+
         // Simulate transition to healthy after a brief delay.
         // In production, this will be driven by actual health checks (M5+).
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in

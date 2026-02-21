@@ -19,7 +19,7 @@
   - Files: Xcode project, Package.swift (if SPM), Info.plist, entitlements
   - Verify: App builds, signs, and launches on macOS 13+
 
-- [ ] **M1.2 — Menu bar app + Launch at Login**
+- [x] **M1.2 — Menu bar app + Launch at Login**
   Convert to a menu bar app (NSStatusItem). Add "Launch at Login" via SMAppService (macOS 13+). Menu bar icon with basic dropdown: status label, quit button.
   - Files: AppDelegate or App entry point, MenuBarView, Assets (icon)
   - Verify: App appears in menu bar, persists across restarts if launch-at-login enabled
@@ -240,6 +240,7 @@
 | Date | Item | Notes |
 |------|------|-------|
 | Feb 20, 2026 | Task 0003 — M1.2 (menu bar presence) | StatusBarController with NSStatusItem, flame.fill icon, 5 health states, dropdown menu (title/status/Settings.../About/Quit), VoiceOver labels. Build + tests pass. Launch-at-login (Task 0004) still pending to complete M1.2. |
+| Feb 20, 2026 | Task 0004 — M1.2 (launch at login) | LaunchAtLoginManager using SMAppService.mainApp (singleton). Toggle in menu bar dropdown with checkmark state and VoiceOver labels. AppDelegate calls synchronize() on launch (defaults to enabled on first run). 4 new tests pass. M1.2 now complete. |
 
 ---
 
