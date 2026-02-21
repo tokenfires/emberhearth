@@ -24,6 +24,11 @@ enum ChatDatabaseError: LocalizedError {
     /// The message date could not be converted from Apple's timestamp format.
     case dateConversionFailed(rawValue: Int64)
 
+    var isDatabaseLocked: Bool {
+        if case .databaseLocked = self { return true }
+        return false
+    }
+
     var errorDescription: String? {
         switch self {
         case .databaseNotFound(let path):
