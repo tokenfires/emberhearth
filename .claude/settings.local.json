@@ -24,7 +24,9 @@
       "WebFetch(domain:www.promptingguide.ai)",
       "WebFetch(domain:www.lakera.ai)",
       "Bash(test:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "WebFetch(domain:docs.openclaw.ai)",
+      "WebFetch(domain:molty.finna.ai)"
     ]
   }
 }
