@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <defs>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <linearGradient id="border" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00e5ff"/>
+      <stop offset="100%" stop-color="#ff2d95"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="44" height="44" rx="12" ry="12" fill="#0a0a1e"/>
+  <rect x="2" y="2" width="44" height="44" rx="12" ry="12" fill="none" stroke="url(#border)" stroke-width="1.5" filter="url(#glow)" opacity="0.7"/>
+  <g transform="translate(13, 8)" filter="url(#glow)">
+    <!-- Cyan shadow layer -->
+    <path d="M16.5 0h-3.8v21.8a3.2 3.2 0 01-3.2 3.2 3.2 3.2 0 01-3.2-3.2 3.2 3.2 0 013.2-3.2c.3 0 .7 0 1 .1v-3.9c-.3 0-.7-.1-1-.1a7.1 7.1 0 00-7.1 7.1 7.1 7.1 0 007.1 7.1 7.1 7.1 0 007.1-7.1V10.3A11.2 11.2 0 0023 12.5V8.6A7.3 7.3 0 0116.5 0z" fill="#00f2ea" transform="translate(-1, 0.5)"/>
+    <!-- Pink main layer -->
+    <path d="M16.5 0h-3.8v21.8a3.2 3.2 0 01-3.2 3.2 3.2 3.2 0 01-3.2-3.2 3.2 3.2 0 013.2-3.2c.3 0 .7 0 1 .1v-3.9c-.3 0-.7-.1-1-.1a7.1 7.1 0 00-7.1 7.1 7.1 7.1 0 007.1 7.1 7.1 7.1 0 007.1-7.1V10.3A11.2 11.2 0 0023 12.5V8.6A7.3 7.3 0 0116.5 0z" fill="#ff004f" transform="translate(1, -0.5)"/>
+    <!-- White front layer -->
+    <path d="M16.5 0h-3.8v21.8a3.2 3.2 0 01-3.2 3.2 3.2 3.2 0 01-3.2-3.2 3.2 3.2 0 013.2-3.2c.3 0 .7 0 1 .1v-3.9c-.3 0-.7-.1-1-.1a7.1 7.1 0 00-7.1 7.1 7.1 7.1 0 007.1 7.1 7.1 7.1 0 007.1-7.1V10.3A11.2 11.2 0 0023 12.5V8.6A7.3 7.3 0 0116.5 0z" fill="#ffffff" opacity="0.9"/>
+  </g>
+</svg>

@@ -3,6 +3,15 @@
 <p align="center">
   <img src="images/profile.png" alt="EmberHearth Logo" width="300">
 </p>
+<p align="center">
+  <a href="https://twitch.tv/tokenfires" title="https://twitch.tv/tokenfires"><img src="images/icon-twitch.svg" alt="Twitch" height="48"></a>
+  &nbsp;
+  <a href="https://www.youtube.com/@tokenfires" title="https://www.youtube.com/@tokenfires"><img src="images/icon-youtube.svg" alt="YouTube" height="48"></a>
+  &nbsp;
+  <a href="https://x.com/TokenFires" title="https://x.com/TokenFires"><img src="images/icon-x.svg" alt="X/Twitter" height="48"></a>
+  &nbsp;
+  <a href="https://www.tiktok.com/@tokenfires" title="https://www.tiktok.com/@tokenfires"><img src="images/icon-tiktok.svg" alt="TikTok" height="48"></a>
+</p>
 
 ### Creator message:
 A few things...
