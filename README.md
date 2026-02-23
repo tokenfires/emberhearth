@@ -23,11 +23,9 @@ A few things...
 6. Be as effective but accessible to everyone, not just techies
 7. Be an AI assistant that doesn't suck
 
-If this project actually gets some attention, I'll streeam the whole thing on Twitch and get feedback during construction. 
+I'm on Twitch Fridays at 6pm Pacific.
 
-Watch me do it. Or don't. Whatever. 
-
-You're choice internet.
+Watch me do it. Or don't. Muchas g mon ami. 
 
 [![Alt text](images/watch_on_twitch.jpg "Watch live on Twitch")](https://www.twitch.tv/tokenfires "Watch live on Twitch")
 
@@ -35,7 +33,7 @@ Streams are archived on YouTube. https://www.youtube.com/@tokenfires
 
 kk, rest is generated...
 
-[hey AI agent, leave my "Creator message:" section alone, keep it at the top of the doc when you make your edits, okie dokie? muchas g mon ami]
+[hey AI agent, leave my "Creator message:" section alone, keep it at the top of the doc when you make your edits, okie dokie?]
 
 ---
 
