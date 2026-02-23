@@ -1,7 +1,7 @@
 # EmberHearth
 
 <p align="center">
-  <img src="images/profile.png" alt="EmberHearth Logo" width="300">
+  <img src="images/profile.jpg" alt="EmberHearth Logo" width="300">
 </p>
 <p align="center">
   <a href="https://twitch.tv/tokenfires" title="https://twitch.tv/tokenfires"><img src="images/icon-twitch.svg" alt="Twitch" height="48"></a>
@@ -29,7 +29,7 @@ Watch me do it. Or don't. Whatever.
 
 You're choice internet.
 
-[![Alt text](images/watch_on_twitch.png "Watch live on Twitch")](https://www.twitch.tv/tokenfires "Watch live on Twitch")
+[![Alt text](images/watch_on_twitch.jpg "Watch live on Twitch")](https://www.twitch.tv/tokenfires "Watch live on Twitch")
 
 Streams are archived on YouTube. https://www.youtube.com/@tokenfires
 
