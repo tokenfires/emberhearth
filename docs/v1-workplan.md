@@ -71,6 +71,12 @@
   - Files: MessageOrchestrator.swift (or similar coordinator)
   - Verify: Text Ember via iMessage, get a response back
 
+- [ ] **M3.4 — Message pipeline integration tests**
+  Write automated integration tests that exercise the full message pipeline using mocked external dependencies. Test the complete flow: mock incoming message → MessageRouter → TronFilter → ContextBuilder → mock LLM → MessageSender. Verify the pipeline handles happy path, filtered numbers, and group chat rejection. These tests use the mock infrastructure from `docs/testing/system-api-mocking.md`.
+  - Files: tests/IntegrationTests/MessagePipelineTests.swift, test mocks as needed
+  - Verify: Pipeline integration tests pass in CI with no real system dependencies
+  - Reference: `docs/testing/system-api-mocking.md`
+
 ### M4: Memory System
 
 - [ ] **M4.1 — SQLite memory database**
@@ -89,6 +95,11 @@
   Implement keyword-based fact retrieval (MVP — no embeddings). Wire retrieved facts into the context builder's memory slot. Facts should be formatted as natural language for the system prompt.
   - Files: FactRetriever.swift, update ContextBuilder.swift
   - Verify: Remembered facts appear in Ember's responses when relevant
+
+- [ ] **M4.4 — Memory workflow integration tests**
+  Write automated tests that verify the full memory lifecycle within the message pipeline. Test multi-turn conversations: (1) user says something with extractable facts → fact extraction runs → facts stored; (2) new message arrives → facts retrieved → facts appear in assembled context sent to LLM. Verify fact retrieval actually influences the prompt the LLM receives. All external deps mocked.
+  - Files: tests/IntegrationTests/MemoryWorkflowTests.swift
+  - Verify: Multi-turn memory integration tests pass; facts flow from extraction through retrieval to context
 
 ### M5: Personality
 
@@ -126,6 +137,11 @@
   Enforce group chat restrictions: detect group chats, refuse to process commands or access memory. Log the block. This may already be partially done in M2.4 — this task hardens it and adds logging.
   - Files: Update MessageRouter, TronFilter
   - Verify: Group chat messages never reach the LLM with tool access or memory context
+
+- [ ] **M6.4 — Security pipeline integration tests**
+  Write automated tests that verify security enforcement across the full pipeline. Test: (1) injection attempt in incoming message → TronFilter blocks before LLM; (2) credential pattern in LLM response → redacted before sending; (3) group chat message → rejected before LLM receives memory context or tool access. Verify logging fires for each security event. All external deps mocked.
+  - Files: tests/IntegrationTests/SecurityPipelineTests.swift
+  - Verify: Security integration tests pass; all three attack vectors blocked at pipeline level
 
 ### M7: Onboarding
 
@@ -169,6 +185,12 @@
   - Files: Build configuration, notarization scripts
   - Verify: App passes notarization; installs cleanly on fresh macOS
   - Reference: `docs/deployment/build-and-release.md`
+
+- [ ] **M8.5 — User journey smoke tests**
+  Write automated workflow tests that exercise the MVP success criteria end-to-end. Each test scenario runs the full pipeline with mocked externals: (1) **Happy path:** fresh state → onboarding sets config → message arrives → response sent; (2) **Memory round-trip:** user shares a fact → extraction stores it → later message → retrieval injects it → LLM context includes it; (3) **Error recovery:** API key invalid → error handler fires → key updated → next message succeeds; (4) **Security gauntlet:** injection, credential leak, and group chat attempts all blocked in sequence. These are the final gate before release.
+  - Files: tests/IntegrationTests/UserJourneyTests.swift
+  - Verify: All four workflow scenarios pass; no workflow regressions from earlier milestones
+  - Reference: `docs/releases/mvp-scope.md` (success criteria), `docs/testing/strategy.md`
 
 ---
 

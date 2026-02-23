@@ -170,7 +170,16 @@ final class MessageOrchestrator {
 
 - **Business logic:** Message parsing, phone number normalization, fact extraction parsing, context budget math, injection pattern matching, credential detection.
 - **Integration points:** Database operations (use in-memory SQLite), API request/response construction.
+- **Workflow tests:** Full pipeline scenarios at milestone boundaries (see below).
 - **Don't test:** SwiftUI view layout, Apple framework behavior, things you'd have to mock six layers deep.
+
+### Workflow Tests (Non-Negotiable)
+
+Unit tests verify components. Workflow tests verify the app *works*. These are added at milestone boundaries per the workplan (M3.4, M4.4, M6.4, M8.5) and exercise complete user scenarios through the full pipeline with mocked external deps.
+
+**If unit tests pass but a workflow test fails, the workflow test failure takes priority.** It means components work individually but break when wired together — the hardest bugs to find later.
+
+See `docs/testing/strategy.md` for the full workflow testing requirements.
 
 ### Test Structure
 
@@ -190,6 +199,11 @@ tests/
 ├── SecurityTests/
 │   ├── InjectionPatternsTests.swift
 │   └── CredentialPatternsTests.swift
+├── IntegrationTests/
+│   ├── MessagePipelineTests.swift      # Added at M3.4
+│   ├── MemoryWorkflowTests.swift       # Added at M4.4
+│   ├── SecurityPipelineTests.swift     # Added at M6.4
+│   └── UserJourneyTests.swift          # Added at M8.5
 └── Mocks/
     ├── MockLLMProvider.swift
     ├── MockMemoryStore.swift

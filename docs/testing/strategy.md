@@ -15,16 +15,54 @@ This document outlines the testing approach.
 ## Testing Pyramid
 
 ```
-                    ┌─────────────┐
-                    │   Manual    │  Few, expensive
-                    │   Testing   │
-                 ┌──┴─────────────┴──┐
-                 │   Integration     │  Some, moderate
-                 │     Tests         │
-              ┌──┴───────────────────┴──┐
-              │       Unit Tests        │  Many, fast
-              └─────────────────────────┘
+                 ┌──────────────────┐
+                 │  Manual / Smoke  │  Few, expensive
+                 │     Testing      │
+              ┌──┴──────────────────┴──┐
+              │   Workflow / Journey   │  Key user scenarios, automated
+              │        Tests          │
+           ┌──┴────────────────────────┴──┐
+           │     Integration Tests        │  Component interactions, mocked
+           │                              │
+        ┌──┴──────────────────────────────┴──┐
+        │           Unit Tests               │  Many, fast
+        └────────────────────────────────────┘
 ```
+
+---
+
+## Workflow / Journey Tests (Critical)
+
+> **Lesson learned:** Unit tests passing does not mean the app works. Components that pass individually can fail when wired together. Workflow tests are the safety net that catches integration seams, async handoff bugs, and data flow breakdowns.
+
+Workflow tests exercise **complete user scenarios** through the full pipeline using mocked external dependencies. They are automated, run in CI, and must pass before any release.
+
+### Required Workflow Scenarios (MVP)
+
+| Scenario | What it exercises |
+|----------|-------------------|
+| **Happy path** | Message in → router → Tron → context → LLM → response sent |
+| **Memory round-trip** | Fact extracted from conversation → stored → retrieved in later turn → appears in LLM context |
+| **Error recovery** | API failure → error handler → config fix → pipeline resumes |
+| **Security gauntlet** | Injection blocked, credential redacted, group chat rejected — all at pipeline level |
+
+### When to Write Them
+
+Workflow tests are added at **milestone boundaries**, not at the end:
+
+| After Milestone | Add Workflow Tests For |
+|---|---|
+| M3 (LLM Integration) | Message pipeline end-to-end |
+| M4 (Memory System) | Memory extraction → retrieval → context injection |
+| M6 (Security) | Security enforcement across the pipeline |
+| M8 (Polish) | Full user journey scenarios (release gate) |
+
+### Rules
+
+- Every workflow test uses mocked external deps (no real iMessage, no real API calls)
+- Workflow tests verify **data flows between components**, not component internals
+- If a workflow test breaks, it's a higher priority fix than a unit test failure
+- New features in future releases must include workflow test coverage in their task decomposition
 
 ---
 

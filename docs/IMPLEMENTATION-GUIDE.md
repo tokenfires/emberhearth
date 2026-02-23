@@ -355,7 +355,8 @@ Please read the relevant spec section: [link]
 
 ### Tests
 - [ ] Unit tests for business logic
-- [ ] Integration test plan documented
+- [ ] Workflow/integration tests for this milestone's pipeline additions (see testing strategy)
+- [ ] All prior workflow tests still pass (no regressions)
 - [ ] Manual test cases identified
 
 ### Documentation
@@ -407,6 +408,28 @@ Please read the relevant spec section: [link]
 
 **Problem:** Over-reliance on human review for basic quality
 **Solution:** Self-verify before requesting review
+
+### 6. "Unit Tests Pass, So It Works"
+
+**Problem:** Every component passes its unit tests, but the app doesn't work. Data doesn't flow correctly between components. Async handoffs fail silently. Error propagation breaks at seam boundaries.
+**Solution:** Write workflow/journey tests at milestone boundaries that exercise the full pipeline with mocked external deps. Unit tests verify components; workflow tests verify the product. See `docs/testing/strategy.md` for requirements.
+
+---
+
+## Task Decomposition Checklist
+
+> **Use this checklist when decomposing a new release into workplan items.** This applies to every future phase (Glow, Flame, Hearth, etc.). The goal is to prevent gaps that only surface during construction.
+
+When breaking a release into session-sized work items:
+
+- [ ] **Feature items defined** — each feature has clear scope, files, and verify steps
+- [ ] **Workflow test items included** — at each milestone boundary, include a task that writes integration tests exercising the pipeline added by that milestone
+- [ ] **User journey test item at the end** — the final task before release writes automated tests for the release's key user scenarios
+- [ ] **Specs referenced** — each item points to the relevant spec/research docs
+- [ ] **Dependencies ordered** — items that depend on prior work are sequenced correctly
+- [ ] **MVP simplifications noted** — what's deliberately deferred is explicit, so the builder doesn't over-engineer
+
+**The workflow test items are not optional.** They are the gate that prevents "unit tests pass, app is broken" from happening again.
 
 ---
 
