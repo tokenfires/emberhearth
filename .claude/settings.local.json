@@ -26,7 +26,20 @@
       "Bash(test:*)",
       "Bash(ls:*)",
       "WebFetch(domain:docs.openclaw.ai)",
-      "WebFetch(domain:molty.finna.ai)"
+      "WebFetch(domain:molty.finna.ai)",
+      "mcp__youtube__searchVideos",
+      "mcp__mcp-registry__search_mcp_registry",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(uv --version)",
+      "Bash(uvx --version)",
+      "Bash(uvx paper-search-mcp --help)",
+      "Bash(python3 -c \":*)",
+      "mcp__paper-search__search_arxiv",
+      "mcp__paper-search__read_arxiv_paper",
+      "Bash(node --check docs/research/papers/save-papers.mjs)",
+      "Bash(node docs/research/papers/save-papers.mjs)",
+      "mcp__paper-search__download_arxiv"
     ]
   }
 }
