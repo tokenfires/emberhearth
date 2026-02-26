@@ -16,7 +16,9 @@ This guide enables any Claude Code session to search for academic papers relevan
 
 EmberHearth is a secure, accessible, always-on personal AI assistant for macOS. Primary interface is iMessage, using Claude as the LLM provider with local/offline fallback planned.
 
-### High-Priority Research Topics
+> **📋 Check calibrated topics first.** Before using the static tables below, check [`../CALIBRATED-TOPICS.md`](../CALIBRATED-TOPICS.md) for the current calibrated topic list. If calibration has run, that file supersedes these tables — it has phase-aware priorities, updated search terms, and emerging topics derived from the actual project state. The tables below serve as the **baseline seed** for calibration and as a fallback if calibration hasn't run yet.
+
+### High-Priority Research Topics (Baseline)
 
 | Topic | Search Terms | Why It Matters |
 |-------|-------------|----------------|
@@ -31,7 +33,7 @@ EmberHearth is a secure, accessible, always-on personal AI assistant for macOS. 
 | **Few-shot adaptation** | `few-shot learning LLM`, `in-context learning`, `user adaptation` | Learning from user interactions |
 | **Reasoning evaluation** | `LLM reasoning evaluation`, `process reward model`, `chain of thought` | Ralph Loop quality assessment |
 
-### Medium-Priority Topics
+### Medium-Priority Topics (Baseline)
 
 | Topic | Search Terms |
 |-------|-------------|
@@ -277,11 +279,15 @@ Use this prompt to run a paper research sweep in any session:
 
 ```
 Read docs/research/papers/PaperResearchGuide.md and follow its workflow.
-Search arXiv and Semantic Scholar for recent papers (last 3 months)
-matching the high-priority topics in the guide. Skip any papers that
-already have files saved in that directory. For each new relevant paper,
-extract the content and save it using the guide's file format and naming
-convention. Also check recent video transcripts in
+First check docs/research/CALIBRATED-TOPICS.md for the current
+calibrated topic list — if it hasn't been calibrated recently or the
+project state has changed, run a quick calibration (see the assessment
+RUNBOOK Step 0) before searching. Search arXiv and Semantic Scholar for
+recent papers (last 3 months) matching the calibrated high-priority
+topics (or the baseline topics if calibration hasn't run). Skip any
+papers that already have files saved in that directory. For each new
+relevant paper, extract the content and save it using the guide's file
+format and naming convention. Also check recent video transcripts in
 docs/research/youtube/discoverai/ for paper references that haven't
 been captured yet.
 ```

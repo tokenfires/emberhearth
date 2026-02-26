@@ -52,7 +52,32 @@ The first assessment cycle is a bootstrap cycle. Its date range covers "project 
 
 ## Lifecycle Phases
 
-Each assessment cycle moves through seven phases. During manual operation (Claude Code + TK), all phases happen within one or two sessions.
+Each assessment cycle moves through eight phases. During manual operation (Claude Code + TK), all phases happen within one or two sessions.
+
+### Phase 0: Topic Calibration
+
+**Input:** Previous calibration (`docs/research/CALIBRATED-TOPICS.md`), or baseline topic lists from research guides (for the first calibration).
+
+**Purpose:** Ensure the assessment cycle's triage uses a topic list that reflects the project's *current* state — not a static list that may have gone stale as the architecture, phase, or AI landscape evolved.
+
+**Process:**
+1. Scan the repo to build a current-state snapshot:
+   - Active phase (from `CLAUDE.md` → phase doc)
+   - Workplan progress (completed, in-progress, upcoming milestones)
+   - Architecture components (from `docs/architecture-overview.md`)
+   - Specs and ADRs (from `docs/specs/*.md` and `docs/architecture/decisions/*.md`)
+   - Source code modules (from `src/**/*.swift`, if they exist)
+2. Compare against the previous calibration (or the baseline topic lists from the research guides for the first run)
+3. For each topic, determine priority (HIGH / MEDIUM / LOW / DEPRIORITIZED), update search terms, and note the rationale
+4. Identify emerging topics not covered by existing lists (new subsystems, new industry trends)
+5. Identify deprioritized topics (less relevant to the current phase)
+6. Check whether the 9 component dimensions still cover the architecture, or if new dimensions are needed
+7. Present calibration changes to TK for approval
+8. Write approved calibration to `docs/research/CALIBRATED-TOPICS.md`
+
+**Output:** Updated `docs/research/CALIBRATED-TOPICS.md` with current priorities, search terms, dimensions, and project state snapshot. This file is used by Phase 2 (Relevance Triage) for the remainder of the cycle.
+
+**Note:** Calibration can also be run independently of an assessment cycle — for example, before a standalone research sweep. The research guides reference `CALIBRATED-TOPICS.md` as the preferred topic source.
 
 ### Phase 1: Intake Cutoff
 
@@ -70,16 +95,17 @@ Each assessment cycle moves through seven phases. During manual operation (Claud
 
 ### Phase 2: Relevance Triage
 
-**Input:** Intake manifest from Phase 1.
+**Input:** Intake manifest from Phase 1. Calibrated topics and dimensions from Phase 0.
 
 **Process:**
 1. For each research unit (paper, transcript, or paper-transcript pair):
    - Read the metadata, "Why This Matters for EmberHearth" section, and key findings
    - Rate relevance to each EmberHearth component dimension on a HIGH/MEDIUM/LOW/NONE scale
+   - Use the calibrated topic priorities from `docs/research/CALIBRATED-TOPICS.md` to inform ratings — research that aligns with HIGH-priority calibrated topics should be weighted accordingly
 2. Record ratings in the triage table
 3. Items rated NONE across all dimensions are noted and skipped from further analysis
 
-**Component Dimensions** (aligned with EmberHearth's architecture):
+**Component Dimensions** (aligned with EmberHearth's architecture — may be updated during Phase 0 calibration):
 
 | Dimension | What's Evaluated |
 |-----------|-----------------|
@@ -209,6 +235,9 @@ Each decision records the reasoning for future reference:
 ## Approval Flow
 
 ```
+Topic calibration (Phase 0) → TK approves topics
+        |
+        v
 Assessment cycle completes (Phases 1-4)
         |
         v
@@ -240,13 +269,15 @@ Accepted proposals become work in the appropriate context:
 
 ```
 docs/research/
+  CALIBRATED-TOPICS.md                 # Live calibrated topic list (updated each cycle)
+
   papers/                              # Permanent reference library (papers)
-    PaperResearchGuide.md              # Runbook for finding papers
+    PaperResearchGuide.md              # Runbook for finding papers (baseline topics)
     2026-MM-DD-paper-title.md          # Individual papers
     downloads/                         # PDF downloads
 
   youtube/discoverai/                  # Permanent reference library (transcripts)
-    YouTubeResearchGuide.md            # Runbook for capturing transcripts
+    YouTubeResearchGuide.md            # Runbook for capturing transcripts (baseline topics)
     2026-MM-DD-video-title.md          # Individual transcripts
 
   assessments/                         # Assessment cycle infrastructure
@@ -277,6 +308,7 @@ When proposals from an assessment cycle are accepted and implemented:
 | `docs/NEXT-STEPS.md` | Phase adjustments based on new capabilities or priorities |
 | `docs/VISION.md` | Vision refinements (rare — only for fundamental shifts) |
 | `docs/research/*.md` | New failure modes, patterns, or findings appended to research docs |
+| `docs/research/CALIBRATED-TOPICS.md` | Updated topic priorities, search terms, dimensions, and project state snapshot |
 | `src/**/*.swift` | Code changes (filed as workplan tasks, not executed during assessment) |
 
 Every assessment cycle also records what was reviewed and decided in `ASSESSMENT-LOG.md`, building institutional memory about how and why EmberHearth evolves.

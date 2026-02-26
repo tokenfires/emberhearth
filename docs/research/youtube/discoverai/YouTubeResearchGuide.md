@@ -17,7 +17,9 @@ This guide enables any Claude Code session to search the **Discover AI** YouTube
 
 EmberHearth is a secure, accessible, always-on personal AI assistant for macOS. Primary interface is iMessage. It uses Claude as its LLM provider with local/offline fallback planned.
 
-### High-Priority Research Topics
+> **📋 Check calibrated topics first.** Before using the static tables below, check [`../../CALIBRATED-TOPICS.md`](../../CALIBRATED-TOPICS.md) for the current calibrated topic list. If calibration has run, that file supersedes these tables — it has phase-aware priorities, updated search terms, and emerging topics derived from the actual project state. The tables below serve as the **baseline seed** for calibration and as a fallback if calibration hasn't run yet.
+
+### High-Priority Research Topics (Baseline)
 
 These topics directly impact EmberHearth's architecture and development decisions:
 
@@ -34,7 +36,7 @@ These topics directly impact EmberHearth's architecture and development decision
 | **Few-shot learning & adaptation** | Learning from user interactions without retraining |
 | **Reasoning quality & evaluation** | Ralph Loop for continuous prompt refinement and quality assessment |
 
-### Medium-Priority Topics
+### Medium-Priority Topics (Baseline)
 
 | Topic | Why It Matters |
 |-------|---------------|
@@ -53,7 +55,9 @@ These topics directly impact EmberHearth's architecture and development decision
 
 ## Search Keywords
 
-When searching the Discover AI channel, use these terms (combine as needed):
+> If `CALIBRATED-TOPICS.md` has been populated, use the search terms from there instead of this baseline list.
+
+When searching the Discover AI channel, use these baseline terms (combine as needed):
 
 ```
 prompt injection, safety, security, alignment

@@ -29,12 +29,90 @@ Before starting, read or confirm familiarity with:
 | V1 workplan | `docs/v1-workplan.md` |
 | Vision & philosophy | `docs/VISION.md` |
 | ADRs | `docs/architecture/decisions/` |
+| Calibrated topics | `docs/research/CALIBRATED-TOPICS.md` |
 | Core research docs | `docs/research/*.md` |
 | Integration research | `docs/research/integrations/*.md` |
 
 ---
 
 ## Step-by-Step Process
+
+### Step 0: Topic Calibration
+
+Before analyzing research, calibrate the topic list against the current state of the project. This ensures the assessment cycle looks for what actually matters *right now* — not what mattered when the baseline topics were first written.
+
+**Why this step exists:** EmberHearth's architecture, priorities, and complexity evolve across phases. The AI landscape shifts even faster. Static topic lists go stale. This step dynamically derives what to look for from the project's actual state.
+
+#### 0a. Scan the Project State
+
+Read the following to build a current-state snapshot:
+
+| What to Scan | Where | What to Extract |
+|---|---|---|
+| Active phase | `CLAUDE.md` → linked phase doc | Phase name, current priorities, what's in scope |
+| Workplan progress | `docs/v1-workplan.md` | Completed items (checked), in-progress items, upcoming milestones |
+| Architecture | `docs/architecture-overview.md` | Named components, subsystems, MVP vs future scope |
+| Specs | `docs/specs/*.md` | Component names, technologies, design patterns, security models |
+| ADRs | `docs/architecture/decisions/*.md` | Decisions made, technologies committed to |
+| Source code | `src/**/*.swift` (if exists) | Implemented modules, frameworks in use |
+| Previous calibration | `docs/research/CALIBRATED-TOPICS.md` | Last calibrated topics, changelog |
+
+**Tool calls:**
+```
+Read: CLAUDE.md  (get phase pointer)
+Read: <active phase doc>
+Read: docs/v1-workplan.md
+Read: docs/architecture-overview.md  (first ~100 lines for component list)
+Glob: docs/specs/*.md
+Glob: docs/architecture/decisions/*.md
+Glob: src/**/*.swift
+Read: docs/research/CALIBRATED-TOPICS.md
+```
+
+Skim each spec and ADR's title and purpose — you don't need to deep-read them, just identify what components and technologies they cover.
+
+#### 0b. Derive the Calibrated Topic List
+
+Using the project state snapshot, evaluate each topic from the baseline lists (in the research guides) and the previous calibration:
+
+For **each topic**, determine:
+
+1. **Priority** (HIGH / MEDIUM / LOW / DEPRIORITIZED) — based on relevance to the current phase and in-flight work
+2. **Search terms** — updated for current terminology, specific technologies, or new subtopics from specs/ADRs
+3. **Rationale** — brief note tying the priority to a specific component, milestone, or concern
+
+Also look for:
+
+- **Emerging topics** — things in the specs, ADRs, or architecture that aren't covered by any existing topic (e.g., a new subsystem was spec'd since last calibration, or a new area of the AI landscape is relevant)
+- **Deprioritized topics** — topics less relevant to the current phase (e.g., "on-device LLMs" is LOW during MVP since offline fallback isn't in scope yet)
+- **Dimension updates** — if the architecture has new components that don't map cleanly to the existing 9 dimensions, propose adding or refining dimensions
+
+#### 0c. Present Calibration Changes
+
+Summarize what changed since the last calibration (or since the baseline, for the first run):
+
+- Topics added
+- Topics removed or deprioritized
+- Priority shifts (with rationale)
+- Search term updates
+- Dimension changes
+
+**Present the calibrated topic list to TK for approval.** Don't proceed to Step 1 until topics are confirmed.
+
+#### 0d. Save Approved Calibration
+
+Write the approved topics to `docs/research/CALIBRATED-TOPICS.md`:
+- Update the metadata (date, phase, trigger)
+- Populate the project state snapshot
+- Fill in all topic tables (high, medium, emerging, deprioritized)
+- Add a row to the calibration changelog
+
+This file becomes the active topic list for:
+- This cycle's triage (Step 3 uses the calibrated dimensions and priorities)
+- Any standalone research sweeps between cycles
+- The next cycle's calibration starting point
+
+---
 
 ### Step 1: Determine Cycle Window
 
@@ -90,6 +168,8 @@ For each research unit in the manifest:
 Rate each dimension: HIGH (H), MEDIUM (M), LOW (L), or NONE (-).
 
 **Speed tip:** The existing `Relevance:` metadata on each file gives you a head start. Many items already have topic tags that map to dimensions (e.g., "Prompt injection defense" maps to security, "Context window management" maps to LLM integration + memory).
+
+**Use the calibrated topics:** Reference `docs/research/CALIBRATED-TOPICS.md` for the current topic priorities and dimensions. The calibration from Step 0 may have added new dimensions, shifted priorities, or introduced emerging topics that affect how you rate relevance.
 
 Items rated NONE across ALL dimensions are noted and skipped. Don't spend analysis time on them.
 
@@ -243,8 +323,11 @@ Use this prompt to run a research assessment cycle in any Claude Code session:
 
 ```
 Read docs/research/assessments/RUNBOOK.md and follow its workflow to
-execute a research assessment cycle. Check ASSESSMENT-LOG.md for the
-last cycle date, then triage all new research since that date. Produce
-a cycle report with relevance triage, gap analysis, and proposals.
-Present the proposals for my review and decision.
+execute a research assessment cycle. Start with Step 0 (Topic
+Calibration) — scan the repo to calibrate the research topic list
+against the current project state. Present the calibrated topics for
+my approval, then check ASSESSMENT-LOG.md for the last cycle date and
+triage all new research since that date. Produce a cycle report with
+relevance triage, gap analysis, and proposals. Present the proposals
+for my review and decision.
 ```
