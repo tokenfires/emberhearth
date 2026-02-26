@@ -276,6 +276,27 @@ I'll let you know when things are back to normal!
 
 ---
 
+### 1.7 Decision Under Uncertainty (from research assessment 2026-02-26)
+
+*See [AI Belief Functions: Deciding Under Absolute Uncertainty](../research/youtube/discoverai/2026-02-14-ai-belief-functions-deciding-under-absolute-uncertainty.md).*
+
+The POMDP (Partially Observable Markov Decision Process) framework provides a mathematical basis for one of EmberHearth's core design questions: **when should Ember act autonomously vs. ask the user for confirmation?**
+
+**Key insight:** An AI agent must maintain belief states — probability distributions over possible states — because sensors are noisy, information is incomplete, and user intent has hidden dimensions. Ember should apply this principle to all autonomous actions:
+
+1. **Confidence estimation.** For each proposed action, Ember should maintain an implicit confidence estimate based on: clarity of the user's request, number of valid interpretations, stakes/reversibility of the action, and historical success rate for similar actions.
+
+2. **Adaptive threshold.** Actions below a confidence threshold should prompt user confirmation. The threshold should be adaptive:
+   - Higher threshold for irreversible actions (sending messages, deleting data)
+   - Lower threshold for reversible actions (setting reminders, looking up information)
+   - Adjusted per-user based on their expressed preference for autonomy vs. confirmation
+
+3. **Belief update.** Each user confirmation or correction updates Ember's model of user preferences, narrowing the uncertainty for similar future actions.
+
+This framework grounds the existing "when to ask vs. when to infer" patterns from the conversation design research in a formal decision-theoretic foundation. The Anticipation Engine (Phase 1.2+) and its Intrusion Gate should use confidence estimation rather than fixed rules to decide whether proactive actions are appropriate.
+
+---
+
 ## Part 2: Seamless Upgrades
 
 ### 2.1 Philosophy

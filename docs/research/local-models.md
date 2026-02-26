@@ -1035,6 +1035,30 @@ This aligns well with EmberHearth's security-first philosophy.
 
 ---
 
+## Quantization Constraints (from research assessment 2026-02-26)
+
+*See [The Quantization Trap](papers/2026-02-14-quantization-trap-multi-hop-reasoning.md), [Quantization Breaks 4-bit AI Models](youtube/discoverai/2026-02-18-quantization-breaks-4bit-ai-models.md).*
+
+Research reveals a "quantization trap" that challenges the "smaller-is-better" heuristic for local models:
+
+1. **Multi-hop reasoning degrades non-linearly with quantization.** Reducing from 16-bit to 4-bit doesn't just lose proportional quality — sequential reasoning chains are especially vulnerable, with accuracy dropping sharply at lower precision.
+
+2. **Lower precision paradoxically increases energy consumption.** Hardware casting overhead and dequantization kernel latency become dominant bottlenecks, negating the expected energy savings from smaller model footprints.
+
+3. **The effect is worst for the tasks EmberHearth cares about.** Simple classification or extraction tasks tolerate quantization well, but the multi-step reasoning Ember needs (planning, analysis, complex queries) is exactly where quantization hurts most.
+
+**Design rules for Phase 2.0 MLX implementation:**
+
+| Task Type | Minimum Precision | Rationale |
+|-----------|-------------------|-----------|
+| Multi-hop reasoning, planning, analysis | 8-bit (Q8) or higher | Non-linear degradation at lower precision |
+| Simple extraction, classification | 4-bit (Q4) acceptable | Single-step tasks tolerate quantization |
+| Cognitive background agents | 8-bit (Q8) recommended | Continuous operation means energy matters |
+
+**Implication for hardware tiers:** The "8GB Mac" entry in the feasibility table above may be even more limited than estimated, since 4-bit models lose disproportionate reasoning quality. The 16GB tier should use Q8 quantization for assistant tasks, not Q4.
+
+---
+
 ## Conclusion
 
 **Local models are feasible for EmberHearth, with caveats:**

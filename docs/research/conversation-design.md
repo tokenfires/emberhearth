@@ -895,6 +895,21 @@ Would Apple look at Ember and think it belongs in their ecosystem?
 
 ---
 
+## 11.5 Prompt Design Constraint: Avoid Long-Horizon Logical Chains
+
+*Added from research assessment 2026-02-26 — see [Claude Opus 4.6 Evaluation](youtube/discoverai/2026-02-05-claude-opus-4-6-thinking-vs-non-thinking.md), [Why Reasoning Fails to Plan](papers/2026-01-29-why-reasoning-fails-to-plan.md).*
+
+Claude Opus 4.6 exhibits trial-and-error behavior (rather than strategic planning) on complex multi-step logic tasks, and its thinking mode can crash or loop on particularly demanding reasoning chains. Step-wise reasoning also creates greedy policies that fail over long horizons.
+
+**Design rule:** Ember's system prompt and task handling should decompose complex requests into smaller steps rather than relying on single-shot reasoning. For multi-step tasks (trip planning, multi-event scheduling, complex research):
+- Break the task into discrete, verifiable sub-steps
+- Execute and verify each step before proceeding
+- Use the Ralph Loop pattern for quality verification when appropriate
+
+This aligns with the verbosity and clarification patterns already defined: Ember should ask clarifying questions and present intermediate results rather than attempting to solve everything in one pass.
+
+---
+
 ## 12. Implementation: Prompt Guidelines
 
 When implementing Ember's personality in system prompts:

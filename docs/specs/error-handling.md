@@ -84,6 +84,26 @@ Attempt 4: 8 seconds delay
 - Maximum queue size: 100 messages
 - Queue age limit: 24 hours (older messages get "sorry for the delay" prefix)
 
+#### Claude-Specific Failure Modes (from research assessment 2026-02-26)
+
+Independent evaluation of Claude Opus 4.6 ([Claude Opus 4.6 Thinking vs Non-Thinking](../../research/youtube/discoverai/2026-02-05-claude-opus-4-6-thinking-vs-non-thinking.md)) identified failure modes specific to EmberHearth's primary LLM provider:
+
+| Failure Mode | Detection | Response | User Communication |
+|--------------|-----------|----------|-------------------|
+| **Thinking mode crash/loop** | Empty response or "something went wrong" | Retry without thinking mode, then fall back to simplified prompt | None if recovery succeeds |
+| **Complex logic degradation** | Response quality indicators (self-check fails on multi-step reasoning) | Decompose request into smaller steps, re-prompt per step | None (internal quality loop) |
+| **Trial-and-error without strategy** | Self-check detects circular reasoning or restarts | Switch to explicit step-by-step decomposition prompt | None (internal quality loop) |
+
+**Thinking Mode Retry Policy:**
+```
+Attempt 1: With thinking mode (if enabled)
+Attempt 2: Without thinking mode (standard prompt)
+Attempt 3: Simplified prompt (decompose complex request)
+(If all fail, treat as standard API error)
+```
+
+**Design implication:** Prompt design should avoid requiring long-horizon logical chains from a single Claude call. Complex multi-step tasks should be decomposed into smaller, verifiable steps. See `research/conversation-design.md` for prompt guidelines.
+
 ### 2. iMessage Integration
 
 | Failure Mode | Detection | Response | User Communication |

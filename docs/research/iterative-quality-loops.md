@@ -706,6 +706,30 @@ func executeToolCall(_ toolCall: ToolCall) async -> ToolResult {
 
 ---
 
+## 8.5 Self-Evolving Rubrics as Evaluation Mechanism (from research assessment 2026-02-26)
+
+*See [Reinforcing Chain-of-Thought with Self-Evolving Rubrics](papers/2026-02-11-reinforcing-chain-of-thought-self-evolving-rubrics.md), [AI Self-Corrects Its Reasoning Complexity](youtube/discoverai/2026-02-16-ai-self-corrects-its-reasoning-complexity.md).*
+
+RLCER (Reinforcement Learning with CoT Supervision via Self-Evolving Rubrics) provides a concrete evaluation mechanism for the Ralph Loop's review step. Key insights:
+
+1. **Self-generated rubrics** provide reliable chain-of-thought supervision without requiring human labeling or outcome rewards. The model generates its own quality criteria, then evaluates against them.
+
+2. **Rubrics as in-prompt hints** further improve performance during inference. This means quality criteria generated during the review phase could be injected into future prompts to improve first-pass quality.
+
+3. **Self-evolving rubrics address distribution shift.** As the model's reasoning patterns change across iterations, fixed evaluation criteria become stale. Self-evolving rubrics adapt to the current distribution.
+
+**Application to EmberHearth's Ralph Loop:**
+
+| Ralph Loop Phase | RLCER Contribution |
+|------------------|-------------------|
+| **Spec (Plan)** | Rubrics could auto-generate success criteria from task descriptions |
+| **Review (Verify)** | Self-generated rubrics replace or augment the structured self-check prompts in Section 5.3 |
+| **Learn (Refine)** | Rubrics from failed iterations inform next iteration's prompts |
+
+**MVP relevance:** Even before the full Ralph Loop (Phase 2.0), the rubric-as-hint pattern could improve current prompt design. Including quality criteria ("A good response to this scheduling request should: 1. Confirm the time, 2. Check for conflicts, 3. Suggest alternatives if conflicted") in Ember's system prompt may improve first-pass response quality.
+
+---
+
 ## 9. References
 
 ### 9.1 Primary Sources

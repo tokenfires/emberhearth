@@ -1511,6 +1511,35 @@ User Experience:
 
 ---
 
+## 12.5 Known Risks (from research assessment 2026-02-26)
+
+Research identifies two significant risks for EmberHearth's multi-agent design:
+
+### Risk 1: Team Consensus Degrades Expert Performance
+
+*See [Multi-Agent Teams Hold Experts Back](papers/2026-02-01-multi-agent-teams-hold-experts-back.md), [Stanford AI Agents Destroy Their Own Intelligence](youtube/discoverai/2026-02-09-stanford-ai-agents-destroy-their-own-intelligence.md).*
+
+LLM teams consistently fail to leverage their best member's expertise, with performance losses up to **37.6%**. The failure stems from integrative compromise — teams default to consensus-averaging rather than weighting expertise. The problem is not identifying experts but *leveraging* them effectively.
+
+**Design implication:** EmberHearth's multi-agent architecture must avoid naive team consensus. When implementing Task Agents and Cognitive Agents:
+- Use **explicit role specification** — each agent must have a clearly defined domain of authority
+- Use **workflow design** — define which agent's output takes precedence for which decisions
+- Avoid "debate" patterns where agents negotiate — prefer hierarchical orchestration where Ember (the central intelligence) makes final decisions informed by specialist agents
+- The trade-off: consensus behavior *does* improve robustness against adversarial agents, so there may be security benefits to consensus in some contexts
+
+### Risk 2: Distillation May Eliminate Need for Some Agent Roles
+
+*See [AgentArk: Distilling Multi-Agent Intelligence](papers/2026-02-03-agentark-distilling-multi-agent-intelligence.md), [Distill 5 AI Agents Into One](youtube/discoverai/2026-02-07-distill-5-ai-agents-into-one.md).*
+
+Multi-agent reasoning can potentially be distilled into a single model through hierarchical distillation strategies. Distilled models exhibit strong reasoning and self-correction comparable to full multi-agent systems, while shifting computational burden from inference to training.
+
+**Design implication:** Before committing to full multi-agent deployment in Phase 2.0, evaluate whether distillation provides a lighter alternative for some use cases. Specifically:
+- Some planned **Cognitive Agents** (Memory Agent, Context Agent) might be achievable through enhanced prompting of a single model rather than dedicated agents
+- **Task Agents** for simple, well-defined operations may not need multi-agent orchestration at all
+- Full multi-agent may only be justified for the most complex tasks where the quality improvement outweighs the infrastructure cost
+
+---
+
 ## 13. References
 
 ### 13.1 Gastown & Multi-Agent Frameworks

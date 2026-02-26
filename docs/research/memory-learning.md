@@ -2066,6 +2066,25 @@ This framework is theory-driven. Validation requires:
 
 ---
 
+## 9.5 ICL Limitations: Why Memory Framing Matters
+
+*Added from research assessment 2026-02-26 — see [Language Models Struggle to Use Representations Learned In-Context](papers/2026-02-04-language-models-struggle-representations-in-context.md), [Google's Warning: ICL Context is Inert](youtube/discoverai/2026-02-06-googles-warning-icl-context-is-inert.md).*
+
+Research demonstrates a fundamental limitation of in-context learning: LLMs encode novel semantics from context in their latent representations, but **fail to deploy them for next-token prediction**. This means context alone cannot reliably teach the model new patterns about the user.
+
+**Implication for EmberHearth's memory system:** How memories are framed in the context window matters more than whether they are present. The FactRetriever should output memories as **imperative instructions** rather than informational statements:
+
+| Framing | Example | Model Behavior |
+|---------|---------|----------------|
+| **Informational** (weaker) | "The user has mentioned they prefer morning meetings." | Model may encode but not act on this |
+| **Instructional** (stronger) | "Always remember: the user prefers morning meetings. Schedule suggestions should default to morning times." | Model treats as directive and acts accordingly |
+
+This validates EmberHearth's design of explicit memory injection (structured facts injected into context) over relying on the model to "learn" patterns from conversation history. The model cannot infer preferences from examples alone — it needs explicit instructions built from those examples.
+
+**Design rule:** FactRetriever output should always use imperative framing. When building context, memories should read as instructions to the model about how to behave, not as background information the model might or might not use.
+
+---
+
 ## 10. Open Research Questions
 
 ### Answered in this document:

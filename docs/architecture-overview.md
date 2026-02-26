@@ -302,6 +302,24 @@ See `research/iterative-quality-loops.md` for full specification.
 └─────────────────────────────────────┘
 ```
 
+**Context Assembly Guidance (from research assessment 2026-02-26):**
+
+Research on in-context learning limitations and representational geometry ([ICL Representations](research/papers/2026-02-04-language-models-struggle-representations-in-context.md), [Context Structure](research/papers/2026-01-29-context-structure-reshapes-representational-geometry.md)) establishes three principles for ContextBuilder:
+
+1. **Ordering matters.** Context structure actively reshapes model behavior. Assemble in this order: system prompt → memories (as instructions) → conversation summary → recent messages → task state. This ordering provides the model with identity and knowledge before conversational context.
+
+2. **Frame memories as instructions, not information.** LLMs encode novel semantics from context but fail to deploy them for prediction. FactRetriever output should use imperative framing ("Always remember: the user prefers morning meetings") rather than informational ("The user has mentioned they prefer morning meetings"). Explicit instructions are acted on; informational context may be ignored.
+
+3. **Decompose complex requests.** Step-wise reasoning creates greedy policies that fail over long horizons ([Why Reasoning Fails to Plan](research/papers/2026-01-29-why-reasoning-fails-to-plan.md)). For multi-step tasks, Ember should decompose into smaller steps rather than relying on single-shot reasoning.
+
+**Model Selection Safety Criteria (from research assessment 2026-02-26):**
+
+Research on alignment collapse ([Geometry of Alignment Collapse](research/papers/2026-02-17-geometry-of-alignment-collapse.md)) shows that fine-tuning degrades safety with quartic (t^4) scaling due to geometric properties of safety subspaces. This confirms ADR-0008's choice of base Claude API models:
+
+- Base API models (not fine-tuned) avoid alignment collapse risk
+- If future phases evaluate fine-tuned or third-party models, alignment stability must be a selection criterion
+- Even benign fine-tuning can unpredictably degrade safety guardrails
+
 ---
 
 ### 5. Tron (Security Layer) 🔵🟠
