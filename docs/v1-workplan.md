@@ -65,6 +65,7 @@
   Assemble the LLM prompt from components using the token budget from architecture docs (10% system, 25% recent, 10% summary, 15% memories, 5% tasks, 35% response). Build system prompt, inject recent messages, placeholder slots for memory/summary (wired later).
   - Files: ContextBuilder.swift, ContextBudget.swift, SystemPrompt.swift
   - Verify: Assembled prompt respects token budget; system prompt includes Ember's core identity
+  - ⚠️ **Before starting:** Review DT-001 (two-tier tool loading question) in Deep Thinking Queue
 
 - [ ] **M3.3 — End-to-end message flow**
   Wire iMessage pipeline (M2) → context builder (M3.2) → Claude API (M3.1) → send response (M2.3). This is the first "it works" moment. No memory yet — just receive, think, respond.
@@ -252,6 +253,18 @@
 - [ ] **H1.8 — Rich messages (images, links)**
 - [ ] **H1.9 — Ralph Loop quality cycles for local models**
 - [ ] **H1.10 — Multi-agent orchestration foundation**
+
+---
+
+## Deep Thinking Queue
+
+*Items requiring dedicated reflection time. Not code tasks — architectural and strategic decisions that benefit from unhurried thought. Review this section when you have a block of focused time for EmberHearth.*
+
+- [ ] **DT-001 — Agent framework patterns: implications for EmberHearth architecture**
+  Review the Claude Code vs OpenClaw analysis and decide what patterns to adopt. Key decisions: two-tier tool loading in Context Builder (M3.2), per-tool security hooks in Tron (M6.2), transparent multi-agent orchestration design (H1.10), personality prompt token efficiency. The analysis identifies 6 architectural themes worth deep consideration.
+  - Reference: `docs/research/assessments/tweet-analysis-claude-code-vs-openclaw.md`
+  - Touches: M3.2, M6.2, H1.10, ADR-0011
+  - Priority: Before starting M3.2 (Context Builder), at minimum review the two-tier tool loading question
 
 ---
 
