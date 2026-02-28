@@ -9,7 +9,7 @@ final class MessageSenderTests: XCTestCase {
         XCTAssertTrue(MessageSender.isValidE164PhoneNumber("+15551234567"))
         XCTAssertTrue(MessageSender.isValidE164PhoneNumber("+442071234567"))   // UK
         XCTAssertTrue(MessageSender.isValidE164PhoneNumber("+81312345678"))    // Japan
-        XCTAssertTrue(MessageSender.isValidE164PhoneNumber("+1"))              // Minimum: + and 1 digit
+        XCTAssertTrue(MessageSender.isValidE164PhoneNumber("+12"))              // Minimum: + and 2 digits
         XCTAssertTrue(MessageSender.isValidE164PhoneNumber("+123456789012345")) // 15 digits (max)
     }
 
@@ -17,6 +17,7 @@ final class MessageSenderTests: XCTestCase {
         XCTAssertFalse(MessageSender.isValidE164PhoneNumber("5551234567"))     // Missing +
         XCTAssertFalse(MessageSender.isValidE164PhoneNumber("+0551234567"))    // Leading 0 after +
         XCTAssertFalse(MessageSender.isValidE164PhoneNumber("+"))              // Just +
+        XCTAssertFalse(MessageSender.isValidE164PhoneNumber("+1"))             // Only 1 digit — not a real number
         XCTAssertFalse(MessageSender.isValidE164PhoneNumber(""))               // Empty
         XCTAssertFalse(MessageSender.isValidE164PhoneNumber("+1234567890123456")) // 16 digits (too long)
         XCTAssertFalse(MessageSender.isValidE164PhoneNumber("+1-555-123-4567"))   // Dashes

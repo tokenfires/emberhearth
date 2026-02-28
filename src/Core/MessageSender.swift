@@ -95,13 +95,13 @@ final class MessageSender: @unchecked Sendable {
 
     /// Validates that a phone number is in E.164 format.
     ///
-    /// E.164 format: + followed by 1-15 digits (e.g., +15551234567).
-    /// This is the format used by iMessage for buddy lookup.
+    /// E.164 format: `+` followed by 2–15 digits where the first digit is 1–9.
+    /// Example: `+15551234567`. This is the format used by iMessage for buddy lookup.
     ///
     /// - Parameter number: The phone number to validate.
     /// - Returns: True if the number is valid E.164 format.
     static func isValidE164PhoneNumber(_ number: String) -> Bool {
-        let pattern = #"^\+[1-9]\d{0,14}$"#
+        let pattern = #"^\+[1-9]\d{1,14}$"#
         return number.range(of: pattern, options: .regularExpression) != nil
     }
 
