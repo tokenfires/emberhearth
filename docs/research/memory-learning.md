@@ -2104,6 +2104,131 @@ This validates EmberHearth's design of explicit memory injection (structured fac
 
 - [ ] **Consolidation Performance:** How long does nightly consolidation take with 10K+ facts? Acceptable on older Macs?
 
+- [ ] **Hierarchical Memory Abstraction:** Can the consolidation cycle produce progressively higher-order memories — not just patterns from raw facts, but principles from patterns, heuristics from principles, and abstract wisdom from heuristics? See Section 4.5 below.
+
+---
+
+## 4.5 Hierarchical Memory Abstraction (Future Research)
+
+**Added:** 2026-02-28
+**Origin:** Architecture session between TK and Claude (Opus 4.6) during Ember Corp Founder Dashboard design. The concept emerged from discussing how agent memory systems could approach biological memory consolidation — specifically the hippocampal-neocortical loop that extracts general knowledge from specific episodes during sleep.
+**Cross-reference:** This concept applies to both EmberHearth (Ember's personal memory) and Ember Corp (organizational memory). See Ember Corp `docs/ROADMAP.md` Phase 3 for the organizational application.
+
+### The Concept
+
+The current consolidation cycle (Section 4) operates on a flat memory model: raw facts are validated, deduplicated, pruned, and pattern-detected — but all memories exist at the same level of abstraction. A memory about "User checks email at 9 AM" and a memory about "User is a morning person" have the same structural weight, even though the second is a generalization of multiple observations.
+
+**Hierarchical memory abstraction** extends consolidation to produce memories at progressively higher levels:
+
+| Level | Type | Example | Source |
+|-------|------|---------|--------|
+| L0 | Raw fact | "User said they check email first thing every morning" | Direct extraction from conversation |
+| L1 | Pattern | "User follows a consistent morning routine: email → coffee → news" | Synthesized from multiple L0 facts over 30+ days |
+| L2 | Principle | "User values structure and predictability in daily routine" | Synthesized from multiple L1 patterns |
+| L3 | Heuristic | "Suggestions that align with existing routines are better received than those requiring new habits" | Synthesized from L2 principles + outcome data |
+| L4+ | Abstract understanding | "This user's relationship with technology is habitual — they integrate tools into rituals, not tasks" | Synthesized from L3 heuristics over months |
+
+Each level up is a **genuine inference step**, not just compression. The principle at L2 is new knowledge that didn't exist in any individual L0 fact. The heuristic at L3 enables Ember to make predictions about entirely new situations by transferring learned wisdom.
+
+### Why This Matters for Ember
+
+With flat memory, Ember can recall that the user checks email at 9 AM. With hierarchical memory, Ember *understands* that the user values routine — and can apply that understanding to entirely new contexts (suggesting a consistent time for a new habit, framing a schedule change in terms of its impact on existing rituals, recognizing when the user is stressed because their routine is disrupted).
+
+This is the structural difference between an assistant that *remembers* and an assistant that *knows you*.
+
+### Biological Analog: Hippocampal-Neocortical Consolidation
+
+The concept mirrors how biological memory consolidation works during sleep:
+
+1. The **hippocampus** stores specific episodic memories (L0 — "I checked email at 9 AM on Tuesday")
+2. During sleep, the hippocampus **replays** these memories to the neocortex
+3. The **neocortex** gradually extracts statistical regularities across many replayed episodes
+4. Over time, the neocortex builds **schemas** — general knowledge structures that the hippocampus didn't store explicitly
+5. The original episodic memories may fade, but the extracted knowledge persists as semantic memory
+
+EmberHearth's consolidation cycle already runs "during quiet hours" (our analog of sleep). Extending it with hierarchical abstraction adds the neocortical extraction step — synthesizing general knowledge from specific episodes.
+
+### Recursive Generalization
+
+If the abstraction process can recurse — L1 patterns feed L2 principles, L2 principles feed L3 heuristics, L3 heuristics feed L4 understanding — then Ember develops something approaching genuine judgment that transfers across entirely novel situations. An L4 understanding like "this user integrates tools into rituals" can inform Ember's approach to introducing any new capability, even ones that didn't exist when the understanding was formed.
+
+This recursive property means the system has no theoretical ceiling on abstraction depth. In practice, useful abstraction likely plateaus at L3-L4 for personal assistant use cases, but the architecture should not impose an artificial limit.
+
+### Assessment: Real Intelligence Bump, Not Hand-Wavy
+
+This concept was evaluated during the architecture session for whether it produces a genuine intelligence improvement or is merely a more complex memory structure. The assessment:
+
+**Why it's real:**
+1. **Compression enables generalization.** Collapsing 50 specific failure memories into a pattern creates predictive power for failures never seen before. This is how human expertise develops.
+2. **Abstraction enables transfer.** L2+ principles apply across domains. "User values routine" transfers to health, work, social, and every other context.
+3. **This is different from RAG.** RAG retrieves specific memories. Hierarchical consolidation *creates new knowledge* that didn't exist in any individual memory. The synthesized pattern is a genuine inference.
+4. **It mirrors biological intelligence scaling.** The hippocampus-neocortex loop is how mammals develop semantic knowledge from episodic experience. This is a computational analog of a proven biological mechanism.
+
+**Why "infinite generalization" specifically matters:**
+If the recursion is unbounded (infinite in operation, not in practice), you get a system that doesn't just learn *from* experience but learns *about learning from experience*. An agent with L4 abstractions approaches genuinely novel problems with transferable meta-heuristics. That's the structural difference between "agent with good memory" and "agent with developing judgment."
+
+### Caveats and Guardrails
+
+1. **Minimum evidence threshold.** Never synthesize a higher-level memory from fewer than N supporting lower-level memories (suggested: N=5 for L1, N=3 for L2+). Premature abstraction from small samples creates false generalizations.
+
+2. **Bidirectional provenance links.** Every abstracted memory must link back to the memories that generated it. This provides explainability ("I believe X because of patterns Y and Z"), auditability (user can inspect reasoning), and falsifiability (corrections propagate upward).
+
+3. **Abstraction quality control.** The consolidation process should evaluate whether a candidate abstraction is valid (not coincidental), useful (would it help Ember serve the user better?), and non-obvious (genuine insight, not restating the known).
+
+4. **No orphaned abstractions.** A higher-level memory whose provenance chain is entirely pruned (all supporting memories deleted or contradicted) is indistinguishable from a hallucination. Such memories must be flagged for re-evaluation.
+
+5. **User correction cascades.** When a user corrects a fact ("Actually, I'm not a morning person — I just have early meetings"), the correction must propagate upward through the abstraction hierarchy, re-evaluating any L1+ memories that depended on the corrected L0 fact.
+
+### Integration with Existing Consolidation Cycle
+
+This extends Section 4's consolidation cycle, adding steps after the existing six:
+
+```
+Existing cycle (Section 4):
+  1. STAGING → VALIDATED (L0 facts)
+  2. PATTERN DETECTION (identifies candidates for L1)
+  3. EMOTIONAL ENCODING
+  4. EMBEDDING UPDATE
+  5. DECAY AND PRUNING
+  6. ANTICIPATION TRIGGERS
+
+Extended cycle (new steps):
+  7. L1 SYNTHESIS — generate pattern memories from clustered L0 facts
+  8. L2+ EVALUATION — check existing L1 patterns for promotion to higher levels
+  9. PROVENANCE VALIDATION — verify all abstracted memories still have supporting evidence
+ 10. HIERARCHY PRUNING — archive orphaned abstractions
+ 11. CORRECTION CASCADE — propagate any user corrections upward through the hierarchy
+```
+
+### Schema Preparation
+
+Even before hierarchical generation is implemented, the memory schema (v2) should include fields that accommodate it:
+
+```sql
+ALTER TABLE facts ADD COLUMN abstraction_level INTEGER DEFAULT 0;
+ALTER TABLE facts ADD COLUMN parent_fact_ids TEXT;  -- JSON array of fact IDs this was synthesized from
+ALTER TABLE facts ADD COLUMN child_fact_ids TEXT;   -- JSON array of fact IDs synthesized from this
+ALTER TABLE facts ADD COLUMN synthesis_date TEXT;    -- When this abstraction was generated
+ALTER TABLE facts ADD COLUMN evidence_count INTEGER DEFAULT 1; -- Number of supporting memories
+```
+
+### Implementation Priority
+
+This is a **v3+ feature** for EmberHearth. Prerequisites:
+1. Basic consolidation cycle working (v2)
+2. Pattern detection algorithms identified and implemented (v3)
+3. Sufficient accumulated L0 memories to synthesize meaningful patterns (requires weeks/months of real usage)
+
+### Open Research Questions
+
+- **Optimal evidence thresholds:** How many L0 facts are needed before L1 synthesis is reliable? Does this vary by fact category?
+- **Abstraction quality metrics:** How do we measure whether a generated abstraction is "good"? Predictive accuracy? User satisfaction?
+- **Consolidation compute cost:** Hierarchical synthesis requires LLM inference. How does this affect overnight processing time and cost?
+- **Cross-context abstraction:** Can patterns from work and personal contexts be abstracted together at higher levels, even though L0 facts are strictly separated?
+- **Temporal dynamics:** Should L2 memories decay slower than L0 memories? General knowledge is typically more stable than specific episodes.
+- **Interaction with ASV:** Do emotionally encoded memories produce different or better abstractions? Does emotional salience affect which patterns get promoted?
+- **Connection to Ember Corp organizational memory:** Can the same hierarchical abstraction architecture serve both personal memory (EmberHearth) and organizational memory (Ember Corp learning journal)? If so, this becomes a shared infrastructure component.
+
 ---
 
 ## 11. Implementation Priorities
@@ -2121,12 +2246,19 @@ For v2:
 6. **Vector embeddings** - Local model for semantic search
 7. **Consolidation cycle** - Nightly processing
 8. **Work/personal separation** - Full context isolation
+9. **Schema preparation** - Add `abstraction_level`, `parent_fact_ids`, `child_fact_ids` fields (for future hierarchical memory, Section 4.5)
 
 For v3:
 
-9. **Pattern detection** - Inferred preferences
-10. **Anticipatory triggers** - Proactive suggestions
-11. **Emotional encoding** - Full 7-axis model
+10. **Pattern detection** - Inferred preferences
+11. **Anticipatory triggers** - Proactive suggestions
+12. **Emotional encoding** - Full 7-axis model
+
+For v3+ (future research):
+
+13. **Hierarchical memory abstraction** - L1 synthesis from L0 patterns (Section 4.5)
+14. **Recursive generalization** - L2+ promotion with provenance and quality control
+15. **Correction cascade** - User corrections propagate through abstraction hierarchy
 
 ---
 
@@ -2136,3 +2268,4 @@ For v3:
 - [work-personal-contexts.md](./work-personal-contexts.md)
 - [security.md - Encryption model](./security.md)
 - OpenClaw Skills Repository: https://github.com/VoltAgent/awesome-openclaw-skills
+- Ember Corp Founder Dashboard session (2026-02-28) — origin of hierarchical memory abstraction concept
