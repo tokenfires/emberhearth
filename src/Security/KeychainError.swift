@@ -6,46 +6,32 @@
 import Foundation
 
 /// Errors that can occur during Keychain operations.
-public enum KeychainError: Error, Equatable {
-    /// The API key format is invalid (empty, whitespace-only, too short, or wrong prefix).
-    case invalidKeyFormat(reason: String)
+enum KeychainError: Error, LocalizedError {
 
-    /// The requested Keychain item was not found.
+    /// The requested item was not found in the Keychain.
     case itemNotFound
 
-    /// An unexpected Keychain error occurred, wrapping the OSStatus code.
-    case unexpectedStatus(OSStatus)
+    /// The Keychain returned a duplicate item error.
+    case duplicateItem
 
-    /// The data retrieved from the Keychain could not be decoded as a UTF-8 string.
-    case dataCorrupted
+    /// The data could not be encoded or decoded.
+    case encodingError(String)
 
-    public static func == (lhs: KeychainError, rhs: KeychainError) -> Bool {
-        switch (lhs, rhs) {
-        case (.invalidKeyFormat(let l), .invalidKeyFormat(let r)):
-            return l == r
-        case (.itemNotFound, .itemNotFound):
-            return true
-        case (.unexpectedStatus(let l), .unexpectedStatus(let r)):
-            return l == r
-        case (.dataCorrupted, .dataCorrupted):
-            return true
-        default:
-            return false
-        }
-    }
-}
+    /// An underlying Keychain error with an OS status code.
+    case keychainError(status: OSStatus)
 
-extension KeychainError: LocalizedError {
-    public var errorDescription: String? {
+    // MARK: - LocalizedError
+
+    var errorDescription: String? {
         switch self {
-        case .invalidKeyFormat(let reason):
-            return "Invalid API key format: \(reason)"
         case .itemNotFound:
-            return "The requested Keychain item was not found."
-        case .unexpectedStatus(let status):
-            return "An unexpected Keychain error occurred (OSStatus: \(status))."
-        case .dataCorrupted:
-            return "The Keychain data is corrupted or unreadable."
+            return "The requested item was not found in the Keychain."
+        case .duplicateItem:
+            return "A duplicate item already exists in the Keychain."
+        case .encodingError(let message):
+            return "Encoding error: \(message)"
+        case .keychainError(let status):
+            return "Keychain error with status: \(status)"
         }
     }
 }
