@@ -61,6 +61,28 @@ public enum LLMStopReason: String, Equatable {
     case endTurn      = "end_turn"
     case maxTokens    = "max_tokens"
     case stopSequence = "stop_sequence"
+    case unknown      = "unknown"
+}
+
+// MARK: - LLMStreamChunk
+
+/// A chunk of streamed content from the LLM.
+public struct LLMStreamChunk: Equatable {
+    /// The incremental text content for this chunk.
+    public let deltaText: String
+    /// The SSE event type (e.g., "content_block_delta", "message_delta").
+    public let eventType: String
+    /// Token usage information, if provided by this event.
+    public let usage: LLMTokenUsage?
+    /// The reason the model stopped generating, if applicable.
+    public let stopReason: LLMStopReason?
+
+    public init(deltaText: String, eventType: String, usage: LLMTokenUsage?, stopReason: LLMStopReason?) {
+        self.deltaText = deltaText
+        self.eventType = eventType
+        self.usage = usage
+        self.stopReason = stopReason
+    }
 }
 
 // MARK: - LLMResponse

@@ -1,40 +1,43 @@
 // ClaudeAPIError.swift
 // EmberHearth
 //
-// Domain-specific error type for the Claude API client.
+// Domain-specific error types for the Claude API client.
 
 import Foundation
 
-/// Errors that can be thrown by ClaudeAPIClient.
-public enum ClaudeAPIError: Error, Equatable {
+/// Errors that can occur when communicating with the Claude API.
+enum ClaudeAPIError: Error, LocalizedError, Sendable {
+    /// The API returned an HTTP error status code.
+    case httpError(statusCode: Int, message: String)
+    /// The response could not be decoded.
+    case decodingError(String)
+    /// The streaming connection was interrupted unexpectedly.
+    case streamInterrupted(String)
+    /// The request was invalid or malformed.
+    case invalidRequest(String)
+    /// Authentication failed (invalid or missing API key).
+    case authenticationError
+    /// The API rate limit was exceeded.
+    case rateLimitExceeded
+    /// An unexpected error occurred.
+    case unknown(String)
 
-    /// No API key is stored in the Keychain.
-    case noAPIKey
-
-    /// The API key was rejected (HTTP 401).
-    case unauthorized
-
-    /// The request was rate-limited (HTTP 429).
-    /// - Parameter retryAfter: Seconds to wait before retrying, if provided by the server.
-    case rateLimited(retryAfter: Double?)
-
-    /// The request body was invalid (HTTP 400).
-    /// - Parameter message: The error message returned by the API.
-    case badRequest(String)
-
-    /// A server-side error occurred (HTTP 5xx).
-    /// - Parameter statusCode: The HTTP status code.
-    case serverError(Int)
-
-    /// The API is temporarily overloaded (HTTP 529).
-    case overloaded
-
-    /// Streaming is not yet implemented.
-    case notImplemented
-
-    /// The response body could not be decoded.
-    case decodingFailed(String)
-
-    /// An unexpected HTTP status code was received.
-    case unexpectedStatusCode(Int)
+    var errorDescription: String? {
+        switch self {
+        case .httpError(let statusCode, let message):
+            return "HTTP error \(statusCode): \(message)"
+        case .decodingError(let detail):
+            return "Decoding error: \(detail)"
+        case .streamInterrupted(let detail):
+            return "Stream interrupted: \(detail)"
+        case .invalidRequest(let detail):
+            return "Invalid request: \(detail)"
+        case .authenticationError:
+            return "Authentication failed. Check your API key."
+        case .rateLimitExceeded:
+            return "Rate limit exceeded. Please try again later."
+        case .unknown(let detail):
+            return "Unknown error: \(detail)"
+        }
+    }
 }
