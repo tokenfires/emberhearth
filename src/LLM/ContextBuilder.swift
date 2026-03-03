@@ -107,7 +107,7 @@ public enum ContextBuilder {
             return text
         }
         // Maximum characters that fit the budget (leaving room for "[truncated]" suffix).
-        let suffix = "[truncated]"
+        let suffix = "\n[truncated]"
         let suffixTokens = tokenEstimate(for: suffix)
         let contentBudget = budget - suffixTokens
         let maxChars = contentBudget * 4  // inverse of ceil(n/4) heuristic

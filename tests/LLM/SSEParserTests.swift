@@ -301,16 +301,8 @@ final class SSEParserTests: XCTestCase {
 
 // MARK: - Helpers
 
-/// Allows using a plain array as an async sequence in tests.
-extension Array: AsyncSequence where Element == String {
-    public typealias AsyncIterator = IndexingIterator<[String]>
-
-    public func makeAsyncIterator() -> AsyncIterator {
-        return makeIterator()
-    }
-}
-
 extension Array where Element == String {
+    /// Wraps a string array as an AsyncSequence for use in tests.
     var async: AsyncArray<String> { AsyncArray(self) }
 }
 
