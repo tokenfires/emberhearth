@@ -1,18 +1,23 @@
 // LLMTypes.swift
 // EmberHearth
 //
-// Core types shared across LLM providers.
+// Core LLM message and role types.
 
 import Foundation
 
-// MARK: - LLMMessage
+/// The role of a participant in an LLM conversation.
+public enum MessageRole: String, Codable, Equatable {
+    case user
+    case assistant
+    case system
+}
 
-/// A single message in a conversation.
+/// A single message in an LLM conversation.
 public struct LLMMessage: Equatable {
-    public let role: LLMRole
+    public let role: MessageRole
     public let content: String
 
-    public init(role: LLMRole, content: String) {
+    public init(role: MessageRole, content: String) {
         self.role = role
         self.content = content
     }
@@ -26,78 +31,36 @@ public struct LLMMessage: Equatable {
     public static func assistant(_ content: String) -> LLMMessage {
         LLMMessage(role: .assistant, content: content)
     }
-}
 
-// MARK: - LLMRole
-
-/// The role of a participant in a conversation.
-public enum LLMRole: String, Equatable {
-    case user
-    case assistant
-    case system
-}
-
-// MARK: - LLMTokenUsage
-
-/// Token consumption for a single API call.
-public struct LLMTokenUsage: Equatable {
-    public let inputTokens: Int
-    public let outputTokens: Int
-
-    public var totalTokens: Int {
-        inputTokens + outputTokens
-    }
-
-    public init(inputTokens: Int, outputTokens: Int) {
-        self.inputTokens = inputTokens
-        self.outputTokens = outputTokens
+    /// Convenience factory for a system message.
+    public static func system(_ content: String) -> LLMMessage {
+        LLMMessage(role: .system, content: content)
     }
 }
 
-// MARK: - LLMStopReason
+/// The result of building a context window for an LLM request.
+public struct BuiltContext {
+    /// The (possibly truncated) system prompt.
+    public let systemPrompt: String
 
-/// Why the model stopped generating tokens.
-public enum LLMStopReason: String, Equatable {
-    case endTurn      = "end_turn"
-    case maxTokens    = "max_tokens"
-    case stopSequence = "stop_sequence"
-    case unknown      = "unknown"
-}
+    /// Ordered messages to send (oldest first, new message last).
+    public let messages: [LLMMessage]
 
-// MARK: - LLMStreamChunk
+    /// How many recent messages were dropped due to token budget constraints.
+    public let truncatedMessageCount: Int
 
-/// A chunk of streamed content from the LLM.
-public struct LLMStreamChunk: Equatable {
-    /// The incremental text content for this chunk.
-    public let deltaText: String
-    /// The SSE event type (e.g., "content_block_delta", "message_delta").
-    public let eventType: String
-    /// Token usage information, if provided by this event.
-    public let usage: LLMTokenUsage?
-    /// The reason the model stopped generating, if applicable.
-    public let stopReason: LLMStopReason?
+    /// Rough token estimate for the entire context (system + messages).
+    public let estimatedTokens: Int
 
-    public init(deltaText: String, eventType: String, usage: LLMTokenUsage?, stopReason: LLMStopReason?) {
-        self.deltaText = deltaText
-        self.eventType = eventType
-        self.usage = usage
-        self.stopReason = stopReason
-    }
-}
-
-// MARK: - LLMResponse
-
-/// The complete response from an LLM provider.
-public struct LLMResponse: Equatable {
-    public let content: String
-    public let usage: LLMTokenUsage
-    public let model: String
-    public let stopReason: LLMStopReason
-
-    public init(content: String, usage: LLMTokenUsage, model: String, stopReason: LLMStopReason) {
-        self.content = content
-        self.usage = usage
-        self.model = model
-        self.stopReason = stopReason
+    public init(
+        systemPrompt: String,
+        messages: [LLMMessage],
+        truncatedMessageCount: Int,
+        estimatedTokens: Int
+    ) {
+        self.systemPrompt = systemPrompt
+        self.messages = messages
+        self.truncatedMessageCount = truncatedMessageCount
+        self.estimatedTokens = estimatedTokens
     }
 }
