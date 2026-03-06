@@ -6,7 +6,7 @@
 import Foundation
 
 /// Errors that can occur when communicating with the Claude API.
-enum ClaudeAPIError: Error, LocalizedError, Sendable {
+enum ClaudeAPIError: Error, LocalizedError, Sendable, Equatable {
     /// The API returned an HTTP error status code.
     case httpError(statusCode: Int, message: String)
     /// The response could not be decoded.
@@ -21,6 +21,24 @@ enum ClaudeAPIError: Error, LocalizedError, Sendable {
     case rateLimitExceeded
     /// An unexpected error occurred.
     case unknown(String)
+    /// Rate limited with optional retry-after interval.
+    case rateLimited(retryAfter: TimeInterval?)
+    /// Server returned an error status code.
+    case serverError(statusCode: Int)
+    /// Network-level error.
+    case networkError(String)
+    /// Request timed out.
+    case timeout
+    /// Service is overloaded.
+    case overloaded
+    /// Unauthorized (invalid credentials).
+    case unauthorized
+    /// Bad request.
+    case badRequest(String)
+    /// No API key configured.
+    case noAPIKey
+    /// Invalid response from server.
+    case invalidResponse(String)
 
     var errorDescription: String? {
         switch self {
@@ -38,6 +56,24 @@ enum ClaudeAPIError: Error, LocalizedError, Sendable {
             return "Rate limit exceeded. Please try again later."
         case .unknown(let detail):
             return "Unknown error: \(detail)"
+        case .rateLimited:
+            return "Rate limited by the API."
+        case .serverError(let statusCode):
+            return "Server error: \(statusCode)"
+        case .networkError(let detail):
+            return "Network error: \(detail)"
+        case .timeout:
+            return "Request timed out."
+        case .overloaded:
+            return "Service is overloaded."
+        case .unauthorized:
+            return "Unauthorized."
+        case .badRequest(let detail):
+            return "Bad request: \(detail)"
+        case .noAPIKey:
+            return "No API key configured."
+        case .invalidResponse(let detail):
+            return "Invalid response: \(detail)"
         }
     }
 }
