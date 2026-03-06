@@ -140,7 +140,7 @@ final class RetryHandlerTests: XCTestCase {
             .unauthorized,
             .badRequest("Invalid"),
             .noAPIKey,
-            .invalidResponse("Bad")
+            .decodingError("Bad")
         ]
         for error in nonRetryableErrors {
             XCTAssertFalse(handler.isRetryable(error), "\(error) should NOT be retryable.")

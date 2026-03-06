@@ -6,74 +6,89 @@
 import Foundation
 
 /// Errors that can occur when communicating with the Claude API.
+///
+/// ## Retryable errors (transient — may succeed on retry)
+/// - `rateLimited` — HTTP 429. Back off and retry; respect Retry-After if present.
+/// - `serverError` — HTTP 500/502/503. Transient server failure.
+/// - `overloaded` — HTTP 529. Anthropic-specific overload signal.
+/// - `networkError` — DNS failure, connection reset, etc.
+/// - `timeout` — Request exceeded timeout.
+/// - `streamInterrupted` — SSE stream dropped mid-response.
+///
+/// ## Non-retryable errors (permanent — fix the request or config)
+/// - `unauthorized` — HTTP 401. Invalid or missing API key.
+/// - `noAPIKey` — API key not configured at all.
+/// - `badRequest` — HTTP 400. Malformed or invalid request.
+/// - `decodingError` — Response body couldn't be parsed.
+/// - `unknown` — Unexpected error; treat as non-retryable.
 enum ClaudeAPIError: Error, LocalizedError, Sendable, Equatable {
-    /// The API returned an HTTP error status code.
-    case httpError(statusCode: Int, message: String)
-    /// The response could not be decoded.
-    case decodingError(String)
-    /// The streaming connection was interrupted unexpectedly.
-    case streamInterrupted(String)
-    /// The request was invalid or malformed.
-    case invalidRequest(String)
-    /// Authentication failed (invalid or missing API key).
-    case authenticationError
-    /// The API rate limit was exceeded.
-    case rateLimitExceeded
-    /// An unexpected error occurred.
-    case unknown(String)
-    /// Rate limited with optional retry-after interval.
+
+    // MARK: - Retryable
+
+    /// HTTP 429 — rate limited. Use `retryAfter` if provided by the server.
     case rateLimited(retryAfter: TimeInterval?)
-    /// Server returned an error status code.
+
+    /// HTTP 500/502/503 — transient server failure.
     case serverError(statusCode: Int)
-    /// Network-level error.
-    case networkError(String)
-    /// Request timed out.
-    case timeout
-    /// Service is overloaded.
+
+    /// HTTP 529 — Anthropic overload signal.
     case overloaded
-    /// Unauthorized (invalid credentials).
+
+    /// Network-level failure (DNS, connection reset, TLS, etc.).
+    case networkError(String)
+
+    /// Request timed out before a response was received.
+    case timeout
+
+    /// SSE streaming connection was interrupted mid-response.
+    case streamInterrupted(String)
+
+    // MARK: - Non-Retryable
+
+    /// HTTP 401 — invalid or revoked API key.
     case unauthorized
-    /// Bad request.
-    case badRequest(String)
-    /// No API key configured.
+
+    /// API key is not configured (missing from Keychain).
     case noAPIKey
-    /// Invalid response from server.
-    case invalidResponse(String)
+
+    /// HTTP 400 — request was malformed or invalid.
+    case badRequest(String)
+
+    /// Response body could not be decoded.
+    case decodingError(String)
+
+    /// Unexpected error with no specific handling.
+    case unknown(String)
+
+    // MARK: - LocalizedError
 
     var errorDescription: String? {
         switch self {
-        case .httpError(let statusCode, let message):
-            return "HTTP error \(statusCode): \(message)"
-        case .decodingError(let detail):
-            return "Decoding error: \(detail)"
-        case .streamInterrupted(let detail):
-            return "Stream interrupted: \(detail)"
-        case .invalidRequest(let detail):
-            return "Invalid request: \(detail)"
-        case .authenticationError:
-            return "Authentication failed. Check your API key."
-        case .rateLimitExceeded:
-            return "Rate limit exceeded. Please try again later."
-        case .unknown(let detail):
-            return "Unknown error: \(detail)"
-        case .rateLimited:
+        case .rateLimited(let retryAfter):
+            if let interval = retryAfter {
+                return "Rate limited by the API. Retry after \(Int(interval))s."
+            }
             return "Rate limited by the API."
         case .serverError(let statusCode):
-            return "Server error: \(statusCode)"
+            return "Server error: HTTP \(statusCode)."
+        case .overloaded:
+            return "Service is overloaded. Please retry later."
         case .networkError(let detail):
             return "Network error: \(detail)"
         case .timeout:
             return "Request timed out."
-        case .overloaded:
-            return "Service is overloaded."
+        case .streamInterrupted(let detail):
+            return "Stream interrupted: \(detail)"
         case .unauthorized:
-            return "Unauthorized."
+            return "Unauthorized — check your API key."
+        case .noAPIKey:
+            return "No API key configured. Add it to Keychain."
         case .badRequest(let detail):
             return "Bad request: \(detail)"
-        case .noAPIKey:
-            return "No API key configured."
-        case .invalidResponse(let detail):
-            return "Invalid response: \(detail)"
+        case .decodingError(let detail):
+            return "Decoding error: \(detail)"
+        case .unknown(let detail):
+            return "Unexpected error: \(detail)"
         }
     }
 }

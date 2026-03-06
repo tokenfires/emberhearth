@@ -70,13 +70,10 @@ final class RetryHandler: Sendable {
             return false
         }
         switch apiError {
-        case .rateLimited: return true
-        case .serverError: return true
-        case .networkError: return true
-        case .timeout: return true
-        case .overloaded: return true
-        case .unauthorized, .badRequest, .noAPIKey, .invalidResponse: return false
-        default: return false
+        case .rateLimited, .serverError, .networkError, .timeout, .overloaded, .streamInterrupted:
+            return true
+        case .unauthorized, .noAPIKey, .badRequest, .decodingError, .unknown:
+            return false
         }
     }
 
