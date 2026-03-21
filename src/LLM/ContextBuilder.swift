@@ -156,11 +156,17 @@ final class ContextBuilder {
         )
         let sessionSummary = session.summary
 
-        // 2. Retrieve relevant facts
-        let relevantFacts = try factRetriever.retrieveRelevantFacts(
-            for: newMessage,
-            limit: SystemPromptBuilder.maxFacts
-        )
+        // 2. Retrieve relevant facts (graceful degradation on failure)
+        let relevantFacts: [Fact]
+        do {
+            relevantFacts = try factRetriever.retrieveRelevantFacts(
+                for: newMessage,
+                limit: SystemPromptBuilder.maxFacts
+            )
+        } catch {
+            logger.warning("Fact retrieval failed, continuing without memory: \(error.localizedDescription, privacy: .public)")
+            relevantFacts = []
+        }
 
         // 3. Map facts to FactInfo, sorted highest importance first
         let factInfos: [FactInfo] = relevantFacts
