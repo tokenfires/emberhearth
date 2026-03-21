@@ -73,16 +73,17 @@ final class CredentialScannerTests: XCTestCase {
     // MARK: - API Key Detection
 
     func testAnthropicAPIKeyDetection() {
-        let response = "Your Anthropic key is sk-ant-api03-ABC123DEF456GHI789JKL012MNO345PQR678STU901"
+        let key = TestCredentialFactory.anthropicKey("ABC123DEF456GHI789JKL012MNO345PQR678STU901")
+        let response = "Your Anthropic key is \(key)"
         let result = scanner.scanOutput(response: response)
         XCTAssertTrue(result.containsCredentials)
         XCTAssertTrue(result.detectedTypes.contains("Anthropic API Key"))
         XCTAssertTrue(result.redactedResponse.contains("[REDACTED]"))
-        XCTAssertFalse(result.redactedResponse.contains("sk-ant-api03"))
+        XCTAssertFalse(result.redactedResponse.contains(key))
     }
 
     func testOpenAIAPIKeyDetection() {
-        let response = "The key is sk-abcdefghijklmnopqrstuvwxyz012345678901234567890123"
+        let response = "The key is \(TestCredentialFactory.openAIKey("abcdefghijklmnopqrstuvwxyz012345678901234567890123"))"
         let result = scanner.scanOutput(response: response)
         XCTAssertTrue(result.containsCredentials)
         XCTAssertTrue(result.detectedTypes.contains("OpenAI API Key"))
@@ -90,7 +91,7 @@ final class CredentialScannerTests: XCTestCase {
     }
 
     func testAWSAccessKeyDetection() {
-        let response = "Your AWS key is AKIAIOSFODNN7EXAMPLE"
+        let response = "Your AWS key is \(TestCredentialFactory.awsAccessKeyId())"
         let result = scanner.scanOutput(response: response)
         XCTAssertTrue(result.containsCredentials)
         XCTAssertTrue(result.detectedTypes.contains("AWS Access Key ID"))
@@ -98,7 +99,7 @@ final class CredentialScannerTests: XCTestCase {
     }
 
     func testGoogleAPIKeyDetection() {
-        let response = "The API key is AIzaSyA1234567890abcdefghijklmnopqrstuv"
+        let response = "The API key is \(TestCredentialFactory.googleAPIKey())"
         let result = scanner.scanOutput(response: response)
         XCTAssertTrue(result.containsCredentials)
         XCTAssertTrue(result.detectedTypes.contains("Google API Key"))
@@ -121,21 +122,21 @@ final class CredentialScannerTests: XCTestCase {
     // MARK: - GitHub Token Detection
 
     func testGitHubPATDetection() {
-        let response = "Use this token: ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij"
+        let response = "Use this token: \(TestCredentialFactory.githubPAT())"
         let result = scanner.scanOutput(response: response)
         XCTAssertTrue(result.containsCredentials)
         XCTAssertTrue(result.detectedTypes.contains("GitHub Personal Access Token"))
     }
 
     func testGitHubOAuthDetection() {
-        let response = "OAuth: gho_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij"
+        let response = "OAuth: \(TestCredentialFactory.githubOAuth())"
         let result = scanner.scanOutput(response: response)
         XCTAssertTrue(result.containsCredentials)
         XCTAssertTrue(result.detectedTypes.contains("GitHub OAuth Token"))
     }
 
     func testGitHubServerTokenDetection() {
-        let response = "Server token: ghs_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij"
+        let response = "Server token: \(TestCredentialFactory.githubServer())"
         let result = scanner.scanOutput(response: response)
         XCTAssertTrue(result.containsCredentials)
         XCTAssertTrue(result.detectedTypes.contains("GitHub Server Token"))
@@ -144,14 +145,14 @@ final class CredentialScannerTests: XCTestCase {
     // MARK: - Payment Provider Detection
 
     func testStripeLiveKeyDetection() {
-        let response = "The live key is sk_live_ABCDEFghijklmnopqrstuvwx"
+        let response = "The live key is \(TestCredentialFactory.stripeKey(live: true))"
         let result = scanner.scanOutput(response: response)
         XCTAssertTrue(result.containsCredentials)
         XCTAssertTrue(result.detectedTypes.contains("Stripe Live Secret Key"))
     }
 
     func testStripeTestKeyDetection() {
-        let response = "For testing use sk_test_ABCDEFghijklmnopqrstuvwx"
+        let response = "For testing use \(TestCredentialFactory.stripeKey(live: false))"
         let result = scanner.scanOutput(response: response)
         XCTAssertTrue(result.containsCredentials)
         XCTAssertTrue(result.detectedTypes.contains("Stripe Test Secret Key"))
@@ -160,7 +161,7 @@ final class CredentialScannerTests: XCTestCase {
     // MARK: - Slack Token Detection
 
     func testSlackBotTokenDetection() {
-        let response = "Bot token: xoxb-1234567890123-1234567890123-ABCDEFGHIJKLMNOPqrstuvwx"
+        let response = "Bot token: \(TestCredentialFactory.slackBotToken("1234567890123-1234567890123-ABCDEFGHIJKLMNOPqrstuvwx"))"
         let result = scanner.scanOutput(response: response)
         XCTAssertTrue(result.containsCredentials)
         XCTAssertTrue(result.detectedTypes.contains("Slack Bot Token"))
@@ -326,7 +327,7 @@ final class CredentialScannerTests: XCTestCase {
     // MARK: - Redaction Correctness
 
     func testRedactionReplacesCredentialOnly() {
-        let response = "Before sk-ant-api03-ABCDEFGHIJ1234567890KLMNOP After"
+        let response = "Before \(TestCredentialFactory.anthropicKey("ABCDEFGHIJ1234567890KLMNOP")) After"
         let result = scanner.scanOutput(response: response)
         XCTAssertTrue(result.containsCredentials)
         XCTAssertTrue(result.redactedResponse.hasPrefix("Before "))
@@ -336,7 +337,7 @@ final class CredentialScannerTests: XCTestCase {
     }
 
     func testMultipleCredentialRedaction() {
-        let response = "Key 1: AKIAIOSFODNN7EXAMPLE and key 2: ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij"
+        let response = "Key 1: \(TestCredentialFactory.awsAccessKeyId()) and key 2: \(TestCredentialFactory.githubPAT())"
         let result = scanner.scanOutput(response: response)
         XCTAssertTrue(result.containsCredentials)
         XCTAssertGreaterThanOrEqual(result.matchCount, 2)

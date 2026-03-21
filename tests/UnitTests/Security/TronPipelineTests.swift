@@ -255,7 +255,7 @@ final class TronPipelineTests: XCTestCase {
 
     func testCredentialInResponseRedacted() {
         let result = pipeline.processOutbound(
-            response: "Your API key is sk-ant-api03-ABCDEFGHIJ1234567890KLMNOP"
+            response: "Your API key is \(TestCredentialFactory.anthropicKey("ABCDEFGHIJ1234567890KLMNOP"))"
         )
 
         if case .redacted(let cleanResponse) = result {
@@ -268,7 +268,7 @@ final class TronPipelineTests: XCTestCase {
 
     func testMultipleCredentialsRedacted() {
         let result = pipeline.processOutbound(
-            response: "Keys: AKIAIOSFODNN7EXAMPLE and ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij"
+            response: "Keys: \(TestCredentialFactory.awsAccessKeyId()) and \(TestCredentialFactory.githubPAT())"
         )
 
         if case .redacted(let cleanResponse) = result {
@@ -285,7 +285,7 @@ final class TronPipelineTests: XCTestCase {
         ))
 
         let result = noScanPipeline.processOutbound(
-            response: "The key is sk-ant-api03-ABCDEFGHIJ1234567890KLMNOP"
+            response: "The key is \(TestCredentialFactory.anthropicKey("ABCDEFGHIJ1234567890KLMNOP"))"
         )
 
         if case .allowed(let response) = result {
@@ -337,7 +337,7 @@ final class TronPipelineTests: XCTestCase {
 
         // LLM response accidentally includes a credential
         let outbound = pipeline.processOutbound(
-            response: "I found this key in your notes: AKIAIOSFODNN7EXAMPLE"
+            response: "I found this key in your notes: \(TestCredentialFactory.awsAccessKeyId())"
         )
 
         if case .redacted(let cleanResponse) = outbound {

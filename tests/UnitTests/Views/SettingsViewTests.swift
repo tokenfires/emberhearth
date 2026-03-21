@@ -218,7 +218,7 @@ final class SettingsViewTests: XCTestCase {
 
     func testKeychainRoundTrip() throws {
         let testKeychain = KeychainManager(serviceName: "com.emberhearth.test.settings")
-        let testKey = "sk-ant-api03-testkey-settingsview-abcdefghij"
+        let testKey = TestCredentialFactory.anthropicKey("testkey-settingsview-abcdefghij")
 
         // Clean up before test
         try? testKeychain.delete(for: .claude)

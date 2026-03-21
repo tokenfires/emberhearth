@@ -30,19 +30,19 @@ final class KeychainManagerTests: XCTestCase {
     // MARK: - Store Tests
 
     func testStoreClaudeAPIKey() throws {
-        let testKey = "sk-ant-api03-test-key-for-unit-testing-1234567890"
+        let testKey = TestCredentialFactory.anthropicKey("test-key-for-unit-testing-1234567890")
         try manager.store(apiKey: testKey, for: .claude)
         XCTAssertTrue(manager.hasKey(for: .claude))
     }
 
     func testStoreOpenAIAPIKey() throws {
-        let testKey = "sk-test-key-for-openai-unit-testing-1234567890abcdef"
+        let testKey = TestCredentialFactory.openAIKey("test-key-for-openai-unit-testing-1234567890abcdef")
         try manager.store(apiKey: testKey, for: .openai)
         XCTAssertTrue(manager.hasKey(for: .openai))
     }
 
     func testStoreAndRetrieveClaudeKey() throws {
-        let testKey = "sk-ant-api03-test-key-for-unit-testing-1234567890"
+        let testKey = TestCredentialFactory.anthropicKey("test-key-for-unit-testing-1234567890")
         try manager.store(apiKey: testKey, for: .claude)
 
         let retrieved = try manager.retrieve(for: .claude)
@@ -50,7 +50,7 @@ final class KeychainManagerTests: XCTestCase {
     }
 
     func testStoreAndRetrieveOpenAIKey() throws {
-        let testKey = "sk-test-key-for-openai-unit-testing-1234567890abcdef"
+        let testKey = TestCredentialFactory.openAIKey("test-key-for-openai-unit-testing-1234567890abcdef")
         try manager.store(apiKey: testKey, for: .openai)
 
         let retrieved = try manager.retrieve(for: .openai)
@@ -58,8 +58,8 @@ final class KeychainManagerTests: XCTestCase {
     }
 
     func testStoreDuplicateKeyUpdatesExisting() throws {
-        let originalKey = "sk-ant-api03-original-key-1234567890abcdef"
-        let updatedKey = "sk-ant-api03-updated-key-0987654321fedcba"
+        let originalKey = TestCredentialFactory.anthropicKey("original-key-1234567890abcdef")
+        let updatedKey = TestCredentialFactory.anthropicKey("updated-key-0987654321fedcba")
 
         try manager.store(apiKey: originalKey, for: .claude)
         try manager.store(apiKey: updatedKey, for: .claude)
@@ -69,8 +69,8 @@ final class KeychainManagerTests: XCTestCase {
     }
 
     func testStoreMultipleProviders() throws {
-        let claudeKey = "sk-ant-api03-claude-test-key-1234567890abcdef"
-        let openaiKey = "sk-test-openai-key-1234567890abcdefghijklmnop"
+        let claudeKey = TestCredentialFactory.anthropicKey("claude-test-key-1234567890abcdef")
+        let openaiKey = TestCredentialFactory.openAIKey("test-openai-key-1234567890abcdefghijklmnop")
 
         try manager.store(apiKey: claudeKey, for: .claude)
         try manager.store(apiKey: openaiKey, for: .openai)
@@ -134,7 +134,7 @@ final class KeychainManagerTests: XCTestCase {
     }
 
     func testStoreKeyWithLeadingTrailingWhitespace() throws {
-        let testKey = "sk-ant-api03-test-key-with-whitespace-1234567890"
+        let testKey = TestCredentialFactory.anthropicKey("test-key-with-whitespace-1234567890")
         let keyWithWhitespace = "  \(testKey)  \n"
 
         try manager.store(apiKey: keyWithWhitespace, for: .claude)
@@ -150,7 +150,7 @@ final class KeychainManagerTests: XCTestCase {
     }
 
     func testRetrieveAfterDeleteReturnsNil() throws {
-        let testKey = "sk-ant-api03-test-key-for-delete-test-1234567890"
+        let testKey = TestCredentialFactory.anthropicKey("test-key-for-delete-test-1234567890")
         try manager.store(apiKey: testKey, for: .claude)
         try manager.delete(for: .claude)
 
@@ -161,7 +161,7 @@ final class KeychainManagerTests: XCTestCase {
     // MARK: - Delete Tests
 
     func testDeleteExistingKey() throws {
-        let testKey = "sk-ant-api03-test-key-for-deletion-1234567890abc"
+        let testKey = TestCredentialFactory.anthropicKey("test-key-for-deletion-1234567890abc")
         try manager.store(apiKey: testKey, for: .claude)
         XCTAssertTrue(manager.hasKey(for: .claude))
 
@@ -180,8 +180,8 @@ final class KeychainManagerTests: XCTestCase {
     }
 
     func testDeleteAllRemovesAllProviderKeys() throws {
-        let claudeKey = "sk-ant-api03-claude-test-key-1234567890abcdef"
-        let openaiKey = "sk-test-openai-key-1234567890abcdefghijklmnop"
+        let claudeKey = TestCredentialFactory.anthropicKey("claude-test-key-1234567890abcdef")
+        let openaiKey = TestCredentialFactory.openAIKey("test-openai-key-1234567890abcdefghijklmnop")
 
         try manager.store(apiKey: claudeKey, for: .claude)
         try manager.store(apiKey: openaiKey, for: .openai)
@@ -199,13 +199,13 @@ final class KeychainManagerTests: XCTestCase {
     }
 
     func testHasKeyReturnsTrueWhenKeyExists() throws {
-        let testKey = "sk-ant-api03-test-key-for-haskey-test-1234567890"
+        let testKey = TestCredentialFactory.anthropicKey("test-key-for-haskey-test-1234567890")
         try manager.store(apiKey: testKey, for: .claude)
         XCTAssertTrue(manager.hasKey(for: .claude))
     }
 
     func testHasKeyReturnsFalseAfterDelete() throws {
-        let testKey = "sk-ant-api03-test-key-for-haskey-delete-1234567890"
+        let testKey = TestCredentialFactory.anthropicKey("test-key-for-haskey-delete-1234567890")
         try manager.store(apiKey: testKey, for: .claude)
         try manager.delete(for: .claude)
         XCTAssertFalse(manager.hasKey(for: .claude))
@@ -217,7 +217,7 @@ final class KeychainManagerTests: XCTestCase {
         let otherManager = KeychainManager(serviceName: "com.emberhearth.api-keys.test-other")
         defer { try? otherManager.deleteAll() }
 
-        let testKey = "sk-ant-api03-isolation-test-key-1234567890abcde"
+        let testKey = TestCredentialFactory.anthropicKey("isolation-test-key-1234567890abcde")
         try manager.store(apiKey: testKey, for: .claude)
 
         // The other manager should NOT see this key

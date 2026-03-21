@@ -49,13 +49,13 @@ final class APIKeyEntryViewModelTests: XCTestCase {
     }
 
     func testCanValidateWithValidText() {
-        viewModel.apiKeyText = "sk-ant-api03-some-test-key-value"
+        viewModel.apiKeyText = TestCredentialFactory.anthropicKey("some-test-key-value")
         XCTAssertTrue(viewModel.canValidate, "Should be able to validate with non-empty key text")
     }
 
     func testCanValidateIsFalseWhenAlreadyValid() async {
         viewModel.validationState = .valid
-        viewModel.apiKeyText = "sk-ant-api03-some-test-key-value"
+        viewModel.apiKeyText = TestCredentialFactory.anthropicKey("some-test-key-value")
         XCTAssertFalse(viewModel.canValidate, "Should not be able to validate when already valid")
     }
 
