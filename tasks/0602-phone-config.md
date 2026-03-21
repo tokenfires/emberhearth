@@ -930,8 +930,8 @@ feat(m7): add phone number configuration view
 
 ## Notes for Next Task
 
-- Phone numbers are saved to `UserDefaults` key `"allowedPhoneNumbers"` as an array of E.164 strings. When `PhoneNumberFilter` (task 0103) is available, update `savePhoneNumbers()` to use it instead.
+- Phone numbers are saved via `PhoneNumberFilter` (task 0103) using its `addAllowedNumber()` API. Internally, `PhoneNumberFilter` persists to `UserDefaults` key `"com.emberhearth.phonenumberfilter.allowedNumbers"`. **Do NOT read the raw UserDefaults key directly** — always use `PhoneNumberFilter.getAllowedNumbers()` to retrieve allowed numbers.
 - The `OnboardingContainerView` now has real implementations for steps 1-4 (Welcome, Permissions, API Key, Phone Config). Only step 5 (Test) still shows a placeholder.
 - The `onContinue` callback from `PhoneConfigView` advances to `.test` in the container.
-- Task 0603 (FirstMessageTestView) will need to read the configured phone numbers to display them in the test instructions. It should read from `UserDefaults` key `"allowedPhoneNumbers"`.
+- Task 0603 (FirstMessageTestView) will need to read the configured phone numbers to display them in the test instructions. It should use `PhoneNumberFilter().getAllowedNumbers()` (or inject a `PhoneNumberFilter` instance for testability).
 - The `PhoneConfigViewModel.formatForDisplay()` method can be reused in task 0603 if needed.

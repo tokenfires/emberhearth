@@ -153,9 +153,12 @@ struct GeneralSettingsView: View {
     /// Session timeout in hours (how long before a conversation session resets).
     @AppStorage("sessionTimeoutHours") private var sessionTimeoutHours: Double = 4.0
 
-    /// Authorized phone numbers that Ember responds to.
-    /// Stored as a comma-separated string in UserDefaults for MVP.
-    @AppStorage("authorizedPhoneNumbers") private var authorizedPhoneNumbersRaw: String = ""
+    /// Phone number filter — single source of truth for authorized numbers.
+    /// Shared with onboarding (task 0602) and the message pipeline.
+    private let phoneNumberFilter = PhoneNumberFilter()
+
+    /// Cached list of authorized phone numbers, refreshed after mutations.
+    @State private var authorizedPhoneNumbers: [String] = []
 
     /// New phone number being entered by the user.
     @State private var newPhoneNumber: String = ""
@@ -168,14 +171,6 @@ struct GeneralSettingsView: View {
 
     /// The status banner message.
     @State private var bannerMessage: String = ""
-
-    /// Computed array of authorized phone numbers.
-    private var authorizedPhoneNumbers: [String] {
-        authorizedPhoneNumbersRaw
-            .split(separator: ",")
-            .map { String($0).trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
-    }
 
     var body: some View {
         Form {
@@ -289,6 +284,7 @@ struct GeneralSettingsView: View {
             }
         }
         .formStyle(.grouped)
+        .onAppear { reloadPhoneNumbers() }
         .overlay(alignment: .top) {
             StatusBanner(
                 message: bannerMessage,
@@ -300,30 +296,30 @@ struct GeneralSettingsView: View {
 
     // MARK: - Phone Number Management
 
+    /// Reloads the cached phone number list from PhoneNumberFilter.
+    private func reloadPhoneNumbers() {
+        authorizedPhoneNumbers = phoneNumberFilter.getAllowedNumbers()
+    }
+
     /// Validates and adds a new phone number to the authorized list.
     private func addPhoneNumber() {
-        let number = newPhoneNumber.trimmingCharacters(in: .whitespaces)
-        guard !number.isEmpty else { return }
+        let raw = newPhoneNumber.trimmingCharacters(in: .whitespaces)
+        guard !raw.isEmpty else { return }
 
-        // Validate E.164 format
-        let pattern = #"^\+[1-9]\d{1,14}$"#
-        guard number.range(of: pattern, options: .regularExpression) != nil else {
-            phoneNumberError = "Please enter a valid phone number starting with + (e.g., +15551234567)"
+        // Normalize via PhoneNumberFilter (handles all supported formats)
+        guard let normalized = PhoneNumberFilter.normalize(raw) else {
+            phoneNumberError = "Please enter a valid phone number (e.g., 555-123-4567 or +15551234567)"
             return
         }
 
         // Check for duplicates
-        guard !authorizedPhoneNumbers.contains(number) else {
+        guard !authorizedPhoneNumbers.contains(normalized) else {
             phoneNumberError = "This number is already added."
             return
         }
 
-        // Add to list
-        if authorizedPhoneNumbersRaw.isEmpty {
-            authorizedPhoneNumbersRaw = number
-        } else {
-            authorizedPhoneNumbersRaw += ",\(number)"
-        }
+        phoneNumberFilter.addAllowedNumber(normalized)
+        reloadPhoneNumbers()
 
         newPhoneNumber = ""
         phoneNumberError = nil
@@ -334,11 +330,11 @@ struct GeneralSettingsView: View {
 
     /// Removes a phone number from the authorized list.
     private func removePhoneNumber(_ number: String) {
-        let updated = authorizedPhoneNumbers.filter { $0 != number }
-        authorizedPhoneNumbersRaw = updated.joined(separator: ",")
+        phoneNumberFilter.removeAllowedNumber(number)
+        reloadPhoneNumbers()
         bannerMessage = "Phone number removed"
         withAnimation { showBanner = true }
-        logger.info("Phone number removed (count: \(updated.count))")
+        logger.info("Phone number removed (count: \(authorizedPhoneNumbers.count))")
     }
 }
 ```
@@ -1143,7 +1139,7 @@ feat(m8): add settings UI with general, API, and about tabs
 - `SettingsView` is presented via SwiftUI's `Settings` scene. The main `App` struct (from task 0002) needs to include a `Settings { SettingsView() }` scene — this wiring happens during integration.
 - The Settings window opens automatically with Cmd+, when using the `Settings` scene. The menu bar "Settings..." item (from StatusBarController) should trigger `NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)` or `NSApp.activate(ignoringOtherApps: true)` + key equivalent.
 - `@AppStorage` is used for UserDefaults-backed settings. The actual API key storage uses Keychain (wired during integration via KeychainManager from task 0200).
-- Phone numbers are stored as a comma-separated string in UserDefaults for MVP simplicity. This will be migrated to a proper data structure in the PhoneNumberFilter during integration.
+- Phone numbers are stored via `PhoneNumberFilter` (task 0103), the same persistence used by onboarding (task 0602) and the message pipeline. Use `PhoneNumberFilter.getAllowedNumbers()`, `addAllowedNumber()`, and `removeAllowedNumber()`. Do NOT use `@AppStorage` or raw UserDefaults for phone numbers.
 - The "Test Connection" currently uses a simulated delay. Wire to `ClaudeClient.validateKey()` during integration.
 - StatusBanner from task 0700 is integrated for transient notifications (phone number added, key saved, connection tested).
 - The About tab links to the GitHub repository at `https://github.com/robault/emberhearth`.

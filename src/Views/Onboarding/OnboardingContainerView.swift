@@ -99,8 +99,10 @@ struct OnboardingContainerView: View {
                     )
 
                 case .phoneConfig:
-                    // Placeholder — will be implemented in task 0602
-                    placeholderView(title: "Phone Number Setup", step: .phoneConfig)
+                    PhoneConfigView(
+                        onContinue: { advanceToStep(.test) },
+                        onBack: { goBackToStep(.apiKey) }
+                    )
 
                 case .test:
                     // Placeholder — will be implemented in task 0603

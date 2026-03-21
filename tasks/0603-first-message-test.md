@@ -44,7 +44,7 @@ PROJECT CONTEXT:
 - MessageCoordinator from task 0504 should exist at src/Core/MessageCoordinator.swift
   - If it exists, it provides: `start()`, `stop()`, and publishes status updates
   - If it does NOT exist yet, this view will use a simulated test status publisher
-- Phone numbers are stored in UserDefaults key "allowedPhoneNumbers" (from task 0602)
+- Phone numbers are stored via `PhoneNumberFilter` (from tasks 0103/0602). Use `PhoneNumberFilter().getAllowedNumbers()` to retrieve them. Do NOT read directly from UserDefaults.
 - OnboardingContainerView (from task 0600) has a `.test` step that currently shows a placeholder
 - The `@AppStorage("hasCompletedOnboarding")` key marks onboarding as complete
 
@@ -182,9 +182,18 @@ final class FirstMessageTestViewModel: ObservableObject {
 
     // MARK: - Computed Properties
 
+    /// Phone number filter for reading configured numbers.
+    private let phoneNumberFilter: PhoneNumberFilter
+
+    // MARK: - Initialization
+
+    init(phoneNumberFilter: PhoneNumberFilter = PhoneNumberFilter()) {
+        self.phoneNumberFilter = phoneNumberFilter
+    }
+
     /// The configured phone numbers from the previous step.
     var configuredPhoneNumbers: [String] {
-        UserDefaults.standard.stringArray(forKey: "allowedPhoneNumbers") ?? []
+        phoneNumberFilter.getAllowedNumbers()
     }
 
     /// A formatted display of the first configured phone number.
@@ -757,18 +766,21 @@ import XCTest
 final class FirstMessageTestViewModelTests: XCTestCase {
 
     private var viewModel: FirstMessageTestViewModel!
+    private var phoneNumberFilter: PhoneNumberFilter!
 
     override func setUp() {
         super.setUp()
-        viewModel = FirstMessageTestViewModel()
-        // Set up test phone numbers
-        UserDefaults.standard.set(["+15551234567"], forKey: "allowedPhoneNumbers")
+        phoneNumberFilter = PhoneNumberFilter()
+        phoneNumberFilter.removeAllAllowedNumbers()
+        phoneNumberFilter.addAllowedNumber("+15551234567")
+        viewModel = FirstMessageTestViewModel(phoneNumberFilter: phoneNumberFilter)
     }
 
     override func tearDown() {
         viewModel.stopTest()
         viewModel = nil
-        UserDefaults.standard.removeObject(forKey: "allowedPhoneNumbers")
+        phoneNumberFilter.removeAllAllowedNumbers()
+        phoneNumberFilter = nil
         super.tearDown()
     }
 
@@ -789,7 +801,7 @@ final class FirstMessageTestViewModelTests: XCTestCase {
     }
 
     func testConfiguredPhoneNumbersEmpty() {
-        UserDefaults.standard.removeObject(forKey: "allowedPhoneNumbers")
+        phoneNumberFilter.removeAllAllowedNumbers()
         XCTAssertTrue(viewModel.configuredPhoneNumbers.isEmpty)
     }
 
@@ -799,7 +811,7 @@ final class FirstMessageTestViewModelTests: XCTestCase {
     }
 
     func testDisplayPhoneNumberFallback() {
-        UserDefaults.standard.removeObject(forKey: "allowedPhoneNumbers")
+        phoneNumberFilter.removeAllAllowedNumbers()
         let display = viewModel.displayPhoneNumber
         XCTAssertEqual(display, "your configured number")
     }
@@ -963,7 +975,7 @@ IMPORTANT NOTES:
 - [ ] Each status has `description`, `sfSymbol`, `color`, `isFinal`, `isSuccess` properties
 - [ ] Step-by-step instructions shown: open Messages, send text to configured number, wait for response
 - [ ] Real-time status indicator with progress spinner for waiting/processing states
-- [ ] Configured phone number(s) read from `UserDefaults` key `"allowedPhoneNumbers"`
+- [ ] Configured phone number(s) read via `PhoneNumberFilter.getAllowedNumbers()` (injected for testability)
 - [ ] 60-second timeout with countdown display
 - [ ] On timeout: show troubleshooting tips
 - [ ] On failure: show troubleshooting tips with specific advice
@@ -1099,4 +1111,4 @@ feat(m7): add first message test view for end-to-end verification
 - The `FirstMessageTestViewModel` exposes `onMessageReceived()`, `onResponseSent()`, and `onPipelineError()` methods. When `MessageCoordinator` (task 0504) is integrated, it should call these methods to drive the test UI.
 - Onboarding completion is stored in `UserDefaults` key `"hasCompletedOnboarding"`.
 - The next task (0604) is an accessibility review pass across ALL onboarding views. It will audit and enhance accessibility on all 6 files created in tasks 0600-0603.
-- Phone numbers are stored in `UserDefaults` key `"allowedPhoneNumbers"`. This should eventually be migrated to `PhoneNumberFilter` (task 0103).
+- Phone numbers are stored via `PhoneNumberFilter` (task 0103). Use `PhoneNumberFilter().getAllowedNumbers()` to retrieve them. The underlying UserDefaults key is `"com.emberhearth.phonenumberfilter.allowedNumbers"` but should never be accessed directly.
