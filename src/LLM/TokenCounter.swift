@@ -4,7 +4,6 @@
 // Provides accurate token estimation for context budget enforcement.
 
 import Foundation
-import os
 
 /// Estimates token counts for text and message arrays.
 ///
@@ -38,12 +37,6 @@ struct TokenCounter {
     /// Overhead tokens per message for role/formatting in the API.
     /// Each message has ~4 tokens of framing (role markers, separators).
     static let messageOverhead: Int = 4
-
-    /// Logger for token counting operations.
-    private static let logger = Logger(
-        subsystem: "com.emberhearth.app",
-        category: "TokenCounter"
-    )
 
     // MARK: - Single Text Estimation
 

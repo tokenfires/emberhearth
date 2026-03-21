@@ -219,12 +219,10 @@ final class ContextBuilder {
         var summaryTokensUsed = 0
 
         if let summary = sessionSummary, !summary.isEmpty {
-            let summaryTokens = TokenCounter.estimateTokens(for: summary)
+            let summaryContent = "[Conversation summary from earlier: \(summary)]"
+            let summaryTokens = TokenCounter.estimateTokens(for: summaryContent) + TokenCounter.messageOverhead
             if summaryTokens <= budget.summaryBudget {
-                llmMessages.append(LLMMessage(
-                    role: .assistant,
-                    content: "[Conversation summary from earlier: \(summary)]"
-                ))
+                llmMessages.append(LLMMessage(role: .assistant, content: summaryContent))
                 summaryTokensUsed = summaryTokens
             } else {
                 logger.debug(
@@ -235,10 +233,9 @@ final class ContextBuilder {
 
         // 7. Add recent messages from newest to oldest (prefer recency),
         //    then reverse to restore chronological order for the LLM.
-        let newMessageTokens = TokenCounter.estimateTokens(for: newMessage)
-        let availableForHistory = budget.recentMessagesBudget - newMessageTokens
+        let newMessageTokens = TokenCounter.estimateTokens(for: newMessage) + TokenCounter.messageOverhead
+        let availableForHistory = max(0, budget.recentMessagesBudget - newMessageTokens)
 
-        // Warn if the new message alone exceeds the recent messages budget
         if newMessageTokens > budget.recentMessagesBudget {
             logger.warning(
                 "New message exceeds recent messages budget: \(newMessageTokens) > \(self.budget.recentMessagesBudget). Including anyway."

@@ -9,7 +9,7 @@ import Foundation
 ///
 /// This provides transparency into how the context window budget was used,
 /// which is useful for debugging, monitoring, and the token-awareness UI.
-struct TokenEstimates: Sendable, Equatable {
+struct TokenEstimates: Sendable, Equatable, CustomDebugStringConvertible {
 
     /// Tokens used by the system prompt (personality + facts + context).
     let systemPrompt: Int
