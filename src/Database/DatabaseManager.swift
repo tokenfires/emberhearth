@@ -18,6 +18,7 @@ final class DatabaseManager {
     let databasePath: String
     private var db: OpaquePointer?
     private let serialQueue = DispatchQueue(label: "com.emberhearth.database", qos: .userInitiated)
+    private let queueKey = DispatchSpecificKey<Bool>()
 
     convenience init() throws {
         let path = try DatabaseManager.defaultDatabasePath()
@@ -26,6 +27,7 @@ final class DatabaseManager {
 
     init(path: String) throws {
         self.databasePath = path
+        serialQueue.setSpecific(key: queueKey, value: true)
 
         if path != ":memory:" {
             let directory = (path as NSString).deletingLastPathComponent
@@ -200,8 +202,19 @@ final class DatabaseManager {
         )
     }
 
+    private var isOnSerialQueue: Bool {
+        DispatchQueue.getSpecific(key: queueKey) == true
+    }
+
+    private func synchronized<T>(_ block: () throws -> T) throws -> T {
+        if isOnSerialQueue {
+            return try block()
+        }
+        return try serialQueue.sync { try block() }
+    }
+
     func execute(sql: String, parameters: [Any?] = []) throws {
-        try serialQueue.sync {
+        try synchronized {
             guard let db = db else { throw DatabaseError.connectionClosed }
             var stmt: OpaquePointer?
             defer { sqlite3_finalize(stmt) }
@@ -217,7 +230,7 @@ final class DatabaseManager {
     }
 
     func insertAndReturnId(sql: String, parameters: [Any?] = []) throws -> Int64 {
-        return try serialQueue.sync {
+        return try synchronized {
             guard let db = db else { throw DatabaseError.connectionClosed }
             var stmt: OpaquePointer?
             defer { sqlite3_finalize(stmt) }
@@ -234,7 +247,7 @@ final class DatabaseManager {
     }
 
     func query(sql: String, parameters: [Any?] = []) throws -> [[String: Any?]] {
-        return try serialQueue.sync {
+        return try synchronized {
             guard let db = db else { throw DatabaseError.connectionClosed }
             var stmt: OpaquePointer?
             defer { sqlite3_finalize(stmt) }
@@ -274,14 +287,32 @@ final class DatabaseManager {
         return firstValue
     }
 
-    func transaction(_ block: () throws -> Void) throws {
-        try execute(sql: "BEGIN TRANSACTION")
-        do {
-            try block()
-            try execute(sql: "COMMIT")
-        } catch {
-            try? execute(sql: "ROLLBACK")
-            throw error
+    @discardableResult
+    func transaction<T>(_ block: () throws -> T) throws -> T {
+        guard !isOnSerialQueue else {
+            throw DatabaseError.queryFailed(
+                sql: "BEGIN TRANSACTION",
+                reason: "Nested transactions are not supported"
+            )
+        }
+        return try serialQueue.sync {
+            try _executeRaw(sql: "BEGIN TRANSACTION")
+            do {
+                let result = try block()
+                try _executeRaw(sql: "COMMIT")
+                return result
+            } catch {
+                try? _executeRaw(sql: "ROLLBACK")
+                throw error
+            }
+        }
+    }
+
+    private func _executeRaw(sql: String) throws {
+        guard let db = db else { throw DatabaseError.connectionClosed }
+        let result = sqlite3_exec(db, sql, nil, nil, nil)
+        guard result == SQLITE_OK else {
+            throw DatabaseError.queryFailed(sql: sql, reason: String(cString: sqlite3_errmsg(db)))
         }
     }
 

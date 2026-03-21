@@ -121,6 +121,18 @@ final class DatabaseManagerTests: XCTestCase {
         XCTAssertEqual(count, 1)
     }
 
+    func testNestedTransactionThrows() throws {
+        let manager = try makeManager()
+        try manager.transaction {
+            try manager.execute(sql: "INSERT INTO facts (content, category) VALUES (?, ?)", parameters: ["Inside txn", "preference"])
+            XCTAssertThrowsError(try manager.transaction {
+                try manager.execute(sql: "INSERT INTO facts (content, category) VALUES (?, ?)", parameters: ["Nested", "preference"])
+            }, "Nested transactions should throw")
+        }
+        let count = try manager.queryScalar(sql: "SELECT COUNT(*) FROM facts") as? Int64
+        XCTAssertEqual(count, 1, "Only the outer insert should have committed")
+    }
+
     func testNullParameterBinding() throws {
         let manager = try makeManager()
         let id = try manager.insertAndReturnId(sql: "INSERT INTO sessions (phone_number, summary) VALUES (?, ?)", parameters: ["+15551234567", nil])
