@@ -37,234 +37,135 @@ kk, rest is generated...
 
 ---
 
-**A secure, accessible, always-on personal AI assistant for macOS.**
+<p align="center">
+  <img src="images/profile.jpg" alt="EmberHearth" width="200">
+</p>
 
-> *The ever-present warmth at the heart of your home.*
+<h1 align="center">EmberHearth</h1>
 
----
+<p align="center">
+  <strong>Your personal AI assistant that lives in iMessage.</strong>
+</p>
 
-## Vision
-
-EmberHearth reimagines the personal AI assistant with **security and accessibility as foundational requirements**, not afterthoughts. The goal: a system your spouse, parent, or child could safely set up and use.
-
-### The Dream Setup
-
-```
-Buy Mac Mini → Sign into iCloud → Install EmberHearth → Chat via iMessage
-```
-
-No API keys to manage. No Docker to understand. No threat models to contemplate. Just a helpful assistant that's always there, learns over time, and can't be weaponized against you.
-
----
-
-## Why EmberHearth?
-
-Current AI assistants fall into two camps:
-
-| Consumer Assistants | Power User Assistants |
-|--------------------|-----------------------|
-| Easy setup | Complex setup |
-| Safe (limited) | Severe security risks |
-| Not very capable | Highly capable |
-| Don't learn about you | Can learn and adapt |
-
-**EmberHearth bridges this gap** — capable enough to be transformative, safe enough for non-technical users.
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-macOS%2013.0%2B-blue" alt="macOS 13.0+">
+  <img src="https://img.shields.io/badge/swift-5.9-orange" alt="Swift 5.9">
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License">
+  <img src="https://img.shields.io/badge/interface-iMessage-brightgreen" alt="iMessage">
+</p>
 
 ---
 
-## Core Principles
+## What is EmberHearth?
 
-1. **Security by Removal** — No shell execution. Structured operations that can't be misused.
-2. **Secure by Default** — Safe with zero configuration. Capabilities require explicit consent.
-3. **The Grandmother Test** — If grandma can't use it unsupervised, it's not ready.
-4. **Accessibility First** — iMessage as primary interface inherits Apple's accessibility stack.
-5. **Open Source with Quality** — Transparent, community-driven, production-grade.
+EmberHearth is a secure, accessible, always-on personal AI assistant for macOS. It lives in iMessage — just text it like you would a friend, and it responds with the help of Claude AI. It remembers your preferences, learns about you over time, and keeps all your data private on your own Mac.
 
----
+No cloud sync. No data collection. No complicated setup. Just a helpful assistant that's always there.
 
-## Status
+### Key Features
 
-**Phase: MVP Complete (v1.0.0)**
-
-EmberHearth has reached its first production-ready milestone. All core systems are implemented and tested:
-- iMessage integration (read and respond)
-- Claude API integration with streaming
-- Local memory (SQLite, encrypted)
-- Security pipeline (Tron) — prompt injection + credential detection
-- Crisis detection with 988 referral
-- Onboarding wizard and Settings app
-- Menu bar integration
-
-See [docs/NEXT-STEPS.md](docs/NEXT-STEPS.md) for the v1.1+ roadmap.
+- **Conversational AI** — Natural conversations powered by Claude, right in iMessage
+- **Memory & Learning** — Ember remembers what you tell it and uses that knowledge in future conversations
+- **Privacy-First** — All your data stays on your Mac. No cloud sync, no telemetry, no data collection
+- **Always-On** — Runs quietly in your menu bar, ready whenever you need it
+- **Accessible** — Full VoiceOver support, Dynamic Type, and keyboard navigation throughout
+- **Secure** — Encrypted local storage, Keychain for credentials, sandboxed web access, no shell execution
 
 ---
 
-## Requirements
+## System Requirements
 
-- macOS 13.0 (Ventura) or later
-- Xcode 15.0+ (for building from source)
-- A Claude API key from [Anthropic](https://www.anthropic.com/)
-- Full Disk Access permission (for reading iMessage database)
-- Automation permission (for sending iMessages via AppleScript)
+| Requirement | Details |
+|-------------|---------|
+| **Operating System** | macOS 13.0 (Ventura) or later |
+| **Processor** | Apple Silicon or Intel |
+| **iMessage** | Configured and signed in with an Apple ID |
+| **API Key** | Claude API key from [Anthropic](https://console.anthropic.com/) |
+| **Permissions** | Full Disk Access, Automation, Notifications |
+
+---
+
+## Quick Start
+
+1. **Download** — Get the latest release from the [Releases](https://github.com/robault/emberhearth/releases) page
+2. **Grant Permissions** — Follow the onboarding wizard to grant Full Disk Access and Automation permissions
+3. **Enter API Key** — Add your Claude API key (Ember walks you through this)
+4. **Configure Phone Number** — Set the phone number Ember should respond to
+
+That's it. Send yourself a text in iMessage and Ember will respond.
+
+---
+
+## Privacy & Security
+
+EmberHearth is built with privacy and security as foundational principles, not afterthoughts.
+
+| Principle | How |
+|-----------|-----|
+| **Local-only data** | All memories, conversations, and preferences stay on your Mac |
+| **No cloud sync** | Nothing leaves your machine except API calls to your chosen LLM provider |
+| **Encrypted storage** | Memory database uses SQLite with encryption |
+| **Keychain credentials** | API keys stored exclusively in the macOS Keychain |
+| **No shell execution** | The app never executes shell commands — ever |
+| **Sandboxed web access** | Web content fetching is isolated and restricted |
+| **Input screening** | All messages screened for prompt injection before processing |
+| **Output screening** | All AI responses screened for credential leaks before sending |
+| **Hardened Runtime** | App signed with Hardened Runtime and notarized by Apple |
+
+Your data is yours. Period.
+
+---
+
+## Accessibility
+
+EmberHearth is designed to be usable by everyone:
+
+- **iMessage as primary interface** — Inherits Apple's full accessibility stack (VoiceOver, Switch Control, Voice Control)
+- **VoiceOver support** — Every UI element in the settings app is labeled for screen readers
+- **Dynamic Type** — All text respects system font size settings
+- **Keyboard navigation** — Full keyboard access throughout the settings app
+- **The Grandmother Test** — If it requires explanation to non-technical users, it's not ready
 
 ---
 
 ## Building from Source
 
+If you'd like to build EmberHearth yourself, see the [Contributing Guide](CONTRIBUTING.md) for detailed instructions.
+
+Quick version:
+
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/emberhearth.git
+git clone https://github.com/robault/emberhearth.git
 cd emberhearth
-
-# Build
 ./build.sh build
-
-# Run tests
 ./build.sh test
-
-# Run everything (security check + build + tests)
-./build.sh all
 ```
-
----
-
-## First Run
-
-1. Launch EmberHearth
-2. Complete the onboarding wizard:
-   - Grant Full Disk Access and Automation permissions
-   - Enter your Claude API key
-   - Add your phone number to the authorized list
-3. Ember appears in your menu bar
-4. Send a message to yourself in iMessage — Ember will respond!
 
 ---
 
 ## Documentation
 
-### Core Documents
+### For Users
 | Document | Description |
 |----------|-------------|
-| [Vision](docs/VISION.md) | Full vision, architecture, and design philosophy |
-| [Next Steps](docs/NEXT-STEPS.md) | Development roadmap and current tasks |
+| [User Guide](docs/USER-GUIDE.md) | Complete guide to setting up and using EmberHearth |
+| [Changelog](docs/CHANGELOG.md) | Release history and changes |
+
+### For Developers
+| Document | Description |
+|----------|-------------|
+| [Contributing](CONTRIBUTING.md) | How to contribute to EmberHearth |
+| [Vision](docs/VISION.md) | Product vision, architecture, and design philosophy |
 | [Architecture Overview](docs/architecture-overview.md) | System design and component relationships |
-
-### Release Planning
-| Document | Description |
-|----------|-------------|
-| [MVP Work-Up](docs/releases/MVP.md) | Pre-coding review and phase breakdown |
-| [MVP Scope](docs/releases/mvp-scope.md) | Detailed MVP feature requirements |
-| [Feature Matrix](docs/releases/feature-matrix.md) | Feature availability across releases |
-
-### Architecture Decisions (ADRs)
-| ADR | Decision |
-|-----|----------|
-| [ADR-0001](docs/architecture/decisions/0001-xpc-service-isolation.md) | XPC Service Isolation |
-| [ADR-0002](docs/architecture/decisions/0002-distribute-outside-app-store.md) | Distribute Outside App Store |
-| [ADR-0003](docs/architecture/decisions/0003-imessage-primary-interface.md) | iMessage as Primary Interface |
-| [ADR-0004](docs/architecture/decisions/0004-no-shell-execution.md) | No Shell Execution |
-| [ADR-0005](docs/architecture/decisions/0005-safari-read-only-default.md) | Safari Read-Only by Default |
-| [ADR-0006](docs/architecture/decisions/0006-sandboxed-web-tool.md) | Sandboxed Web Tool |
-| [ADR-0007](docs/architecture/decisions/0007-sqlite-memory-storage.md) | SQLite Memory Storage |
-| [ADR-0008](docs/architecture/decisions/0008-claude-api-primary-llm.md) | Claude API as Primary LLM |
-| [ADR-0009](docs/architecture/decisions/0009-tron-security-layer.md) | TRON Security Layer |
-| [ADR-0010](docs/architecture/decisions/0010-fsevents-data-monitoring.md) | FSEvents Data Monitoring |
-| [ADR-0011](docs/architecture/decisions/0011-bounded-needs-personality.md) | Bounded Needs Personality |
-
-See [ADR Index](docs/architecture/decisions/README.md) for the full list and process.
-
-### Specifications
-| Document | Description |
-|----------|-------------|
-| [Specs Index](docs/specs/README.md) | **Full index of all specification documents** |
-| [Tron Security](docs/specs/tron-security.md) | Security layer spec — prompt injection, credential detection, tool authorization |
-| [ASV Implementation](docs/specs/asv-implementation.md) | Anticipatory Salience Value system spec |
-| [API Setup Guide](docs/specs/api-setup-guide.md) | API configuration and setup |
-| [Autonomous Operation](docs/specs/autonomous-operation.md) | Background operation and proactive behavior |
-| [Crisis Safety Protocols](docs/specs/crisis-safety-protocols.md) | Safety protocols for crisis scenarios |
-| [Error Handling](docs/specs/error-handling.md) | Error management and recovery |
-| [Offline Mode](docs/specs/offline-mode.md) | Offline operation capabilities |
-| [Token Awareness](docs/specs/token-awareness.md) | Context window and token management |
-| [Update & Recovery](docs/specs/update-recovery.md) | Update and recovery procedures |
+| [ADR Index](docs/architecture/decisions/README.md) | Architectural Decision Records |
+| [Build & Release](docs/deployment/build-and-release.md) | Build, signing, and release process |
+| [Testing Strategy](docs/testing/strategy.md) | Testing approach and coverage targets |
+| [MVP Scope](docs/releases/mvp-scope.md) | Feature requirements by release version |
 
 ### Research
 | Document | Description |
 |----------|-------------|
-| [Research Index](docs/research/README.md) | **Full index of all research documents** |
-| [iMessage](docs/research/imessage.md) | iMessage integration approaches |
-| [macOS APIs](docs/research/macos-apis.md) | System framework capabilities |
-| [Security](docs/research/security.md) | Security primitives and architecture |
-| [Local Models](docs/research/local-models.md) | On-device LLM feasibility |
-
-### Reference
-| Document | Description |
-|----------|-------------|
-| [Moltbot Analysis](docs/reference/MOLTBOT-ANALYSIS.md) | Analysis of predecessor project |
-| [Sanity Check Assessment](docs/reference/sanity-check-assessment.md) | Feasibility validation |
-| [Sanity Check Summary](docs/reference/sanity-check-summary.md) | Executive summary of validation |
-| [Documentation Assessment v2](docs/reference/documentation-assessment-v2.md) | **Comprehensive documentation review** |
-| [Prompt Engineering Mastery](docs/reference/prompt-engineering-mastery.md) | LLM prompt engineering training guide |
-| [Twitch Streaming Guide](docs/reference/twitch-streaming-guide.md) | Guide for development streams |
-
-### Implementation
-| Document | Description |
-|----------|-------------|
-| [Implementation Guide](docs/IMPLEMENTATION-GUIDE.md) | **AI-assisted development workflow guide** |
-| [Claude Phase Instructions](docs/claude/README.md) | **Phase-specific instructions for Claude Code sessions** |
-
-### Testing
-| Document | Description |
-|----------|-------------|
-| [Testing Index](docs/testing/README.md) | **Full index of all testing documents** |
-| [Testing Strategy](docs/testing/strategy.md) | Testing approach and coverage |
-| [Prompt Regression Testing](docs/testing/prompt-regression-testing.md) | Regression testing for LLM prompts |
-| [Security Penetration Protocol](docs/testing/security-penetration-protocol.md) | Security penetration testing procedures |
-| [System API Mocking](docs/testing/system-api-mocking.md) | Mocking strategy for system APIs |
-
-### Deployment
-| Document | Description |
-|----------|-------------|
-| [Build & Release](docs/deployment/build-and-release.md) | Deployment and distribution process |
-
-### Workplans
-| Document | Description |
-|----------|-------------|
-| [V1 Workplan](docs/v1-workplan.md) | Version 1 development workplan |
-
----
-
-## Architecture
-
-EmberHearth is built with:
-- **Swift + SwiftUI** — native macOS, no Electron or web wrapper
-- **iMessage** — primary conversational interface, inherits Apple accessibility stack
-- **SQLite** — local memory storage (no cloud sync)
-- **Claude API** — language understanding via Anthropic
-- **Keychain** — all credential storage, never UserDefaults or plist
-
-**Module layout:**
-```
-src/App/          App lifecycle, menu bar, startup wiring
-src/Core/         Message orchestration, iMessage reading, session management
-src/LLM/          Claude API client, streaming, token management
-src/Security/     Tron pipeline, crisis detection, Keychain manager
-src/Memory/       Fact extraction, storage, retrieval
-src/Database/     SQLite wrapper, migrations
-src/Personality/  System prompt, verbosity adaptation
-src/Views/        SwiftUI onboarding and settings UI
-src/Logging/      Structured logging, security event audit
-```
-
----
-
-## Security
-
-- All user data stays local — no cloud sync, no telemetry
-- API keys stored exclusively in macOS Keychain
-- All LLM inputs screened for prompt injection attacks
-- All LLM outputs screened for credential leaks
-- No shell execution — ever (see [ADR-0004](docs/architecture/decisions/0004-no-shell-execution.md))
-- Hardened Runtime enabled for distribution
+| [Research Index](docs/research/README.md) | Index of all research documents |
 
 ---
 
@@ -272,20 +173,12 @@ src/Logging/      Structured logging, security event audit
 
 Development of EmberHearth is streamed live on Twitch. Follow along as we explore, prototype, make mistakes, and (hopefully) build something useful.
 
-Building in public means transparency about the process — the good, the bad, and the "why did I think that would work?" moments.
+[![Watch on Twitch](images/watch_on_twitch.jpg)](https://www.twitch.tv/tokenfires "Watch live on Twitch")
+
+Streams are archived on [YouTube](https://www.youtube.com/@tokenfires).
 
 ---
 
 ## License
 
 MIT License — See [LICENSE](LICENSE)
-
----
-
-## Contributing
-
-Contributions welcome! Please open an issue first to discuss what you'd like to change.
-
----
-
-*Last verified: 2026-03-21*
