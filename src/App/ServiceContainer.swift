@@ -63,6 +63,17 @@ final class ServiceContainer {
     /// Rolling summary generator for long conversations.
     let summaryGenerator: SummaryGenerator
 
+    // MARK: - Network & Offline Services
+
+    /// Network connectivity monitor (wraps NWPathMonitor).
+    let networkMonitor: NetworkMonitor
+
+    /// Persistent FIFO queue for messages received while offline.
+    let messageQueue: MessageQueue
+
+    /// Bridges network monitoring, message queuing, and pipeline recovery.
+    let offlineCoordinator: OfflineCoordinator
+
     // MARK: - iMessage Services
 
     /// Message sender (AppleScript-based).
@@ -94,6 +105,9 @@ final class ServiceContainer {
         llmClient: ClaudeAPIClient,
         contextBuilder: ContextBuilder,
         summaryGenerator: SummaryGenerator,
+        networkMonitor: NetworkMonitor,
+        messageQueue: MessageQueue,
+        offlineCoordinator: OfflineCoordinator,
         messageSender: MessageSender,
         messageWatcher: MessageWatcher,
         messageCoordinator: MessageCoordinator
@@ -108,6 +122,9 @@ final class ServiceContainer {
         self.llmClient = llmClient
         self.contextBuilder = contextBuilder
         self.summaryGenerator = summaryGenerator
+        self.networkMonitor = networkMonitor
+        self.messageQueue = messageQueue
+        self.offlineCoordinator = offlineCoordinator
         self.messageSender = messageSender
         self.messageWatcher = messageWatcher
         self.messageCoordinator = messageCoordinator
@@ -176,7 +193,17 @@ final class ServiceContainer {
         let messageSender = MessageSender()
         let messageWatcher = MessageWatcher()
 
-        // ── Step 10: Message Coordinator (wires everything together) ──
+        // ── Step 10: Network & Offline ──
+        let networkMonitor = NetworkMonitor()
+        let messageQueue = MessageQueue()
+        let offlineCoordinator = OfflineCoordinator(
+            networkMonitor: networkMonitor,
+            messageQueue: messageQueue,
+            messageSender: messageSender,
+            appState: appState
+        )
+
+        // ── Step 11: Message Coordinator (wires everything together) ──
         let messageCoordinator = MessageCoordinator(
             tronPipeline: tronPipeline,
             messageSender: messageSender,
@@ -187,7 +214,8 @@ final class ServiceContainer {
             contextBuilder: contextBuilder,
             summaryGenerator: summaryGenerator,
             messageWatcher: messageWatcher,
-            appState: appState
+            appState: appState,
+            offlineCoordinator: offlineCoordinator
         )
 
         let totalTime = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
@@ -204,6 +232,9 @@ final class ServiceContainer {
             llmClient: llmClient,
             contextBuilder: contextBuilder,
             summaryGenerator: summaryGenerator,
+            networkMonitor: networkMonitor,
+            messageQueue: messageQueue,
+            offlineCoordinator: offlineCoordinator,
             messageSender: messageSender,
             messageWatcher: messageWatcher,
             messageCoordinator: messageCoordinator
@@ -212,11 +243,17 @@ final class ServiceContainer {
 
     // MARK: - Lifecycle
 
-    /// Starts the message coordinator, which begins watching for new iMessages.
+    /// Starts all runtime services in dependency order.
+    ///
+    /// 1. Starts network monitoring (connectivity detection).
+    /// 2. Starts the offline coordinator (queue restoration + Combine subscriptions).
+    /// 3. Starts the message coordinator (begins watching for new iMessages).
     ///
     /// - Throws: `ChatDatabaseError.databaseNotFound` if chat.db doesn't exist
     ///   (Full Disk Access not granted), or other errors if the watcher fails to start.
     func start() throws {
+        networkMonitor.start()
+        offlineCoordinator.start()
         try messageCoordinator.start()
     }
 
@@ -225,10 +262,14 @@ final class ServiceContainer {
     /// Call this from `applicationWillTerminate`. Services are stopped in
     /// reverse initialization order:
     /// 1. Stop message coordinator (also stops the watcher)
-    /// 2. Close database connection
+    /// 2. Stop offline coordinator (cancels subscriptions, preserves queue)
+    /// 3. Stop network monitor (releases NWPathMonitor)
+    /// 4. Close database connection
     func shutdown() {
         Self.logger.info("Beginning clean shutdown...")
         messageCoordinator.stop()
+        offlineCoordinator.stop()
+        networkMonitor.stop()
         database.close()
         Self.logger.info("Clean shutdown complete.")
     }

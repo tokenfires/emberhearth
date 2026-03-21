@@ -72,6 +72,10 @@ final class MessageCoordinator {
     /// The app state for updating status indicators (weak to avoid retain cycles).
     private weak var appState: AppState?
 
+    /// The offline coordinator for network monitoring and message queuing.
+    /// Optional — if nil, offline handling is skipped (e.g., in tests).
+    private let offlineCoordinator: OfflineCoordinator?
+
     /// Logger for message processing events. NEVER logs message content.
     private let logger = AppLogger.logger(for: .messages)
 
@@ -102,6 +106,7 @@ final class MessageCoordinator {
     ///   - summaryGenerator: The rolling summary generator.
     ///   - messageWatcher: The iMessage watcher.
     ///   - appState: The shared app state for status transitions (optional, weak reference).
+    ///   - offlineCoordinator: The offline coordinator for network monitoring and queuing (optional).
     init(
         tronPipeline: TronPipeline,
         messageSender: any MessageSendingProtocol,
@@ -112,7 +117,8 @@ final class MessageCoordinator {
         contextBuilder: ContextBuilder,
         summaryGenerator: SummaryGenerator,
         messageWatcher: MessageWatcher,
-        appState: AppState? = nil
+        appState: AppState? = nil,
+        offlineCoordinator: OfflineCoordinator? = nil
     ) {
         self.tronPipeline = tronPipeline
         self.messageSender = messageSender
@@ -124,6 +130,13 @@ final class MessageCoordinator {
         self.summaryGenerator = summaryGenerator
         self.messageWatcher = messageWatcher
         self.appState = appState
+        self.offlineCoordinator = offlineCoordinator
+
+        // Wire the queued message processor back to this coordinator
+        offlineCoordinator?.processQueuedMessage = { [weak self] text, phoneNumber in
+            guard let self = self else { return false }
+            return await self.processQueuedMessageThroughPipeline(text: text, phoneNumber: phoneNumber)
+        }
     }
 
     // MARK: - Lifecycle
@@ -264,6 +277,7 @@ final class MessageCoordinator {
     /// Processes a message that passed the inbound security pipeline.
     ///
     /// Pipeline steps:
+    /// 0. Check offline status — queue message if network is unavailable
     /// 1. Build LLM context (handles session history + fact retrieval internally)
     /// 2. Call the LLM
     /// 3. Run the outbound security pipeline
@@ -271,6 +285,14 @@ final class MessageCoordinator {
     /// 5. Store user and assistant messages in the session
     /// 6. Run background tasks (fact extraction, summary check)
     private func processAllowedMessage(_ messageText: String, phoneNumber: String) async {
+        // Step 0: Queue immediately if offline — do not attempt the LLM call
+        if let offline = offlineCoordinator, offline.isOffline {
+            logger.info("Device is offline. Queuing message from \(phoneNumber.suffix(4), privacy: .public)")
+            offline.queueMessage(text: messageText, phoneNumber: phoneNumber)
+            delegate?.coordinatorDidFinishProcessing(from: phoneNumber)
+            return
+        }
+
         // Step 1: Build context (handles session + facts + system prompt internally)
         let context: ContextBuildResult
         do {
@@ -302,6 +324,15 @@ final class MessageCoordinator {
             llmResponse = response.content
         } catch {
             logger.error("LLM call failed for \(phoneNumber.suffix(4), privacy: .public): \(error.localizedDescription, privacy: .public)")
+
+            // If the failure looks like a network error, queue for retry
+            if let offline = offlineCoordinator, isNetworkError(error) {
+                logger.info("Network error detected. Queuing message from \(phoneNumber.suffix(4), privacy: .public)")
+                offline.queueMessage(text: messageText, phoneNumber: phoneNumber)
+                delegate?.coordinatorDidFinishProcessing(from: phoneNumber)
+                return
+            }
+
             await sendSafeResponse(
                 "I'm having trouble connecting right now. I'll try again soon.",
                 to: phoneNumber
@@ -452,5 +483,64 @@ final class MessageCoordinator {
         processingLock.lock()
         defer { processingLock.unlock() }
         processingNumbers.remove(phoneNumber)
+    }
+
+    /// Determines whether an error is a network-related failure.
+    ///
+    /// Used to decide whether to queue a message for offline retry vs. reporting
+    /// a non-network LLM error to the user.
+    ///
+    /// - Parameter error: The error thrown by the LLM client.
+    /// - Returns: True if the error indicates a network connectivity problem.
+    private func isNetworkError(_ error: Error) -> Bool {
+        let nsError = error as NSError
+        // URLError codes that indicate network unavailability
+        let networkErrorCodes: [Int] = [
+            NSURLErrorNotConnectedToInternet,
+            NSURLErrorNetworkConnectionLost,
+            NSURLErrorTimedOut,
+            NSURLErrorCannotFindHost,
+            NSURLErrorCannotConnectToHost,
+            NSURLErrorDNSLookupFailed,
+            NSURLErrorInternationalRoamingOff,
+            NSURLErrorDataNotAllowed
+        ]
+        return nsError.domain == NSURLErrorDomain && networkErrorCodes.contains(nsError.code)
+    }
+
+    /// Processes a queued message through the full pipeline.
+    ///
+    /// Called by OfflineCoordinator's `processQueuedMessage` callback during
+    /// catch-up queue draining after connectivity is restored.
+    ///
+    /// - Parameters:
+    ///   - text: The user's original message text.
+    ///   - phoneNumber: The sender's phone number.
+    /// - Returns: True if the message was processed successfully.
+    func processQueuedMessageThroughPipeline(text: String, phoneNumber: String) async -> Bool {
+        guard acquireProcessingLock(for: phoneNumber) else {
+            logger.info("Already processing for: \(phoneNumber.suffix(4), privacy: .public), skipping queued message")
+            return false
+        }
+        defer { releaseProcessingLock(for: phoneNumber) }
+
+        let inboundResult = tronPipeline.processInbound(
+            message: text,
+            phoneNumber: phoneNumber,
+            isGroupChat: false
+        )
+
+        switch inboundResult {
+        case .blocked, .ignored:
+            // Don't retry blocked/ignored messages; treat as success to remove from queue
+            return true
+        case .allowed(let allowedMessage):
+            await processAllowedMessage(allowedMessage, phoneNumber: phoneNumber)
+            return true
+        case .crisis(let originalMessage, _, let crisisResponse):
+            await sendSafeResponse(crisisResponse, to: phoneNumber)
+            await processAllowedMessage(originalMessage, phoneNumber: phoneNumber)
+            return true
+        }
     }
 }
