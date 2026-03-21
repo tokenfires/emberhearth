@@ -542,11 +542,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     ///
     /// - Returns: The API key string, or nil if not found.
     private func loadAPIKey() -> String? {
+        let keychain = KeychainManager()
         do {
-            let key = try KeychainManager.retrieve(
-                service: "com.emberhearth.app",
-                account: "claude-api-key"
-            )
+            guard let key = try keychain.retrieve(for: .claude) else {
+                logger.info("No API key stored in Keychain")
+                return nil
+            }
             guard !key.isEmpty else {
                 logger.warning("API key found but empty")
                 return nil
@@ -687,7 +688,7 @@ Before implementing, check each component's actual initializer:
 2. `ClaudeAPIClient(apiKey:)` — Does it take the API key in its initializer?
 3. `MessageCoordinator(...)` — What parameters does its init require?
 4. `MessageWatcher(...)` — What parameters does its init require?
-5. `KeychainManager.retrieve(service:account:)` — What's the actual API?
+5. `KeychainManager().retrieve(for: .claude)` — Returns `String?`, throws `KeychainError`. Instance method, not static.
 6. `StatusBarController(appState:)` — Does it take AppState?
 
 Adapt the ServiceContainer.initialize() method to match the actual APIs. The initialization ORDER should remain the same (database first, then security, then memory, then LLM, then iMessage) but the specific parameter names and types may differ.

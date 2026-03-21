@@ -470,9 +470,9 @@ final class HealthCheckService {
     ///
     /// - Returns: The API key status.
     func checkAPIKey() -> APIKeyStatus {
-        // TODO: Wire to KeychainManager.getAPIKey() during integration
-        // For now, check the UserDefaults flag from Settings
-        let hasKey = UserDefaults.standard.bool(forKey: "hasAPIKey")
+        // Settings (task 0701) stores the API key in Keychain, not UserDefaults.
+        // Use KeychainManager.hasKey(for:) to check presence.
+        let hasKey = KeychainManager().hasKey(for: .claude)
         return hasKey ? .present : .missing
     }
 
