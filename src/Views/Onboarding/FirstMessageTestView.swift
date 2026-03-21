@@ -181,14 +181,12 @@ final class FirstMessageTestViewModel: ObservableObject {
     /// In the full implementation, this connects to MessageCoordinator.
     /// For now, this sets up the pipeline and subscribes to status updates.
     private func startMessagePipeline() {
-        // TODO: When MessageCoordinator is available:
-        // MessageCoordinator.shared.start()
-        // Subscribe to MessageCoordinator.shared.statusPublisher
+        // TODO(v1.1): Connect directly to MessageCoordinator.start() and statusPublisher
+        // for richer first-message test visibility.
         //
-        // For now, the test relies on the message pipeline already being
-        // initialized by prior onboarding steps. The pipeline will
-        // automatically process incoming messages and this view will
-        // observe the status.
+        // The test relies on the message pipeline already being initialized by prior
+        // onboarding steps. The pipeline automatically processes incoming messages and
+        // this view observes the status.
 
         Self.logger.info("Message pipeline started for first message test")
     }

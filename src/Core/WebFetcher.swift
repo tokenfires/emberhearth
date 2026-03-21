@@ -25,7 +25,9 @@ import os
 /// ## Usage
 /// ```swift
 /// let fetcher = WebFetcher()
-/// let content = try await fetcher.fetch(url: URL(string: "https://example.com/article")!)
+/// if let url = URL(string: "https://example.com/article") {
+///     let content = try await fetcher.fetch(url: url)
+/// }
 /// print(content.textContent) // Extracted article text
 /// ```
 final class WebFetcher {

@@ -184,7 +184,7 @@ final class CrashRecoveryManager {
     ///
     /// - Returns: True if the database is intact.
     func verifyDatabaseIntegrity() async -> Bool {
-        // TODO: Wire to DatabaseManager.verifyIntegrity() during integration
+        // TODO(v1.1): Wire to DatabaseManager.verifyIntegrity() for deep integrity checks
         // For now, check if the database file exists and is not zero-length
         let path = Self.databasePath
         let fileManager = FileManager.default

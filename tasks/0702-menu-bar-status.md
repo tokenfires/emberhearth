@@ -122,7 +122,7 @@ final class AppState: ObservableObject {
 
     /// Creates a new AppState, checking onboarding completion from UserDefaults.
     init() {
-        self.isOnboardingComplete = UserDefaults.standard.bool(forKey: "onboardingComplete")
+        self.isOnboardingComplete = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
         logger.info("AppState initialized. Onboarding complete: \(self.isOnboardingComplete)")
     }
 

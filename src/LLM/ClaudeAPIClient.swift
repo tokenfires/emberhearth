@@ -37,10 +37,14 @@ final class ClaudeAPIClient: LLMProviderProtocol, Sendable {
 
     // MARK: - Initialization
 
+    /// The default base URL for the Anthropic API.
+    static let defaultBaseURL = URL(string: "https://api.anthropic.com")
+        ?? URL(fileURLWithPath: "/")
+
     init(
         apiKey: String,
         session: URLSession = .shared,
-        baseURL: URL = URL(string: "https://api.anthropic.com")!
+        baseURL: URL = ClaudeAPIClient.defaultBaseURL
     ) {
         self.apiKey = apiKey
         self.session = session

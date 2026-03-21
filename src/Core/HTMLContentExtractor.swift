@@ -192,9 +192,9 @@ struct HTMLContentExtractor {
             let matches = regex.matches(in: result, range: range).reversed()
             for match in matches {
                 if let numRange = Range(match.range(at: 1), in: result),
+                   let fullRange = Range(match.range, in: result),
                    let code = UInt32(result[numRange]),
                    let scalar = Unicode.Scalar(code) {
-                    let fullRange = Range(match.range, in: result)!
                     result.replaceSubrange(fullRange, with: String(scalar))
                 }
             }
@@ -206,9 +206,9 @@ struct HTMLContentExtractor {
             let matches = regex.matches(in: result, range: range).reversed()
             for match in matches {
                 if let hexRange = Range(match.range(at: 1), in: result),
+                   let fullRange = Range(match.range, in: result),
                    let code = UInt32(result[hexRange], radix: 16),
                    let scalar = Unicode.Scalar(code) {
-                    let fullRange = Range(match.range, in: result)!
                     result.replaceSubrange(fullRange, with: String(scalar))
                 }
             }

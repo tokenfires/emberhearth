@@ -84,15 +84,59 @@ Current AI assistants fall into two camps:
 
 ## Status
 
-**Phase: Planning / Research**
+**Phase: MVP Complete (v1.0.0)**
 
-This project is in early development. We're currently:
-- Researching macOS APIs and security primitives
-- Exploring iMessage integration approaches
-- Evaluating local model capabilities
-- Documenting the architecture
+EmberHearth has reached its first production-ready milestone. All core systems are implemented and tested:
+- iMessage integration (read and respond)
+- Claude API integration with streaming
+- Local memory (SQLite, encrypted)
+- Security pipeline (Tron) — prompt injection + credential detection
+- Crisis detection with 988 referral
+- Onboarding wizard and Settings app
+- Menu bar integration
 
-See [docs/NEXT-STEPS.md](docs/NEXT-STEPS.md) for the roadmap.
+See [docs/NEXT-STEPS.md](docs/NEXT-STEPS.md) for the v1.1+ roadmap.
+
+---
+
+## Requirements
+
+- macOS 13.0 (Ventura) or later
+- Xcode 15.0+ (for building from source)
+- A Claude API key from [Anthropic](https://www.anthropic.com/)
+- Full Disk Access permission (for reading iMessage database)
+- Automation permission (for sending iMessages via AppleScript)
+
+---
+
+## Building from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/emberhearth.git
+cd emberhearth
+
+# Build
+./build.sh build
+
+# Run tests
+./build.sh test
+
+# Run everything (security check + build + tests)
+./build.sh all
+```
+
+---
+
+## First Run
+
+1. Launch EmberHearth
+2. Complete the onboarding wizard:
+   - Grant Full Disk Access and Automation permissions
+   - Enter your Claude API key
+   - Add your phone number to the authorized list
+3. Ember appears in your menu bar
+4. Send a message to yourself in iMessage — Ember will respond!
 
 ---
 
@@ -189,9 +233,44 @@ See [ADR Index](docs/architecture/decisions/README.md) for the full list and pro
 
 ---
 
+## Architecture
+
+EmberHearth is built with:
+- **Swift + SwiftUI** — native macOS, no Electron or web wrapper
+- **iMessage** — primary conversational interface, inherits Apple accessibility stack
+- **SQLite** — local memory storage (no cloud sync)
+- **Claude API** — language understanding via Anthropic
+- **Keychain** — all credential storage, never UserDefaults or plist
+
+**Module layout:**
+```
+src/App/          App lifecycle, menu bar, startup wiring
+src/Core/         Message orchestration, iMessage reading, session management
+src/LLM/          Claude API client, streaming, token management
+src/Security/     Tron pipeline, crisis detection, Keychain manager
+src/Memory/       Fact extraction, storage, retrieval
+src/Database/     SQLite wrapper, migrations
+src/Personality/  System prompt, verbosity adaptation
+src/Views/        SwiftUI onboarding and settings UI
+src/Logging/      Structured logging, security event audit
+```
+
+---
+
+## Security
+
+- All user data stays local — no cloud sync, no telemetry
+- API keys stored exclusively in macOS Keychain
+- All LLM inputs screened for prompt injection attacks
+- All LLM outputs screened for credential leaks
+- No shell execution — ever (see [ADR-0004](docs/architecture/decisions/0004-no-shell-execution.md))
+- Hardened Runtime enabled for distribution
+
+---
+
 ## Building in Public
 
-Development of EmberHearth will be streamed live on Twitch. Follow along as we explore, prototype, make mistakes, and (hopefully) build something useful.
+Development of EmberHearth is streamed live on Twitch. Follow along as we explore, prototype, make mistakes, and (hopefully) build something useful.
 
 Building in public means transparency about the process — the good, the bad, and the "why did I think that would work?" moments.
 
@@ -205,10 +284,8 @@ MIT License — See [LICENSE](LICENSE)
 
 ## Contributing
 
-We're not yet accepting contributions as the project is in early research phase. Once the foundation is solid, we'll open up for community involvement.
-
-Watch this repo to stay updated!
+Contributions welcome! Please open an issue first to discuss what you'd like to change.
 
 ---
 
-*Last verified: 2026-02-05*
+*Last verified: 2026-03-21*

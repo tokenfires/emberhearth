@@ -155,7 +155,10 @@ final class APIKeyEntryViewModel: ObservableObject {
     /// - Returns: true if the API accepted the key.
     /// - Throws: Network or URL errors.
     private func testAPIKey(_ apiKey: String) async throws -> Bool {
-        let url = URL(string: "https://api.anthropic.com/v1/messages")!
+        guard let url = URL(string: "https://api.anthropic.com/v1/messages") else {
+            validationState = .invalid(message: "Internal error: invalid API endpoint URL.")
+            return false
+        }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

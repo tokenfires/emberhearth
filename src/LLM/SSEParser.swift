@@ -66,9 +66,9 @@ final class SSEParser: Sendable {
                             currentEventType = String(line.dropFirst("event: ".count))
                         } else if line.hasPrefix("data: ") {
                             let dataValue = String(line.dropFirst("data: ".count))
-                            if currentData != nil {
+                            if let existingData = currentData {
                                 // Multiple data lines for the same event — concatenate with newline
-                                currentData! += "\n" + dataValue
+                                currentData = existingData + "\n" + dataValue
                             } else {
                                 currentData = dataValue
                             }
@@ -128,8 +128,8 @@ final class SSEParser: Sendable {
                 currentEventType = String(trimmedLine.dropFirst("event: ".count))
             } else if trimmedLine.hasPrefix("data: ") {
                 let dataValue = String(trimmedLine.dropFirst("data: ".count))
-                if currentData != nil {
-                    currentData! += "\n" + dataValue
+                if let existingData = currentData {
+                    currentData = existingData + "\n" + dataValue
                 } else {
                     currentData = dataValue
                 }

@@ -115,7 +115,7 @@ final class HealthCheckService {
     ///
     /// - Returns: True if the database is intact.
     func checkDatabaseIntegrity() async -> Bool {
-        // TODO: Wire to DatabaseManager.verifyIntegrity() during integration
+        // TODO(v1.1): Wire to DatabaseManager.verifyIntegrity() for deep integrity checks
         let dbPath = CrashRecoveryManager.databasePath
         let fileManager = FileManager.default
         guard fileManager.fileExists(atPath: dbPath.path) else {

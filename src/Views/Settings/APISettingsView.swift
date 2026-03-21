@@ -256,7 +256,7 @@ struct APISettingsView: View {
         isTesting = true
         testResultMessage = nil
 
-        // TODO: Wire to ClaudeClient.validateKey() during integration
+        // TODO(v1.1): Wire to ClaudeClient.validateKey() for live connection testing in Settings
         Task {
             try? await Task.sleep(nanoseconds: 1_500_000_000)
             await MainActor.run {

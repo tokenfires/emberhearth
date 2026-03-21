@@ -49,7 +49,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         LaunchAtLoginManager.shared.synchronize()
 
         // Step 3: Check if onboarding has been completed.
-        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "onboardingComplete")
+        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
         guard hasCompletedOnboarding else {
             logger.info("Onboarding not complete — showing onboarding window")
             showOnboardingWindow()
@@ -273,7 +273,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// using the newly-stored API key.
     func onboardingCompleted() {
         logger.info("Onboarding completed — starting services")
-        UserDefaults.standard.set(true, forKey: "onboardingComplete")
+        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
 
         guard let apiKey = loadAPIKey() else {
             logger.error("Onboarding completed but no API key found")

@@ -45,25 +45,29 @@ struct AboutView: View {
 
             // Links
             VStack(spacing: 12) {
-                Link(destination: URL(string: "https://github.com/robault/emberhearth")!) {
-                    HStack {
-                        Image(systemName: "chevron.left.forwardslash.chevron.right")
-                            .accessibilityHidden(true)
-                        Text("View on GitHub")
+                if let repoURL = URL(string: "https://github.com/robault/emberhearth") {
+                    Link(destination: repoURL) {
+                        HStack {
+                            Image(systemName: "chevron.left.forwardslash.chevron.right")
+                                .accessibilityHidden(true)
+                            Text("View on GitHub")
+                        }
                     }
+                    .accessibilityLabel("View EmberHearth on GitHub")
+                    .accessibilityHint("Opens the project repository in your browser")
                 }
-                .accessibilityLabel("View EmberHearth on GitHub")
-                .accessibilityHint("Opens the project repository in your browser")
 
-                Link(destination: URL(string: "https://github.com/robault/emberhearth/issues")!) {
-                    HStack {
-                        Image(systemName: "ladybug.fill")
-                            .accessibilityHidden(true)
-                        Text("Report an Issue")
+                if let issuesURL = URL(string: "https://github.com/robault/emberhearth/issues") {
+                    Link(destination: issuesURL) {
+                        HStack {
+                            Image(systemName: "ladybug.fill")
+                                .accessibilityHidden(true)
+                            Text("Report an Issue")
+                        }
                     }
+                    .accessibilityLabel("Report an issue")
+                    .accessibilityHint("Opens the GitHub issues page in your browser")
                 }
-                .accessibilityLabel("Report an issue")
-                .accessibilityHint("Opens the GitHub issues page in your browser")
             }
 
             Divider()

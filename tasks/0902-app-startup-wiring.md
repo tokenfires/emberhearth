@@ -459,7 +459,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         checkForCrashRecovery()
 
         // Step 3: Check if onboarding is complete
-        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "onboardingComplete")
+        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
 
         if !hasCompletedOnboarding {
             logger.info("Onboarding not complete, showing onboarding window")
@@ -640,7 +640,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// Attempts to start services with the newly-configured API key.
     func onboardingCompleted() {
         logger.info("Onboarding completed, attempting to start services")
-        UserDefaults.standard.set(true, forKey: "onboardingComplete")
+        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
 
         guard let apiKey = loadAPIKey() else {
             logger.error("Onboarding completed but no API key found!")
