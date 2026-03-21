@@ -38,7 +38,23 @@ Package.resolved
 *.mobileprovision
 *.provisionprofile
 
+# IDE files (additional)
+.vscode/
+
+# macOS system files
+.Spotlight-V100
+.Trashes
+
 # Environment / Secrets
 .env
+.env.local
 *.env
 credentials.json
+secrets.json
+
+# Test results
+TestResults.xcresult
+*.xcresult
+
+# Archives
+*.xcarchive
