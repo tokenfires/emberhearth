@@ -38,7 +38,7 @@ final class ContextBuilder {
     //   Active task state   ~5%  ( 5 000 tokens)
     //   Response reserve   ~35%  (35 000 tokens)  ← this constant
     //
-    // `buildIntegratedContext()` computes all budgets inline as percentages
+    // `buildIntegratedContext()` uses ContextBudget for all budget decisions
     // and does not use these constants.
 
     /// Total token budget for a single LLM request.
@@ -66,9 +66,12 @@ final class ContextBuilder {
     /// The verbosity adapter for detecting response length preferences.
     private let verbosityAdapter: VerbosityAdapter
 
-    /// Default total token budget for the context window.
-    /// This is the model's maximum context minus a safety margin.
-    let defaultTotalTokens: Int
+    /// The token budget allocation for this context builder.
+    let budget: ContextBudget
+
+    /// Total token budget for the context window.
+    /// Derived from `budget.totalTokens`.
+    var defaultTotalTokens: Int { budget.totalTokens }
 
     /// Logger for context building operations.
     private let logger = Logger(
@@ -78,20 +81,42 @@ final class ContextBuilder {
 
     // MARK: - Initialization
 
-    /// Creates a new ContextBuilder with the specified components.
+    /// Creates a new ContextBuilder with the specified budget.
     ///
     /// - Parameters:
     ///   - promptBuilder: The system prompt builder. Defaults to a new instance.
     ///   - verbosityAdapter: The verbosity adapter. Defaults to a new instance.
-    ///   - defaultTotalTokens: The default context window budget. Defaults to 100,000.
+    ///   - budget: The context window budget allocation. Defaults to `.default`.
     init(
         promptBuilder: SystemPromptBuilder = SystemPromptBuilder(),
         verbosityAdapter: VerbosityAdapter = VerbosityAdapter(),
-        defaultTotalTokens: Int = 100_000
+        budget: ContextBudget = .default
     ) {
         self.promptBuilder = promptBuilder
         self.verbosityAdapter = verbosityAdapter
-        self.defaultTotalTokens = defaultTotalTokens
+        self.budget = budget
+    }
+
+    /// Creates a new ContextBuilder with a custom token count using default budget percentages.
+    ///
+    /// Convenience initializer for callers that only need to customize the total
+    /// context window size without adjusting section percentages.
+    ///
+    /// - Parameters:
+    ///   - promptBuilder: The system prompt builder. Defaults to a new instance.
+    ///   - verbosityAdapter: The verbosity adapter. Defaults to a new instance.
+    ///   - defaultTotalTokens: The total token budget. Creates a `ContextBudget` with
+    ///     default percentages applied to this total.
+    convenience init(
+        promptBuilder: SystemPromptBuilder = SystemPromptBuilder(),
+        verbosityAdapter: VerbosityAdapter = VerbosityAdapter(),
+        defaultTotalTokens: Int
+    ) {
+        self.init(
+            promptBuilder: promptBuilder,
+            verbosityAdapter: verbosityAdapter,
+            budget: ContextBudget(totalTokens: defaultTotalTokens)
+        )
     }
 
     // MARK: - Enhanced Context Building
@@ -102,8 +127,10 @@ final class ContextBuilder {
     /// 1. Retrieves relevant facts via the fact retriever
     /// 2. Loads recent session messages
     /// 3. Builds the system prompt with personality, facts, time, and summary
-    /// 4. Detects verbosity from user message patterns
-    /// 5. Formats everything as LLM messages, respecting the token budget
+    /// 4. Enforces system prompt budget by trimming lowest-importance facts
+    /// 5. Detects verbosity from user message patterns
+    /// 6. Formats everything as LLM messages, respecting the token budget
+    /// 7. Drops oldest messages when recent message budget is exceeded
     ///
     /// - Parameters:
     ///   - factRetriever: The memory system's fact retriever for loading user facts.
@@ -135,14 +162,16 @@ final class ContextBuilder {
             limit: SystemPromptBuilder.maxFacts
         )
 
-        // 3. Map facts to FactInfo for the prompt builder
-        let factInfos: [FactInfo] = relevantFacts.map { fact in
-            FactInfo(
-                content: fact.content,
-                importance: fact.importance,
-                lastUpdated: fact.updatedAt
-            )
-        }
+        // 3. Map facts to FactInfo, sorted highest importance first
+        let factInfos: [FactInfo] = relevantFacts
+            .map { fact in
+                FactInfo(
+                    content: fact.content,
+                    importance: fact.importance,
+                    lastUpdated: fact.updatedAt
+                )
+            }
+            .sorted { $0.importance > $1.importance }
 
         // 4. Detect verbosity from user message patterns
         let userMessages = recentMessages
@@ -154,70 +183,112 @@ final class ContextBuilder {
         )
         let verbosityInstruction = verbosityAdapter.instruction(for: verbosityLevel)
 
-        // 5. Build the system prompt
-        let systemPrompt = promptBuilder.buildSystemPrompt(
-            userFacts: factInfos,
+        // 5. Build the system prompt, enforcing the combined system+facts budget
+        let systemBudgetCombined = budget.systemPromptBudget + budget.factsBudget
+        var trimmedFacts = factInfos
+        var systemPrompt = promptBuilder.buildSystemPrompt(
+            userFacts: trimmedFacts,
             sessionSummary: sessionSummary,
             currentDate: Date(),
             verbosityInstruction: verbosityInstruction,
             userName: userName
         )
+        var systemPromptTokens = TokenCounter.estimateTokens(for: systemPrompt)
 
-        // 6. Calculate token budgets
-        let responseBudgetTokens = Int(Double(defaultTotalTokens) * 0.35)
-        let summaryBudgetTokens = Int(Double(defaultTotalTokens) * 0.10)
-        let availableForMessages = defaultTotalTokens
-            - responseBudgetTokens
-            - estimateTokens(for: systemPrompt)
+        // Trim lowest-importance facts until the system prompt fits its budget
+        while systemPromptTokens > systemBudgetCombined && !trimmedFacts.isEmpty {
+            trimmedFacts.removeLast()  // Facts are sorted high→low, so remove from end
+            systemPrompt = promptBuilder.buildSystemPrompt(
+                userFacts: trimmedFacts,
+                sessionSummary: sessionSummary,
+                currentDate: Date(),
+                verbosityInstruction: verbosityInstruction,
+                userName: userName
+            )
+            systemPromptTokens = TokenCounter.estimateTokens(for: systemPrompt)
+        }
 
-        // 7. Format recent messages as LLM messages, respecting budget
+        if systemPromptTokens > systemBudgetCombined {
+            logger.warning(
+                "System prompt base exceeds budget even with no facts: \(systemPromptTokens) > \(systemBudgetCombined)"
+            )
+        }
+
+        // 6. Include session summary within its budget
         var llmMessages: [LLMMessage] = []
-        var messageTokensUsed = 0
+        var summaryTokensUsed = 0
 
-        // Include session summary as an early assistant message if available
         if let summary = sessionSummary, !summary.isEmpty {
-            let summaryTokens = estimateTokens(for: summary)
-            if summaryTokens <= summaryBudgetTokens {
+            let summaryTokens = TokenCounter.estimateTokens(for: summary)
+            if summaryTokens <= budget.summaryBudget {
                 llmMessages.append(LLMMessage(
                     role: .assistant,
                     content: "[Conversation summary from earlier: \(summary)]"
                 ))
-                messageTokensUsed += summaryTokens
+                summaryTokensUsed = summaryTokens
+            } else {
+                logger.debug(
+                    "Summary exceeds budget (\(summaryTokens) > \(self.budget.summaryBudget)), skipping"
+                )
             }
         }
 
-        // Add recent messages from newest to oldest to prefer recency,
-        // then reverse to restore chronological order for the LLM.
+        // 7. Add recent messages from newest to oldest (prefer recency),
+        //    then reverse to restore chronological order for the LLM.
+        let newMessageTokens = TokenCounter.estimateTokens(for: newMessage)
+        let availableForHistory = budget.recentMessagesBudget - newMessageTokens
+
+        // Warn if the new message alone exceeds the recent messages budget
+        if newMessageTokens > budget.recentMessagesBudget {
+            logger.warning(
+                "New message exceeds recent messages budget: \(newMessageTokens) > \(self.budget.recentMessagesBudget). Including anyway."
+            )
+        }
+
         var includedMessages: [LLMMessage] = []
+        var historyTokensUsed = 0
+
         for message in recentMessages.reversed() {
-            let tokens = estimateTokens(for: message.content)
-            if messageTokensUsed + tokens > availableForMessages {
+            let tokens = TokenCounter.estimateTokens(for: message.content) + TokenCounter.messageOverhead
+            if historyTokensUsed + tokens > availableForHistory {
                 break  // Stop adding older messages when budget is reached
             }
             includedMessages.insert(
                 LLMMessage(role: message.role, content: message.content),
                 at: 0
             )
-            messageTokensUsed += tokens
+            historyTokensUsed += tokens
         }
         llmMessages.append(contentsOf: includedMessages)
 
-        // 8. Add the new user message (always included)
+        // 8. Always include the new user message
         llmMessages.append(LLMMessage(role: .user, content: newMessage))
 
-        let totalTokenEstimate = estimateTokens(for: systemPrompt)
-            + messageTokensUsed
-            + estimateTokens(for: newMessage)
+        let messageTokensUsed = historyTokensUsed + newMessageTokens
+        let factsTokensUsed = trimmedFacts.reduce(0) {
+            $0 + TokenCounter.estimateTokens(for: $1.content)
+        }
 
+        let tokenEstimates = TokenEstimates(
+            systemPrompt: systemPromptTokens,
+            recentMessages: messageTokensUsed,
+            summary: summaryTokensUsed,
+            facts: factsTokensUsed,
+            budget: budget
+        )
+
+        logger.debug(
+            "Budget usage — System: \(systemPromptTokens)/\(systemBudgetCombined), Messages: \(messageTokensUsed)/\(self.budget.recentMessagesBudget), Summary: \(summaryTokensUsed)/\(self.budget.summaryBudget)"
+        )
         logger.info(
-            "Context built: \(llmMessages.count) messages, ~\(totalTokenEstimate) tokens, \(factInfos.count) facts, verbosity=\(verbosityLevel.rawValue)"
+            "Context built: \(llmMessages.count) messages, ~\(tokenEstimates.totalInput) tokens, \(trimmedFacts.count) facts, verbosity=\(verbosityLevel.rawValue)"
         )
 
         return ContextBuildResult(
             messages: llmMessages,
             systemPrompt: systemPrompt,
-            tokenEstimate: totalTokenEstimate,
-            factsIncluded: factInfos.count,
+            tokenEstimates: tokenEstimates,
+            factsIncluded: trimmedFacts.count,
             messagesIncluded: includedMessages.count,
             verbosityLevel: verbosityLevel,
             wasTruncated: includedMessages.count < recentMessages.count
@@ -252,27 +323,13 @@ final class ContextBuilder {
 
     /// Estimates the number of tokens in a text string.
     ///
-    /// Uses a word-based estimate: ~1.3 tokens per word for English text,
-    /// plus 4 tokens of per-message framing overhead. Returns at least 1
-    /// for any input, including empty strings (framing overhead still exists).
-    ///
-    /// This is intentionally different from the static `tokenEstimate(for:)`
-    /// method below, which uses a character-based heuristic (ceiling of n/4)
-    /// and returns 0 for empty strings. The two estimators serve different
-    /// contexts:
-    /// - This instance method is used by `buildIntegratedContext()` for
-    ///   natural-language messages where word count is a better proxy.
-    /// - The static method is used by the legacy `buildContext()` path and
-    ///   the system prompt truncation logic, where byte-level accuracy matters.
-    ///
-    /// Both will be replaced by task 0404's `TokenCounter`, which will use
-    /// the model's actual tokenizer via the Anthropic API.
+    /// Delegates to `TokenCounter.estimateTokens(for:)` for consistent
+    /// word-based estimation across all context building operations.
     ///
     /// - Parameter text: The text to estimate tokens for.
     /// - Returns: Estimated token count (at least 1 for any input).
     func estimateTokens(for text: String) -> Int {
-        let wordCount = text.split(separator: " ").count
-        return max(Int(Double(wordCount) * 1.3) + 4, 1)
+        TokenCounter.estimateTokens(for: text)
     }
 
     // MARK: - Static API (Backward Compatible with Prior Callers)
@@ -338,10 +395,8 @@ final class ContextBuilder {
     /// Uses ceiling division so that any non-zero string is at least 1 token.
     /// Returns 0 for empty strings (no content, no framing).
     ///
-    /// This is intentionally different from the instance `estimateTokens(for:)`
-    /// method above, which uses a word-based heuristic and includes framing
-    /// overhead. See that method's documentation for the rationale behind
-    /// having two estimators. Both will be replaced by task 0404's `TokenCounter`.
+    /// Used by the legacy static `buildContext()` path. New code should use
+    /// `TokenCounter.estimateTokens(for:)` instead.
     public static func tokenEstimate(for text: String) -> Int {
         let charCount = text.count
         guard charCount > 0 else { return 0 }
@@ -387,8 +442,8 @@ struct ContextBuildResult: Sendable {
     /// The assembled system prompt string.
     let systemPrompt: String
 
-    /// Estimated total tokens across system prompt and messages.
-    let tokenEstimate: Int
+    /// Per-section token breakdown for this context build.
+    let tokenEstimates: TokenEstimates
 
     /// How many user facts were included in the system prompt.
     let factsIncluded: Int
@@ -401,4 +456,78 @@ struct ContextBuildResult: Sendable {
 
     /// Whether older messages were dropped to fit within the token budget.
     let wasTruncated: Bool
+
+    /// Estimated total tokens (system prompt + messages + summary).
+    /// Convenience accessor derived from `tokenEstimates.totalInput`.
+    var tokenEstimate: Int { tokenEstimates.totalInput }
+
+    // MARK: - Primary Initialization
+
+    /// Creates a ContextBuildResult with full per-section token tracking.
+    ///
+    /// - Parameters:
+    ///   - messages: The assembled LLM messages.
+    ///   - systemPrompt: The assembled system prompt.
+    ///   - tokenEstimates: Per-section token breakdown for this context build.
+    ///   - factsIncluded: Number of facts in the system prompt.
+    ///   - messagesIncluded: Number of history messages included.
+    ///   - verbosityLevel: The detected verbosity level.
+    ///   - wasTruncated: Whether older messages were dropped.
+    init(
+        messages: [LLMMessage],
+        systemPrompt: String,
+        tokenEstimates: TokenEstimates,
+        factsIncluded: Int,
+        messagesIncluded: Int,
+        verbosityLevel: VerbosityLevel,
+        wasTruncated: Bool
+    ) {
+        self.messages = messages
+        self.systemPrompt = systemPrompt
+        self.tokenEstimates = tokenEstimates
+        self.factsIncluded = factsIncluded
+        self.messagesIncluded = messagesIncluded
+        self.verbosityLevel = verbosityLevel
+        self.wasTruncated = wasTruncated
+    }
+
+    // MARK: - Legacy Initialization
+
+    /// Creates a ContextBuildResult using a flat token estimate.
+    ///
+    /// This initializer exists for backward compatibility with tests and callers
+    /// written before per-section token tracking was introduced in task 0404.
+    /// New code should use the primary memberwise initializer with `tokenEstimates:`.
+    ///
+    /// - Parameters:
+    ///   - messages: The assembled LLM messages.
+    ///   - systemPrompt: The assembled system prompt.
+    ///   - tokenEstimate: Total estimated tokens (placed in recentMessages for tracking).
+    ///   - factsIncluded: Number of facts in the system prompt.
+    ///   - messagesIncluded: Number of history messages included.
+    ///   - verbosityLevel: The detected verbosity level.
+    ///   - wasTruncated: Whether older messages were dropped.
+    init(
+        messages: [LLMMessage],
+        systemPrompt: String,
+        tokenEstimate: Int,
+        factsIncluded: Int,
+        messagesIncluded: Int,
+        verbosityLevel: VerbosityLevel,
+        wasTruncated: Bool
+    ) {
+        self.messages = messages
+        self.systemPrompt = systemPrompt
+        self.tokenEstimates = TokenEstimates(
+            systemPrompt: 0,
+            recentMessages: tokenEstimate,
+            summary: 0,
+            facts: 0,
+            budget: .default
+        )
+        self.factsIncluded = factsIncluded
+        self.messagesIncluded = messagesIncluded
+        self.verbosityLevel = verbosityLevel
+        self.wasTruncated = wasTruncated
+    }
 }
