@@ -93,8 +93,10 @@ struct OnboardingContainerView: View {
                     )
 
                 case .apiKey:
-                    // Placeholder — will be implemented in task 0601
-                    placeholderView(title: "API Key Setup", step: .apiKey)
+                    APIKeyEntryView(
+                        onContinue: { advanceToStep(.phoneConfig) },
+                        onBack: { goBackToStep(.permissions) }
+                    )
 
                 case .phoneConfig:
                     // Placeholder — will be implemented in task 0602
