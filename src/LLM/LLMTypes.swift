@@ -8,7 +8,7 @@ import Foundation
 // MARK: - LLMMessage
 
 /// A single message in a conversation.
-public struct LLMMessage: Equatable {
+public struct LLMMessage: Equatable, Sendable {
     public let role: LLMRole
     public let content: String
 
@@ -31,7 +31,7 @@ public struct LLMMessage: Equatable {
 // MARK: - LLMRole
 
 /// The role of a participant in a conversation.
-public enum LLMRole: String, Equatable {
+public enum LLMRole: String, Equatable, Sendable {
     case user
     case assistant
     case system
