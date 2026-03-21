@@ -18,7 +18,8 @@ Open these files in Cursor using `@file` references before starting:
 3. `docs/specs/autonomous-operation.md` — Focus on "Health State Machine" (lines ~44-78) for the HEALTHY/DEGRADED/HEALING/IMPAIRED state definitions and transitions. Also read "Component Health Monitors" (lines ~80-106) for the LLM Health Monitor's recovery trigger: "Background ping every 5 minutes during IMPAIRED" and "On success, process queued messages" with the message "I'm back online! Let me catch up..."
 4. `src/LLM/ClaudeAPIClient.swift` — Full file; understand current error handling and the `sendMessage()` method signature to know how to detect network failures vs. API failures
 5. `src/Core/MessageCoordinator.swift` — Full file; understand the message processing pipeline flow (steps 0-13) and the `processMessage()` method where offline interception will hook in
-6. `src/App/StatusBarController.swift` — If exists; understand `updateState(_ state: AppHealthState)` and the `.offline` state for menu bar indicator updates
+6. `src/App/AppState.swift` — Central observable state. Has `transition(to:)` method. `AppStatus` enum has `.starting`, `.ready`, `.processing`, `.degraded(String)`, `.error(String)`, `.offline`. Also has `addError(_:)`, `removeError(withId:)`.
+7. `src/App/StatusBarController.swift` — Menu bar controller. Observes `AppState` via Combine; do NOT call methods on StatusBarController to update status — update `AppState` instead.
 
 > **Context Budget Note:** `error-handling.md` is ~587 lines. Focus only on lines 22-86 (principles + LLM failure modes + message queue). `autonomous-operation.md` focus on lines 42-106 (health state machine + LLM health monitor). Both source files are small (<550 lines each). Total context is manageable.
 
@@ -88,7 +89,8 @@ FROM M6 (Integration):
 FROM M8 (Polish):
 - `src/App/CrashRecoveryManager.swift` — Crash detection and recovery. The offline coordinator should integrate with the startup health check to restore queued messages after a crash.
 - `src/App/HealthCheckService.swift` — Startup health check. Has `performStartupHealthCheck() -> HealthStatus`.
-- `src/App/StatusBarController.swift` — Menu bar controller. Has `updateState(_ state: AppHealthState)`. `AppHealthState` has `.starting`, `.healthy`, `.degraded`, `.error`, `.offline`.
+- `src/App/AppState.swift` — Central observable state. Has `transition(to:)`, `addError(_:)`, `removeError(withId:)`. `AppStatus` enum: `.starting`, `.ready`, `.processing`, `.degraded(String)`, `.error(String)`, `.offline`.
+- `src/App/StatusBarController.swift` — Observes `AppState` via Combine. Do NOT call methods directly; update `AppState` instead.
 
 If any of these types don't exist yet, use protocol stubs. Wire the real implementations during integration.
 
@@ -880,7 +882,7 @@ final class OfflineCoordinator {
         sendOfflineNotificationIfNeeded(to: phoneNumber)
 
         // Update status bar
-        statusBarController?.updateState(.degraded)
+        appState?.addError(.noInternet)
     }
 
     /// Whether the system is currently offline (no network connectivity).
@@ -906,8 +908,8 @@ final class OfflineCoordinator {
     private func handleConnectivityLost() {
         logger.warning("Connectivity lost. Entering offline mode.")
 
-        // Update status bar to offline
-        statusBarController?.updateState(.offline)
+        // Update app state to offline
+        appState?.transition(to: .offline)
 
         // Notify all configured owner phone numbers
         for phoneNumber in ownerPhoneNumbers {
@@ -927,11 +929,11 @@ final class OfflineCoordinator {
         offlineNotificationSent.removeAll()
         lock.unlock()
 
-        // Update status bar to healing (processing queue)
+        // Update app state (processing queue or ready)
         if !messageQueue.isEmpty {
-            statusBarController?.updateState(.degraded)
+            appState?.transition(to: .processing)
         } else {
-            statusBarController?.updateState(.healthy)
+            appState?.removeError(withId: "noInternet")
         }
 
         // Send "back online" notification to owner
@@ -980,7 +982,7 @@ final class OfflineCoordinator {
             let messages = self.messageQueue.drainAll()
             guard !messages.isEmpty else {
                 self.logger.debug("Queue is empty, nothing to drain")
-                self.statusBarController?.updateState(.healthy)
+                self.appState?.removeError(withId: "noInternet")
                 return
             }
 
@@ -1037,9 +1039,9 @@ final class OfflineCoordinator {
 
             self.logger.info("Queue drain complete. Processed: \(processedCount, privacy: .public), Failed: \(failedCount, privacy: .public)")
 
-            // If all processed successfully, return to healthy
+            // If all processed successfully, clear the offline error
             if self.messageQueue.isEmpty {
-                self.statusBarController?.updateState(.healthy)
+                self.appState?.removeError(withId: "noInternet")
             }
         }
     }

@@ -41,7 +41,7 @@ WHAT EXISTS (from Tasks 0001-0003):
 - Package.swift at project root
 - src/App/EmberHearthApp.swift — @main entry point
 - src/App/AppDelegate.swift — Creates and retains StatusBarController
-- src/App/StatusBarController.swift — NSStatusItem with dropdown menu, AppHealthState enum
+- src/App/StatusBarController.swift — NSStatusItem with dropdown menu, observes AppState (which holds AppStatus enum)
 - src/Views/ContentView.swift — Basic welcome view
 - Module placeholder files in all directories
 - tests/EmberHearthTests.swift — Basic module existence tests
@@ -298,7 +298,7 @@ STEP 3: Update src/App/AppDelegate.swift — Synchronize on launch
 
 Add a call to LaunchAtLoginManager.shared.synchronize() in applicationDidFinishLaunching, AFTER the status bar setup:
 
-In AppDelegate.applicationDidFinishLaunching, add this line after `statusBarController.updateState(.starting)`:
+In AppDelegate.applicationDidFinishLaunching, add this line after `controller.setup()`:
 
 ```swift
         // Synchronize launch-at-login state with user preference.

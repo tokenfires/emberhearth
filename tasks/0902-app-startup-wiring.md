@@ -250,7 +250,7 @@ final class ServiceContainer {
 
         // ── Step 2: App State ──
         let appState = AppState()
-        appState.updateState(.initializing)
+        appState.transition(to: .starting)
 
         // ── Step 3: Security Pipeline ──
         let secStepStart = CFAbsoluteTimeGetCurrent()
@@ -516,7 +516,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             container.messageWatcher.startWatching()
 
             // Update app state to ready
-            container.appState.updateState(.ready)
+            container.appState.transition(to: .ready)
 
             let totalTime = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
             logger.info("EmberHearth ready in \(String(format: "%.0f", totalTime))ms")

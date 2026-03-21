@@ -1,190 +1,261 @@
 // StatusBarController.swift
 // EmberHearth
 //
-// Manages the NSStatusItem (menu bar icon) and its dropdown menu.
-// Provides visual status indication and quick access to app functions.
+// Menu bar status item with dynamic status indicators.
 
 import AppKit
 import SwiftUI
+import Combine
+import os
 
-/// Represents the current operational state of EmberHearth.
-/// Used to change the menu bar icon appearance and status text.
-enum AppHealthState: String, CaseIterable {
-    case healthy    = "Connected"
-    case degraded   = "Degraded"
-    case error      = "Error"
-    case offline    = "Offline"
-    case starting   = "Starting..."
-
-    /// The tint color applied to the menu bar icon for this state.
-    var iconTintColor: NSColor {
-        switch self {
-        case .healthy:  return .systemGreen
-        case .degraded: return .systemYellow
-        case .error:    return .systemRed
-        case .offline:  return .systemGray
-        case .starting: return .systemGray
-        }
-    }
-
-    /// A user-friendly description of the current state.
-    var statusDescription: String {
-        switch self {
-        case .healthy:  return "Status: Connected"
-        case .degraded: return "Status: Limited"
-        case .error:    return "Status: Error"
-        case .offline:  return "Status: Offline"
-        case .starting: return "Status: Starting..."
-        }
-    }
-
-    /// VoiceOver description for the menu bar icon in this state.
-    var accessibilityDescription: String {
-        switch self {
-        case .healthy:  return "EmberHearth is running and connected"
-        case .degraded: return "EmberHearth is running with limited functionality"
-        case .error:    return "EmberHearth has encountered an error"
-        case .offline:  return "EmberHearth is offline"
-        case .starting: return "EmberHearth is starting up"
-        }
-    }
-}
-
-/// Manages the persistent menu bar icon and dropdown menu for EmberHearth.
+/// Manages the NSStatusItem in the macOS menu bar.
 ///
-/// Usage:
-/// ```
-/// let controller = StatusBarController()
-/// controller.setup()
-/// controller.updateState(.healthy)
-/// ```
+/// The menu bar icon is the primary visible indicator that EmberHearth
+/// is running. It changes appearance based on AppState to communicate
+/// status at a glance:
+///
+/// - **Ready:** Flame icon (template, adapts to system theme)
+/// - **Processing:** Flame icon with subtle pulse animation
+/// - **Degraded:** Flame icon (yellow tint)
+/// - **Error:** Exclamation triangle (red)
+/// - **Offline:** Flame icon (dimmed)
+/// - **Paused:** Pause circle icon (template)
+///
+/// The dropdown menu shows detailed status information and controls.
+///
+/// ## Accessibility
+/// - Menu items have VoiceOver-friendly titles and accessibility labels
+/// - Status information is conveyed in text, not just color
+@MainActor
 final class StatusBarController: NSObject {
 
     // MARK: - Properties
 
-    /// The system status bar item. Retained strongly to keep it visible.
+    /// The status bar item in the macOS menu bar.
     private var statusItem: NSStatusItem?
 
-    /// The dropdown menu attached to the status item.
-    private let menu = NSMenu()
+    /// Reference to the app state for status updates.
+    private let appState: AppState
 
-    /// Current health state of the application.
-    private(set) var currentState: AppHealthState = .starting
+    private let logger = Logger(subsystem: "com.emberhearth.app", category: "StatusBar")
 
-    /// Menu item that displays the current status (updated dynamically).
-    private var statusMenuItem: NSMenuItem?
+    /// Combine subscriptions for observing state changes.
+    private var cancellables = Set<AnyCancellable>()
 
-    /// Menu item for the Launch at Login toggle.
-    private var launchAtLoginMenuItem: NSMenuItem?
+    /// Timer for animating the processing state.
+    private var pulseTimer: Timer?
 
-    /// The app version string, read from the bundle.
-    private var appVersion: String {
-        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.1.0"
-        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1"
-        return "v\(version) (\(build))"
-    }
+    /// Whether the icon is in the "bright" phase of the pulse animation.
+    private var isPulseBright: Bool = false
 
     // MARK: - Initialization
 
-    /// Sets up the status bar item with icon and menu.
-    /// Call this once during app launch (from AppDelegate.applicationDidFinishLaunching).
+    /// Creates a new StatusBarController with the given app state.
+    ///
+    /// - Parameter appState: The shared app state to observe for status changes.
+    init(appState: AppState) {
+        self.appState = appState
+        super.init()
+        logger.info("StatusBarController initialized")
+    }
+
+    // MARK: - Setup
+
+    /// Sets up the status bar item. Call once from AppDelegate.
     func setup() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
-        guard let statusItem = statusItem else { return }
+        guard let statusItem else { return }
 
         if let button = statusItem.button {
-            updateIcon(for: .starting, button: button)
-
+            button.image = NSImage(systemSymbolName: "flame.fill", accessibilityDescription: "EmberHearth")
+            button.image?.isTemplate = true
             button.setAccessibilityLabel("EmberHearth")
             button.setAccessibilityHelp("Click to open EmberHearth menu")
             button.setAccessibilityRole(.menuButton)
         }
 
-        buildMenu()
-        statusItem.menu = menu
-
-        menu.setAccessibilityLabel("EmberHearth menu")
+        rebuildMenu()
+        observeStateChanges()
     }
 
-    // MARK: - State Management
+    /// Observes AppState changes and updates the menu bar accordingly.
+    private func observeStateChanges() {
+        appState.$status
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newStatus in
+                self?.updateIcon(for: newStatus)
+                self?.rebuildMenu()
+            }
+            .store(in: &cancellables)
 
-    /// Updates the visual state of the menu bar icon and status text.
+        appState.$messageCount
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.rebuildMenu()
+            }
+            .store(in: &cancellables)
+
+        appState.$isPaused
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.updateIcon(for: self?.appState.status ?? .starting)
+                self?.rebuildMenu()
+            }
+            .store(in: &cancellables)
+
+        appState.$errors
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.rebuildMenu()
+            }
+            .store(in: &cancellables)
+    }
+
+    // MARK: - Icon Updates
+
+    /// Updates the menu bar icon based on the current app status.
     ///
-    /// - Parameter newState: The new health state to display.
-    func updateState(_ newState: AppHealthState) {
-        currentState = newState
+    /// - Parameter status: The new app status.
+    private func updateIcon(for status: AppStatus) {
+        stopPulseAnimation()
 
-        if let button = statusItem?.button {
-            updateIcon(for: newState, button: button)
-            button.setAccessibilityLabel(newState.accessibilityDescription)
+        guard let button = statusItem?.button else { return }
+
+        // Paused state takes visual precedence over normal status
+        if appState.isPaused {
+            button.image = NSImage(systemSymbolName: "pause.circle.fill", accessibilityDescription: "EmberHearth paused")
+            button.image?.isTemplate = true
+            button.contentTintColor = nil
+            button.appearsDisabled = false
+            button.setAccessibilityLabel("EmberHearth is paused")
+            return
         }
 
-        statusMenuItem?.title = newState.statusDescription
+        switch status {
+        case .starting:
+            button.image = NSImage(systemSymbolName: "flame.fill", accessibilityDescription: "EmberHearth starting")
+            button.image?.isTemplate = true
+            button.contentTintColor = nil
+            button.appearsDisabled = true
+            button.setAccessibilityLabel("EmberHearth is starting up")
+
+        case .ready:
+            button.image = NSImage(systemSymbolName: "flame.fill", accessibilityDescription: "EmberHearth ready")
+            button.image?.isTemplate = true
+            button.contentTintColor = nil
+            button.appearsDisabled = false
+            button.setAccessibilityLabel("EmberHearth is running and ready")
+
+        case .processing:
+            button.image = NSImage(systemSymbolName: "flame.fill", accessibilityDescription: "EmberHearth thinking")
+            button.image?.isTemplate = true
+            button.contentTintColor = nil
+            button.appearsDisabled = false
+            button.setAccessibilityLabel("EmberHearth is thinking")
+            startPulseAnimation()
+
+        case .degraded(let reason):
+            button.image = NSImage(systemSymbolName: "flame.fill", accessibilityDescription: "EmberHearth limited")
+            button.image?.isTemplate = false
+            button.contentTintColor = .systemYellow
+            button.appearsDisabled = false
+            button.setAccessibilityLabel("EmberHearth has limited functionality: \(reason)")
+
+        case .error(let reason):
+            button.image = NSImage(systemSymbolName: "exclamationmark.triangle.fill", accessibilityDescription: "EmberHearth error")
+            button.image?.isTemplate = false
+            button.contentTintColor = .systemRed
+            button.appearsDisabled = false
+            button.setAccessibilityLabel("EmberHearth has an issue: \(reason)")
+
+        case .offline:
+            button.image = NSImage(systemSymbolName: "flame.fill", accessibilityDescription: "EmberHearth offline")
+            button.image?.isTemplate = true
+            button.contentTintColor = nil
+            button.appearsDisabled = true
+            button.setAccessibilityLabel("EmberHearth is offline")
+        }
+    }
+
+    // MARK: - Pulse Animation
+
+    /// Starts a subtle pulse animation for the processing state.
+    private func startPulseAnimation() {
+        pulseTimer = Timer.scheduledTimer(withTimeInterval: 0.8, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                self.isPulseBright.toggle()
+                self.statusItem?.button?.appearsDisabled = !self.isPulseBright
+            }
+        }
+    }
+
+    /// Stops the pulse animation and resets button appearance.
+    private func stopPulseAnimation() {
+        pulseTimer?.invalidate()
+        pulseTimer = nil
+        isPulseBright = false
+        statusItem?.button?.appearsDisabled = false
     }
 
     // MARK: - Menu Construction
 
-    /// Builds the dropdown menu with all items.
-    /// Menu structure:
-    ///   EmberHearth v0.1.0 (1)      [disabled, title]
-    ///   ─────────────────────
-    ///   Status: Starting...          [disabled, dynamic]
-    ///   ─────────────────────
-    ///   Settings...                  [opens settings window]
-    ///   About EmberHearth            [shows about panel]
-    ///   Launch at Login              [toggle, checkmark reflects state]
-    ///   ─────────────────────
-    ///   Quit EmberHearth             [terminates app]
-    private func buildMenu() {
-        menu.removeAllItems()
+    /// Rebuilds the dropdown menu with current state information.
+    private func rebuildMenu() {
+        let menu = NSMenu()
+        menu.setAccessibilityLabel("EmberHearth menu")
 
-        let titleItem = NSMenuItem(
-            title: "EmberHearth \(appVersion)",
-            action: nil,
-            keyEquivalent: ""
-        )
-        titleItem.isEnabled = false
-        titleItem.setAccessibilityLabel("EmberHearth version \(appVersion)")
-        menu.addItem(titleItem)
+        // Status line
+        let statusMenuItem = NSMenuItem(title: "Ember: \(appState.status.statusLine)", action: nil, keyEquivalent: "")
+        statusMenuItem.isEnabled = false
+        statusMenuItem.setAccessibilityLabel("EmberHearth status: \(appState.status.statusLine)")
+        menu.addItem(statusMenuItem)
 
         menu.addItem(NSMenuItem.separator())
 
-        let statusItem = NSMenuItem(
-            title: currentState.statusDescription,
-            action: nil,
-            keyEquivalent: ""
-        )
-        statusItem.isEnabled = false
-        statusItem.setAccessibilityLabel(currentState.statusDescription)
-        self.statusMenuItem = statusItem
-        menu.addItem(statusItem)
+        // Onboarding prompt
+        if !appState.isOnboardingComplete {
+            let setupItem = NSMenuItem(title: "Setup Required\u{2026}", action: #selector(openOnboarding), keyEquivalent: "")
+            setupItem.target = self
+            setupItem.setAccessibilityLabel("EmberHearth setup is required")
+            menu.addItem(setupItem)
+            menu.addItem(NSMenuItem.separator())
+        }
+
+        // Message stats
+        let messageItem = NSMenuItem(title: "Messages today: \(appState.messageCount)", action: nil, keyEquivalent: "")
+        messageItem.isEnabled = false
+        messageItem.setAccessibilityLabel("Messages today: \(appState.messageCount)")
+        menu.addItem(messageItem)
+
+        let lastMessageItem = NSMenuItem(title: "Last message: \(appState.lastMessageDescription)", action: nil, keyEquivalent: "")
+        lastMessageItem.isEnabled = false
+        lastMessageItem.setAccessibilityLabel("Last message: \(appState.lastMessageDescription)")
+        menu.addItem(lastMessageItem)
+
+        if appState.factCount > 0 {
+            let plural = appState.factCount == 1 ? "fact" : "facts"
+            let factItem = NSMenuItem(title: "Memory: \(appState.factCount) \(plural) stored", action: nil, keyEquivalent: "")
+            factItem.isEnabled = false
+            factItem.setAccessibilityLabel("Memory: \(appState.factCount) \(plural) stored")
+            menu.addItem(factItem)
+        }
 
         menu.addItem(NSMenuItem.separator())
 
-        let settingsItem = NSMenuItem(
-            title: "Settings\u{2026}",
-            action: #selector(openSettings),
-            keyEquivalent: ","
-        )
-        settingsItem.target = self
-        settingsItem.setAccessibilityLabel("Open EmberHearth settings")
-        menu.addItem(settingsItem)
+        // Pause / Resume toggle
+        let pauseTitle = appState.isPaused ? "Resume Ember" : "Pause Ember"
+        let pauseAccessibility = appState.isPaused ? "Resume Ember responses" : "Pause Ember responses"
+        let pauseItem = NSMenuItem(title: pauseTitle, action: #selector(togglePause), keyEquivalent: "p")
+        pauseItem.target = self
+        pauseItem.setAccessibilityLabel(pauseAccessibility)
+        menu.addItem(pauseItem)
 
-        let aboutItem = NSMenuItem(
-            title: "About EmberHearth",
-            action: #selector(showAbout),
-            keyEquivalent: ""
-        )
-        aboutItem.target = self
-        aboutItem.setAccessibilityLabel("Show information about EmberHearth")
-        menu.addItem(aboutItem)
+        menu.addItem(NSMenuItem.separator())
 
-        let launchItem = NSMenuItem(
-            title: "Launch at Login",
-            action: #selector(toggleLaunchAtLogin),
-            keyEquivalent: ""
-        )
+        // Launch at Login
+        let launchItem = NSMenuItem(title: "Launch at Login", action: #selector(toggleLaunchAtLogin), keyEquivalent: "")
         launchItem.target = self
         launchItem.state = LaunchAtLoginManager.shared.isEnabled ? .on : .off
         launchItem.setAccessibilityLabel(
@@ -192,117 +263,73 @@ final class StatusBarController: NSObject {
                 ? "Launch at Login is enabled. Click to disable."
                 : "Launch at Login is disabled. Click to enable."
         )
-        self.launchAtLoginMenuItem = launchItem
         menu.addItem(launchItem)
+
+        // Settings
+        let settingsItem = NSMenuItem(title: "Settings\u{2026}", action: #selector(openSettings), keyEquivalent: ",")
+        settingsItem.target = self
+        settingsItem.setAccessibilityLabel("Open EmberHearth settings")
+        menu.addItem(settingsItem)
 
         menu.addItem(NSMenuItem.separator())
 
-        let quitItem = NSMenuItem(
-            title: "Quit EmberHearth",
-            action: #selector(quitApp),
-            keyEquivalent: "q"
-        )
+        // Quit
+        let quitItem = NSMenuItem(title: "Quit EmberHearth", action: #selector(quitApp), keyEquivalent: "q")
         quitItem.target = self
         quitItem.setAccessibilityLabel("Quit EmberHearth application")
         menu.addItem(quitItem)
-    }
 
-    // MARK: - Icon Rendering
-
-    /// Updates the menu bar icon with the appropriate tint for the given state.
-    ///
-    /// Uses SF Symbol "flame.fill" as the base icon and applies a color tint
-    /// based on the current health state. isTemplate is set to false so macOS
-    /// does not override our custom tint colors.
-    private func updateIcon(for state: AppHealthState, button: NSStatusBarButton) {
-        let config = NSImage.SymbolConfiguration(pointSize: 16, weight: .medium)
-        let baseImage = NSImage(systemSymbolName: "flame.fill", accessibilityDescription: "EmberHearth")
-
-        if let image = baseImage {
-            let configuredImage = image.withSymbolConfiguration(config) ?? image
-
-            let tinted = NSImage(size: configuredImage.size, flipped: false) { rect in
-                configuredImage.draw(in: rect)
-                state.iconTintColor.set()
-                rect.fill(using: .sourceAtop)
-                return true
-            }
-            tinted.isTemplate = false
-
-            button.image = tinted
-        }
+        statusItem?.menu = menu
     }
 
     // MARK: - Menu Actions
 
-    /// Opens the main settings window and brings it to the front.
-    @objc private func openSettings() {
+    /// Opens the onboarding flow.
+    @objc private func openOnboarding() {
+        logger.info("Opening onboarding from menu bar")
         NSApp.activate(ignoringOtherApps: true)
+        // Wire to onboarding window during integration
+    }
 
-        if let window = NSApp.windows.first(where: { $0.contentView is NSHostingView<ContentView> }) {
-            window.makeKeyAndOrderFront(nil)
+    /// Opens the Settings window.
+    @objc private func openSettings() {
+        logger.info("Opening settings from menu bar")
+        NSApp.activate(ignoringOtherApps: true)
+        if #available(macOS 14.0, *) {
+            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
         } else {
-            for window in NSApp.windows {
-                window.makeKeyAndOrderFront(nil)
-            }
+            NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
         }
     }
 
-    /// Shows the standard macOS About panel for EmberHearth.
-    @objc private func showAbout() {
-        NSApp.activate(ignoringOtherApps: true)
-        NSApp.orderFrontStandardAboutPanel(
-            options: [
-                .applicationName: "EmberHearth",
-                .applicationVersion: appVersion,
-                .credits: NSAttributedString(
-                    string: "Your personal AI assistant",
-                    attributes: [
-                        .font: NSFont.systemFont(ofSize: 11),
-                        .foregroundColor: NSColor.secondaryLabelColor
-                    ]
-                )
-            ]
-        )
+    /// Toggles the pause state.
+    @objc private func togglePause() {
+        appState.togglePause()
     }
 
-    /// Toggles the Launch at Login setting and updates the menu checkbox.
+    /// Toggles the Launch at Login setting and refreshes the menu.
     @objc private func toggleLaunchAtLogin() {
         let newState = !LaunchAtLoginManager.shared.isEnabled
-        let success = LaunchAtLoginManager.shared.setEnabled(newState)
-
-        if success {
-            refreshLaunchAtLoginState()
-        }
+        LaunchAtLoginManager.shared.setEnabled(newState)
+        rebuildMenu()
     }
 
-    /// Terminates the application.
+    /// Quits the application.
     @objc private func quitApp() {
+        logger.info("Quit requested from menu bar")
         NSApplication.shared.terminate(nil)
-    }
-
-    // MARK: - State Refresh
-
-    /// Updates the Launch at Login menu item to reflect the current system state.
-    /// Call this when the menu is about to open to catch external changes
-    /// (e.g., user changed setting in System Settings).
-    func refreshLaunchAtLoginState() {
-        let isEnabled = LaunchAtLoginManager.shared.isEnabled
-        launchAtLoginMenuItem?.state = isEnabled ? .on : .off
-        launchAtLoginMenuItem?.setAccessibilityLabel(
-            isEnabled
-                ? "Launch at Login is enabled. Click to disable."
-                : "Launch at Login is disabled. Click to enable."
-        )
     }
 
     // MARK: - Cleanup
 
-    /// Removes the status item from the menu bar.
+    /// Removes the status item from the menu bar and cancels all subscriptions.
     func teardown() {
+        stopPulseAnimation()
+        cancellables.removeAll()
         if let item = statusItem {
             NSStatusBar.system.removeStatusItem(item)
             statusItem = nil
         }
+        logger.info("StatusBarController torn down")
     }
 }

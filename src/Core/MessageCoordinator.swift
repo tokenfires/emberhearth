@@ -69,8 +69,8 @@ final class MessageCoordinator {
     /// The message watcher for detecting new iMessages.
     private let messageWatcher: MessageWatcher
 
-    /// The status bar controller for updating the menu bar state (weak to avoid retain cycles).
-    private weak var statusBarController: StatusBarController?
+    /// The app state for updating status indicators (weak to avoid retain cycles).
+    private weak var appState: AppState?
 
     /// Logger for message processing events. NEVER logs message content.
     private let logger = AppLogger.logger(for: .messages)
@@ -101,7 +101,7 @@ final class MessageCoordinator {
     ///   - contextBuilder: The LLM context builder.
     ///   - summaryGenerator: The rolling summary generator.
     ///   - messageWatcher: The iMessage watcher.
-    ///   - statusBarController: The menu bar controller (optional, weak reference).
+    ///   - appState: The shared app state for status transitions (optional, weak reference).
     init(
         tronPipeline: TronPipeline,
         messageSender: MessageSender,
@@ -112,7 +112,7 @@ final class MessageCoordinator {
         contextBuilder: ContextBuilder,
         summaryGenerator: SummaryGenerator,
         messageWatcher: MessageWatcher,
-        statusBarController: StatusBarController? = nil
+        appState: AppState? = nil
     ) {
         self.tronPipeline = tronPipeline
         self.messageSender = messageSender
@@ -123,7 +123,7 @@ final class MessageCoordinator {
         self.contextBuilder = contextBuilder
         self.summaryGenerator = summaryGenerator
         self.messageWatcher = messageWatcher
-        self.statusBarController = statusBarController
+        self.appState = appState
     }
 
     // MARK: - Lifecycle
@@ -151,7 +151,7 @@ final class MessageCoordinator {
             .store(in: &cancellables)
 
         isRunning = true
-        statusBarController?.updateState(.healthy)
+        Task { @MainActor [weak self] in self?.appState?.transition(to: .ready) }
         delegate?.coordinatorReadinessChanged(isReady: true)
 
         logger.info("MessageCoordinator started successfully")
@@ -170,7 +170,7 @@ final class MessageCoordinator {
         messageWatcher.stop()
         isRunning = false
 
-        statusBarController?.updateState(.offline)
+        Task { @MainActor [weak self] in self?.appState?.transition(to: .offline) }
         delegate?.coordinatorReadinessChanged(isReady: false)
 
         logger.info("MessageCoordinator stopped")
@@ -276,7 +276,7 @@ final class MessageCoordinator {
                 "I'm having trouble getting ready to respond. Please try again in a moment.",
                 to: phoneNumber
             )
-            statusBarController?.updateState(.degraded)
+            Task { @MainActor [weak self] in self?.appState?.transition(to: .degraded("Context error")) }
             delegate?.coordinatorDidEncounterError(error, from: phoneNumber)
             delegate?.coordinatorDidFinishProcessing(from: phoneNumber)
             return
@@ -296,7 +296,7 @@ final class MessageCoordinator {
                 "I'm having trouble connecting right now. I'll try again soon.",
                 to: phoneNumber
             )
-            statusBarController?.updateState(.degraded)
+            Task { @MainActor [weak self] in self?.appState?.transition(to: .degraded("LLM error")) }
             delegate?.coordinatorDidEncounterError(error, from: phoneNumber)
             delegate?.coordinatorDidFinishProcessing(from: phoneNumber)
             return

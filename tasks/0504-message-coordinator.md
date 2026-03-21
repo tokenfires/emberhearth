@@ -79,7 +79,8 @@ FROM M6 (Security):
 - `src/Logging/AppLogger.swift` — `AppLogger.logger(for:)` with LogCategory
 
 FROM M1 (Foundation):
-- `src/App/StatusBarController.swift` — Menu bar controller. Has `updateState(_ state: AppHealthState)`. `AppHealthState` has `.starting`, `.healthy`, `.degraded`, `.error`, `.offline`.
+- `src/App/AppState.swift` — Central observable state. Has `transition(to:)` method. `AppStatus` enum has `.starting`, `.ready`, `.processing`, `.degraded(String)`, `.error(String)`, `.offline`. Also has `addError(_:)`, `removeError(withId:)`, `recordMessage()`.
+- `src/App/StatusBarController.swift` — Menu bar controller. Observes `AppState` via Combine; do NOT call methods on StatusBarController to update status — update `AppState` instead.
 
 WHAT YOU ARE BUILDING:
 The MessageCoordinator is the central orchestrator that wires the entire message pipeline together. It:
@@ -291,7 +292,7 @@ final class MessageCoordinator {
             .store(in: &cancellables)
 
         isRunning = true
-        statusBarController?.updateState(.healthy)
+        appState?.transition(to: .ready)
         delegate?.coordinatorReadinessChanged(isReady: true)
 
         logger.info("MessageCoordinator started successfully")
@@ -309,7 +310,7 @@ final class MessageCoordinator {
         messageWatcher.stop()
         isRunning = false
 
-        statusBarController?.updateState(.offline)
+        appState?.transition(to: .offline)
         delegate?.coordinatorReadinessChanged(isReady: false)
 
         logger.info("MessageCoordinator stopped")
@@ -443,7 +444,7 @@ final class MessageCoordinator {
                 "I'm having trouble connecting right now. I'll try again soon.",
                 to: phoneNumber
             )
-            statusBarController?.updateState(.degraded)
+            appState?.addError(.llmOverloaded)
             delegate?.coordinatorDidEncounterError(error, from: phoneNumber)
             return
         }
@@ -885,7 +886,7 @@ Review the MessageCoordinator implementation created in task 0504 for EmberHeart
      - FactExtractor.extractFacts(from:)
      - ContextBuilder.buildContext(session:facts:userMessage:)
      - SummaryGenerator.shouldGenerateSummary(session:) and generateSummary(for:)
-     - StatusBarController.updateState(_:)
+     - AppState.transition(to:), AppState.addError(_:), AppState.recordMessage()
    - Verify ChatMessage properties are used correctly: .text, .phoneNumber, .isGroupChat
 
 6. LIFECYCLE:

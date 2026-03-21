@@ -8,12 +8,16 @@
 import AppKit
 import SwiftUI
 
+@MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Properties
 
+    /// The shared app state — single source of truth for the application's condition.
+    let appState = AppState()
+
     /// The menu bar controller that manages the NSStatusItem and dropdown menu.
-    private let statusBarController = StatusBarController()
+    private var statusBarController: StatusBarController?
 
     // MARK: - Application Lifecycle
 
@@ -23,21 +27,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // programmatically to ensure the app runs without a Dock icon.
         NSApp.setActivationPolicy(.accessory)
 
-        // Set up the menu bar icon and dropdown menu
-        statusBarController.setup()
-
-        // Set initial state to "starting" — will transition to "healthy"
-        // once all subsystems are initialized (future tasks).
-        statusBarController.updateState(.starting)
+        // Create the status bar controller with the shared app state
+        let controller = StatusBarController(appState: appState)
+        statusBarController = controller
+        controller.setup()
 
         // Synchronize launch-at-login state with user preference.
-        // On first launch, this defaults to enabled.
         LaunchAtLoginManager.shared.synchronize()
 
-        // Simulate transition to healthy after a brief delay.
-        // In production, this will be driven by actual health checks (M5+).
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
-            self?.statusBarController.updateState(.healthy)
+        // Transition from .starting to .ready once subsystems are up.
+        // In production this will be driven by actual health checks.
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            self?.appState.transition(to: .ready)
         }
 
         // Bring the main window to front on first launch
@@ -45,8 +47,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        // Clean shutdown: remove status bar item, flush pending writes.
-        statusBarController.teardown()
+        statusBarController?.teardown()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ application: NSApplication) -> Bool {
