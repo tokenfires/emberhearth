@@ -100,6 +100,7 @@ final class TronPipeline: Sendable {
         // Step 1: Group chat check
         if config.blockGroupChats && isGroupChat {
             Self.logger.info("Blocked group chat message from: \(phoneNumber.suffix(4), privacy: .public)")
+            SecurityLogger.shared.logGroupChatBlock(phoneNumber: phoneNumber)
             return .blocked(reason: "Group chat messages are not supported")
         }
 
@@ -107,6 +108,7 @@ final class TronPipeline: Sendable {
         if !config.allowedPhoneNumbers.isEmpty {
             guard config.allowedPhoneNumbers.contains(phoneNumber) else {
                 Self.logger.info("Ignored message from unauthorized number: \(phoneNumber.suffix(4), privacy: .public)")
+                SecurityLogger.shared.logUnauthorizedNumber(phoneNumber: phoneNumber)
                 return .ignored
             }
         }
@@ -120,7 +122,14 @@ final class TronPipeline: Sendable {
                 Self.logger.warning(
                     "Blocked inbound message: threat=\(scanResult.threatLevel.label, privacy: .public), patterns=[\(patternIds, privacy: .public)]"
                 )
-                return .blocked(reason: "Potential security threat detected (level: \(scanResult.threatLevel.label))")
+                SecurityLogger.shared.logInjectionAttempt(
+                    patternIds: scanResult.matchedPatterns.map(\.patternId),
+                    threatLevel: scanResult.threatLevel,
+                    phoneNumber: phoneNumber
+                )
+                let reason = "Potential security threat detected (level: \(scanResult.threatLevel.label))"
+                SecurityLogger.shared.logMessageBlocked(reason: reason, phoneNumber: phoneNumber)
+                return .blocked(reason: reason)
             }
 
             if scanResult.threatLevel > .none {
@@ -129,10 +138,16 @@ final class TronPipeline: Sendable {
                 Self.logger.info(
                     "Allowed inbound message with warning: threat=\(scanResult.threatLevel.label, privacy: .public), patterns=[\(patternIds, privacy: .public)]"
                 )
+                SecurityLogger.shared.logInjectionAttempt(
+                    patternIds: scanResult.matchedPatterns.map(\.patternId),
+                    threatLevel: scanResult.threatLevel,
+                    phoneNumber: phoneNumber
+                )
             }
         }
 
         // All checks passed
+        SecurityLogger.shared.logMessageAllowed(phoneNumber: phoneNumber)
         return .allowed(message)
     }
 
@@ -157,9 +172,14 @@ final class TronPipeline: Sendable {
             Self.logger.warning(
                 "Redacted \(scanResult.matchCount, privacy: .public) credential(s) from outbound response: \(scanResult.detectedTypes.joined(separator: ", "), privacy: .public)"
             )
+            SecurityLogger.shared.logResponseRedacted(
+                types: scanResult.detectedTypes,
+                count: scanResult.matchCount
+            )
             return .redacted(scanResult.redactedResponse)
         }
 
+        SecurityLogger.shared.logResponseAllowed()
         return .allowed(response)
     }
 }
