@@ -27,15 +27,19 @@ final class MockLLMProvider: LLMProviderProtocol, @unchecked Sendable {
     /// Records the last messages received.
     var lastMessages: [LLMMessage] = []
 
+    /// Records the last maxTokens value received.
+    var lastMaxTokens: Int?
+
     /// How many times sendMessage was called.
     var sendMessageCallCount: Int = 0
 
     var isAvailable: Bool = true
 
-    func sendMessage(_ messages: [LLMMessage], systemPrompt: String?) async throws -> LLMResponse {
+    func sendMessage(_ messages: [LLMMessage], systemPrompt: String?, maxTokens: Int?) async throws -> LLMResponse {
         sendMessageCallCount += 1
         lastMessages = messages
         lastSystemPrompt = systemPrompt
+        lastMaxTokens = maxTokens
 
         if shouldThrowError {
             throw errorToThrow
@@ -49,7 +53,7 @@ final class MockLLMProvider: LLMProviderProtocol, @unchecked Sendable {
         )
     }
 
-    func streamMessage(_ messages: [LLMMessage], systemPrompt: String?) -> AsyncThrowingStream<String, Error> {
+    func streamMessage(_ messages: [LLMMessage], systemPrompt: String?, maxTokens: Int?) -> AsyncThrowingStream<String, Error> {
         return AsyncThrowingStream { continuation in
             continuation.finish()
         }
