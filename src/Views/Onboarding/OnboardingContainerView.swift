@@ -105,8 +105,10 @@ struct OnboardingContainerView: View {
                     )
 
                 case .test:
-                    // Placeholder — will be implemented in task 0603
-                    placeholderView(title: "First Message Test", step: .test)
+                    FirstMessageTestView(
+                        onComplete: { completeOnboarding() },
+                        onBack: { goBackToStep(.phoneConfig) }
+                    )
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -153,53 +155,6 @@ struct OnboardingContainerView: View {
             .accessibilityLabel("Onboarding progress")
             .accessibilityValue("Step \(currentStep.rawValue + 1) of \(OnboardingStep.totalSteps)")
         }
-    }
-
-    // MARK: - Placeholder Views
-
-    /// A placeholder view for steps not yet implemented (tasks 0601-0603).
-    private func placeholderView(title: String, step: OnboardingStep) -> some View {
-        VStack(spacing: 20) {
-            Spacer()
-
-            Text(title)
-                .font(.title)
-                .fontWeight(.bold)
-
-            Text("This step will be implemented in a future task.")
-                .font(.body)
-                .foregroundStyle(.secondary)
-
-            HStack(spacing: 16) {
-                Button("Back") {
-                    goBack()
-                }
-                .keyboardShortcut(.cancelAction)
-                .accessibilityLabel("Go back to previous step")
-                .accessibilityHint("Returns to the previous onboarding step")
-
-                if step == .test {
-                    Button("Finish Onboarding") {
-                        completeOnboarding()
-                    }
-                    .keyboardShortcut(.defaultAction)
-                    .buttonStyle(.borderedProminent)
-                    .accessibilityLabel("Finish onboarding")
-                    .accessibilityHint("Completes setup and opens the main app")
-                } else {
-                    Button("Continue") {
-                        advanceToNextStep()
-                    }
-                    .keyboardShortcut(.defaultAction)
-                    .buttonStyle(.borderedProminent)
-                    .accessibilityLabel("Continue to next step")
-                    .accessibilityHint("Advances to the next onboarding step")
-                }
-            }
-
-            Spacer()
-        }
-        .padding(40)
     }
 
     // MARK: - Navigation
