@@ -224,7 +224,7 @@ final class SecurityLoggerTests: XCTestCase {
 
     func testSecurityEventTypes() {
         let allTypes = SecurityEventType.allCases
-        XCTAssertEqual(allTypes.count, 8)
+        XCTAssertEqual(allTypes.count, 9)
         XCTAssertTrue(allTypes.contains(.injectionDetected))
         XCTAssertTrue(allTypes.contains(.credentialDetected))
         XCTAssertTrue(allTypes.contains(.groupChatBlocked))
@@ -233,6 +233,7 @@ final class SecurityLoggerTests: XCTestCase {
         XCTAssertTrue(allTypes.contains(.messageAllowed))
         XCTAssertTrue(allTypes.contains(.responseRedacted))
         XCTAssertTrue(allTypes.contains(.responseAllowed))
+        XCTAssertTrue(allTypes.contains(.crisisDetected))
     }
 
     // MARK: - Thread Safety

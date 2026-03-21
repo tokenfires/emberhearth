@@ -171,6 +171,32 @@ final class SecurityLogger: @unchecked Sendable {
         appendEvent(event)
     }
 
+    /// Logs a crisis signal detection.
+    ///
+    /// IMPORTANT: The user's actual message content is NEVER logged. Only the tier
+    /// and pattern descriptions are recorded.
+    ///
+    /// - Parameters:
+    ///   - tier: The detected crisis tier (1 = most severe).
+    ///   - patternDescriptions: Descriptions of the matched patterns (e.g., ["explicit suicidal intent"]).
+    ///     These are pattern descriptions, NOT the user's words.
+    ///   - phoneNumber: The sender's phone number. Only the last 4 digits are logged.
+    func logCrisisDetected(tier: CrisisTier, patternDescriptions: [String], phoneNumber: String) {
+        let maskedNumber = maskPhoneNumber(phoneNumber)
+        let patterns = patternDescriptions.joined(separator: ", ")
+
+        logger.warning(
+            "Crisis detected: tier=\(tier.rawValue, privacy: .public), patterns=[\(patterns, privacy: .public)], from=\(maskedNumber, privacy: .public)"
+        )
+
+        let event = SecurityEvent(
+            eventType: .crisisDetected,
+            threatLevel: .none,
+            details: "Crisis detected: tier \(tier.rawValue), patterns [\(patterns)], from \(maskedNumber)"
+        )
+        appendEvent(event)
+    }
+
     /// Logs that an inbound message was allowed.
     ///
     /// - Parameter phoneNumber: The sender's phone number. Only the last 4 digits are logged.

@@ -30,4 +30,7 @@ enum SecurityEventType: String, Sendable, CaseIterable {
 
     /// An outbound response was allowed (no credentials found).
     case responseAllowed = "response_allowed"
+
+    /// A crisis signal was detected in an inbound message.
+    case crisisDetected = "crisis_detected"
 }

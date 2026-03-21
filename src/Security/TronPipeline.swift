@@ -47,6 +47,9 @@ final class TronPipeline: Sendable {
     /// The pipeline configuration.
     let config: TronPipelineConfig
 
+    /// The crisis detector for inbound messages. Runs BEFORE injection scanning.
+    private let crisisDetector: CrisisDetector
+
     /// The injection scanner for inbound messages.
     private let injectionScanner: InjectionScanner
 
@@ -65,14 +68,17 @@ final class TronPipeline: Sendable {
     ///
     /// - Parameters:
     ///   - config: Pipeline configuration. Defaults to `.default`.
+    ///   - crisisDetector: The crisis detector to use. Defaults to a new instance.
     ///   - injectionScanner: The injection scanner to use. Defaults to a new instance.
     ///   - credentialScanner: The credential scanner to use. Defaults to a new instance.
     init(
         config: TronPipelineConfig = .default,
+        crisisDetector: CrisisDetector = CrisisDetector(),
         injectionScanner: InjectionScanner = InjectionScanner(),
         credentialScanner: CredentialScanner = CredentialScanner()
     ) {
         self.config = config
+        self.crisisDetector = crisisDetector
         self.injectionScanner = injectionScanner
         self.credentialScanner = credentialScanner
     }
@@ -81,10 +87,14 @@ final class TronPipeline: Sendable {
 
     /// Processes an inbound user message through the security pipeline.
     ///
-    /// Checks are applied in this order (early exit on first block):
+    /// Checks are applied in this order:
     /// 1. **Group chat detection** — Block if message is from a group chat
     /// 2. **Phone number filtering** — Ignore if number is not in allowed list
-    /// 3. **Injection scanning** — Block if injection patterns detected at/above threshold
+    /// 3. **Crisis detection** — Return crisis response if crisis signals detected (does NOT block)
+    /// 4. **Injection scanning** — Block if injection patterns detected at/above threshold
+    ///
+    /// Crisis detection runs before injection scanning because a user in crisis may use
+    /// language that superficially resembles an injection attempt. Safety takes priority.
     ///
     /// - Parameters:
     ///   - message: The raw message text from the user.
@@ -113,7 +123,24 @@ final class TronPipeline: Sendable {
             }
         }
 
-        // Step 3: Injection scanning
+        // Step 3: Crisis detection (runs BEFORE injection scanning — safety takes priority)
+        if config.enableCrisisDetection {
+            if let assessment = crisisDetector.detectCrisis(in: message) {
+                Self.logger.warning(
+                    "Crisis detected: tier=\(assessment.tier.rawValue, privacy: .public), from=\(phoneNumber.suffix(4), privacy: .public)"
+                )
+                SecurityLogger.shared.logCrisisDetected(
+                    tier: assessment.tier,
+                    patternDescriptions: assessment.matchedPatterns,
+                    phoneNumber: phoneNumber
+                )
+                let crisisResponse = CrisisResponseTemplates.response(for: assessment.tier)
+                // Not blocked — message still goes to LLM. Caller prepends crisisResponse.
+                return .crisis(message: message, tier: assessment.tier, crisisResponse: crisisResponse)
+            }
+        }
+
+        // Step 4: Injection scanning
         if config.enableInjectionScanning {
             let scanResult = injectionScanner.scan(message: message)
 

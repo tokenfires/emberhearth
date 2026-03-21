@@ -32,6 +32,11 @@ struct TronPipelineConfig: Sendable {
     /// MVP default: true.
     let enableInjectionScanning: Bool
 
+    /// Whether to enable crisis detection on inbound messages.
+    /// Crisis detection runs BEFORE injection scanning.
+    /// MVP default: true.
+    let enableCrisisDetection: Bool
+
     /// Creates a pipeline configuration with sensible MVP defaults.
     ///
     /// - Parameter allowedPhoneNumbers: Set of phone numbers in E.164 format.
@@ -41,13 +46,15 @@ struct TronPipelineConfig: Sendable {
         blockGroupChats: Bool = true,
         inboundBlockThreshold: ThreatLevel = .high,
         enableCredentialScanning: Bool = true,
-        enableInjectionScanning: Bool = true
+        enableInjectionScanning: Bool = true,
+        enableCrisisDetection: Bool = true
     ) {
         self.allowedPhoneNumbers = allowedPhoneNumbers
         self.blockGroupChats = blockGroupChats
         self.inboundBlockThreshold = inboundBlockThreshold
         self.enableCredentialScanning = enableCredentialScanning
         self.enableInjectionScanning = enableInjectionScanning
+        self.enableCrisisDetection = enableCrisisDetection
     }
 
     /// Default MVP configuration.

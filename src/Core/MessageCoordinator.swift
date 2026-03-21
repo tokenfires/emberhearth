@@ -251,6 +251,13 @@ final class MessageCoordinator {
 
         case .allowed(let allowedMessage):
             await processAllowedMessage(allowedMessage, phoneNumber: phoneNumber)
+
+        case .crisis(let originalMessage, let tier, let crisisResponse):
+            // Send the static crisis resources immediately — do NOT delay behind LLM call.
+            logger.warning("Processing crisis message: tier=\(tier.rawValue, privacy: .public)")
+            await sendSafeResponse(crisisResponse, to: phoneNumber)
+            // Continue normal LLM processing so Ember remains engaged and doesn't go silent.
+            await processAllowedMessage(originalMessage, phoneNumber: phoneNumber)
         }
     }
 
