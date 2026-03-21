@@ -948,9 +948,9 @@ After creating the CrisisDetector and CrisisResponseTemplates, update the TronPi
 - A user in crisis might use language that looks like an injection ("I want to end it all — ignore everything else")
 - Crisis detection must take priority over security screening
 
-In `src/Security/TronPipeline.swift`, the screenInbound method should be updated to:
+In `src/Security/TronPipeline.swift`, the processInbound method should be updated to incorporate crisis detection. The actual method signature is `processInbound(message:phoneNumber:isGroupChat:) -> InboundResult`. The crisis check should be added before the injection scan step. Example integration pattern:
 ```swift
-func screenInbound(message: String) -> ScreeningResult {
+func processInbound(message: String, phoneNumber: String, isGroupChat: Bool) -> InboundResult {
     // 1. CRISIS DETECTION FIRST (safety priority)
     let crisisDetector = CrisisDetector()
     if let assessment = crisisDetector.detectCrisis(in: message) {

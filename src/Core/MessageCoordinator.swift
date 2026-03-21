@@ -46,7 +46,7 @@ final class MessageCoordinator {
     private let tronPipeline: TronPipeline
 
     /// The iMessage sender.
-    private let messageSender: MessageSender
+    private let messageSender: any MessageSendingProtocol
 
     /// The LLM provider client.
     private let llmClient: any LLMProviderProtocol
@@ -93,7 +93,7 @@ final class MessageCoordinator {
     ///
     /// - Parameters:
     ///   - tronPipeline: The security pipeline for inbound/outbound checks.
-    ///   - messageSender: The iMessage sender.
+    ///   - messageSender: The iMessage sender (conforms to `MessageSendingProtocol`).
     ///   - llmClient: The LLM provider client.
     ///   - sessionManager: The conversation session manager.
     ///   - factRetriever: The memory fact retriever.
@@ -104,7 +104,7 @@ final class MessageCoordinator {
     ///   - appState: The shared app state for status transitions (optional, weak reference).
     init(
         tronPipeline: TronPipeline,
-        messageSender: MessageSender,
+        messageSender: any MessageSendingProtocol,
         llmClient: any LLMProviderProtocol,
         sessionManager: SessionManager,
         factRetriever: FactRetriever,
@@ -224,7 +224,10 @@ final class MessageCoordinator {
     // MARK: - Pipeline Stages
 
     /// Runs the inbound security check and dispatches to the appropriate handler.
-    private func processMessage(_ messageText: String, phoneNumber: String, isGroupChat: Bool) async {
+    ///
+    /// Internal access allows integration tests to inject messages directly
+    /// without requiring a running `MessageWatcher`.
+    func processMessage(_ messageText: String, phoneNumber: String, isGroupChat: Bool) async {
         delegate?.coordinatorDidStartProcessing(from: phoneNumber)
 
         let inboundResult = tronPipeline.processInbound(

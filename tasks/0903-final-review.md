@@ -81,9 +81,9 @@ Note: Test files in tests/ may contain mock API keys for testing credential dete
 
 ### 1c. Input Validation Check
 For every place where user input enters the system, verify it is validated:
-- `MessageCoordinator.processIncomingMessage()` — does it validate before processing?
-- `TronPipeline.screenInbound()` — is it called before the LLM receives any user input?
-- `TronPipeline.screenOutbound()` — is it called before any LLM output is sent to the user?
+- `MessageCoordinator.processMessage(_:phoneNumber:isGroupChat:)` — does it validate before processing?
+- `TronPipeline.processInbound(message:phoneNumber:isGroupChat:)` — is it called before the LLM receives any user input?
+- `TronPipeline.processOutbound(response:)` — is it called before any LLM output is sent to the user?
 - All SQL queries — do they use parameterized queries (? placeholders)?
 
 Search for string interpolation in SQL (dangerous):
@@ -473,8 +473,8 @@ For EACH file, verify:
    - Zero hardcoded API keys, tokens, or credentials
    - Parameterized SQL queries (no string interpolation in SQL)
    - No sensitive data (messages, keys, phone numbers) in log output
-   - All user input goes through TronPipeline.screenInbound() before LLM
-   - All LLM output goes through TronPipeline.screenOutbound() before user
+   - All user input goes through TronPipeline.processInbound() before LLM
+   - All LLM output goes through TronPipeline.processOutbound() before user
 
 2. **CODE QUALITY (Should fix before release):**
    - No force unwraps (!) in production code

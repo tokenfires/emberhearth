@@ -1,3 +1,8 @@
+// MessageSender.swift
+// EmberHearth
+//
+// Sends iMessage messages via AppleScript, conforming to MessageSendingProtocol.
+
 import Foundation
 import os.log
 
@@ -22,7 +27,7 @@ import os.log
 /// let sender = MessageSender()
 /// try await sender.send(message: "Hello!", to: "+15551234567")
 /// ```
-final class MessageSender: @unchecked Sendable {
+final class MessageSender: MessageSendingProtocol, @unchecked Sendable {
 
     // MARK: - Constants
 

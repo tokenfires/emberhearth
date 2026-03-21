@@ -847,7 +847,9 @@ grep -rn "/bin/bash" tests/IntegrationTests/ || echo "PASS: No /bin/bash referen
 swift build 2>&1
 
 # Run integration tests only
-swift test --filter "IntegrationTests" 2>&1
+# Note: MessagePipelineTests class name doesn't contain "IntegrationTests",
+# so we also filter for it explicitly.
+swift test --filter "IntegrationTests|MessagePipelineTests" 2>&1
 
 # Run all tests to ensure nothing is broken
 swift test 2>&1

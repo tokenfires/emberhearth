@@ -137,12 +137,13 @@ CredentialScannerTests.swift:
 - Test credentials embedded in natural language sentences
 
 TronPipelineTests.swift:
-- Test screenInbound() with clean messages → passes through
-- Test screenInbound() with injections → flagged with correct severity
-- Test screenOutbound() with clean responses → passes through
-- Test screenOutbound() with credentials → redacted
-- Test that screening order is correct (crisis before injection if applicable)
-- Test logging behavior (events logged, sensitive data excluded from logs)
+- Test processInbound(message:phoneNumber:isGroupChat:) with clean messages → returns .allowed(message)
+- Test processInbound() with injections → returns .blocked(reason:) at correct severity
+- Test processInbound() with unauthorized number → returns .ignored
+- Test processOutbound(response:) with clean responses → returns .allowed(response)
+- Test processOutbound() with credentials → returns .redacted(cleanedResponse)
+- Test that screening order is correct (group chat → phone filter → injection scan)
+- Test logging behavior (SecurityLogger events logged, sensitive data excluded)
 
 ### For Memory Tests (Priority 2 — Target 80%+)
 

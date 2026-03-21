@@ -51,15 +51,16 @@ A dedicated security test suite with:
 
 ## Architecture Context
 
-The Tron security pipeline has two main screening functions:
-- `screenInbound(message:)` — Scans user messages for injection attempts before they reach the LLM
-- `screenOutbound(response:)` — Scans LLM responses for credentials before they're sent to the user
+The Tron security pipeline has two main processing functions:
+- `processInbound(message:phoneNumber:isGroupChat:)` returns `InboundResult`:
+  - `.allowed(String)` — message passed all checks
+  - `.blocked(reason: String)` — message was blocked (injection, group chat)
+  - `.ignored` — unauthorized phone number, no response
+- `processOutbound(response:)` returns `OutboundResult`:
+  - `.allowed(String)` — response is clean
+  - `.redacted(String)` — credentials were replaced with [REDACTED]
 
-Each screening result includes:
-- Whether the message was flagged
-- A severity level (critical, high, medium, low, none)
-- Details about what was detected
-- For outbound: a redacted version of the response
+**Cross-task note (0800):** The original spec used `screenInbound()` / `screenOutbound()` with `result.flagged`, `result.severity`, etc. The actual API uses enum pattern matching. Adapt all assertions to use `if case .blocked = result` / `if case .redacted = result` syntax.
 
 ## Files to Create
 
@@ -772,19 +773,22 @@ final class FalsePositiveTests: XCTestCase {
 
 ## Adapting to Actual APIs
 
-Before creating the test files, check the actual interfaces in:
-- `src/Security/TronPipeline.swift` — What does `screenInbound()` return? What does `screenOutbound()` return?
-- `src/Security/InjectionScanner.swift` — What is the severity enum called?
-- `src/Security/CredentialScanner.swift` — What does the detection result look like?
+The code templates below use spec-era API names. The actual implementations differ:
 
-Adapt the test assertions to match the actual return types. The test scenarios and payloads should remain the same — only the assertion syntax may need adjusting.
+**TronPipeline** (`src/Security/TronPipeline.swift`):
+- `processInbound(message:phoneNumber:isGroupChat:)` → `InboundResult` enum (`.allowed`, `.blocked(reason:)`, `.ignored`)
+- `processOutbound(response:)` → `OutboundResult` enum (`.allowed(String)`, `.redacted(String)`)
+- Config: `TronPipelineConfig(allowedPhoneNumbers:blockGroupChats:inboundBlockThreshold:enableCredentialScanning:enableInjectionScanning:)`
 
-Specifically, look for:
-- The result type of screenInbound() — does it have `.flagged`, `.severity`, `.logged`, `.cannedResponse`?
-- The result type of screenOutbound() — does it have `.containsCredential`, `.redactedResponse`?
-- The severity enum — is it `.critical/.high/.medium/.low` or something else?
+**InjectionScanner** (`src/Security/InjectionScanner.swift`):
+- `scan(message:)` → `ScanResult` with `.threatLevel` (`ThreatLevel` enum: `.critical`, `.high`, `.medium`, `.low`, `.none`), `.matchedPatterns`, `.shouldBlock`
 
-If the actual APIs differ, adapt accordingly but keep all test scenarios.
+**CredentialScanner** (`src/Security/CredentialScanner.swift`):
+- `scanOutput(response:)` → `CredentialScanResult` with `.containsCredentials`, `.redactedResponse`, `.detectedTypes`, `.matchCount`
+
+**Adaptation pattern:** Replace `result.flagged` with `if case .blocked = result`, replace `result.severity` with pattern matching on `InboundResult`, replace `result.containsCredential` with `result.containsCredentials` (plural), etc.
+
+Keep all test scenarios and payloads — only adapt assertion syntax.
 
 ## Final Checks
 
