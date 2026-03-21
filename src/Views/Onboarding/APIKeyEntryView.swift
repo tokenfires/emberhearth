@@ -224,11 +224,13 @@ final class APIKeyEntryViewModel: ObservableObject {
 /// - Validate button with validation states (idle, validating, valid, invalid)
 /// - Success animation on valid key
 ///
-/// Accessibility:
-/// - SecureField has descriptive VoiceOver label
-/// - Validation errors are announced to VoiceOver
-/// - All interactive elements are keyboard accessible
-/// - Dynamic Type support throughout
+/// Accessibility Compliance (Task 0604):
+/// - [x] VoiceOver: Heading has .isHeader, key icon hidden, SecureField has label+hint, validation results announced
+/// - [x] Dynamic Type: All text uses semantic font styles, ScrollView prevents overflow at large sizes
+/// - [x] Keyboard: Back has .cancelAction, Validate triggered by Return in field, Continue has .defaultAction
+/// - [x] Color: Validation status shown via icon+text+color; security note uses .secondary system color
+/// - [x] Reduce Motion: Auto-advance delay shortened when reduceMotion is true
+/// - [x] UI Testing: All interactive elements have accessibilityIdentifier
 struct APIKeyEntryView: View {
 
     // MARK: - Properties
@@ -360,7 +362,7 @@ struct APIKeyEntryView: View {
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color.secondary.opacity(0.05))
         )
-        .accessibilityIdentifier("apiKeyExplanationSection")
+        .accessibilityIdentifier("onboarding_apiKey_explanationSection")
     }
 
     /// A single bullet point in the explanation section.
@@ -397,7 +399,7 @@ struct APIKeyEntryView: View {
         .buttonStyle(.link)
         .accessibilityLabel("Get an API key at console.anthropic.com")
         .accessibilityHint("Opens the Anthropic console website in your browser where you can create an API key")
-        .accessibilityIdentifier("getAPIKeyLink")
+        .accessibilityIdentifier("onboarding_apiKey_getKeyLink")
     }
 
     // MARK: - API Key Field
@@ -415,7 +417,7 @@ struct APIKeyEntryView: View {
                     .disabled(viewModel.validationState.isValid)
                     .accessibilityLabel("API key entry field")
                     .accessibilityHint("Paste your Anthropic API key. The key will be hidden for security.")
-                    .accessibilityIdentifier("apiKeySecureField")
+                    .accessibilityIdentifier("onboarding_apiKey_keyField")
                     .onSubmit {
                         if viewModel.canValidate {
                             Task {
@@ -451,7 +453,7 @@ struct APIKeyEntryView: View {
                     : "Validate API key"
                 )
                 .accessibilityHint("Tests your API key by making a small request to Anthropic")
-                .accessibilityIdentifier("validateAPIKeyButton")
+                .accessibilityIdentifier("onboarding_apiKey_validateButton")
             }
         }
     }
@@ -483,7 +485,7 @@ struct APIKeyEntryView: View {
             )
             .accessibilityElement(children: .combine)
             .accessibilityLabel("API key validated successfully")
-            .accessibilityIdentifier("validationSuccess")
+            .accessibilityIdentifier("onboarding_apiKey_validationSuccess")
 
         case .invalid(let message):
             HStack(alignment: .top, spacing: 8) {
@@ -504,7 +506,7 @@ struct APIKeyEntryView: View {
             )
             .accessibilityElement(children: .combine)
             .accessibilityLabel("Validation error: \(message)")
-            .accessibilityIdentifier("validationError")
+            .accessibilityIdentifier("onboarding_apiKey_validationError")
         }
     }
 
@@ -536,6 +538,7 @@ struct APIKeyEntryView: View {
             .keyboardShortcut(.cancelAction)
             .accessibilityLabel("Go back")
             .accessibilityHint("Returns to the permissions step")
+            .accessibilityIdentifier("onboarding_apiKey_backButton")
 
             Spacer()
 
@@ -545,7 +548,7 @@ struct APIKeyEntryView: View {
             .foregroundStyle(.secondary)
             .accessibilityLabel("Skip API key setup")
             .accessibilityHint("Continues without an API key. EmberHearth will have limited functionality. You can set this up later in Settings.")
-            .accessibilityIdentifier("skipAPIKeyButton")
+            .accessibilityIdentifier("onboarding_apiKey_skipButton")
 
             if viewModel.validationState.isValid {
                 Button("Continue") {
@@ -555,6 +558,7 @@ struct APIKeyEntryView: View {
                 .keyboardShortcut(.defaultAction)
                 .accessibilityLabel("Continue to next step")
                 .accessibilityHint("Proceeds to phone number configuration")
+                .accessibilityIdentifier("onboarding_apiKey_continueButton")
             }
         }
         .padding(16)

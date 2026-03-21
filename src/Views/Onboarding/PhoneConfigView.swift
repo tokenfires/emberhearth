@@ -151,6 +151,14 @@ final class PhoneConfigViewModel: ObservableObject {
 ///
 /// Allows users to enter one or more phone numbers that Ember should
 /// listen to. At least one number is required to proceed.
+///
+/// Accessibility Compliance (Task 0604):
+/// - [x] VoiceOver: Heading has .isHeader, phone field has label+hint, add/remove buttons labeled, error announced
+/// - [x] Dynamic Type: All text uses semantic font styles; ScrollView for overflow
+/// - [x] Keyboard: Back has .cancelAction, Continue has .defaultAction, field submits on Return
+/// - [x] Color: Error shown via icon+text; green check icon on entries accompanied by "verified" in label
+/// - [x] Reduce Motion: Remove animation respects reduceMotion
+/// - [x] UI Testing: All interactive elements have accessibilityIdentifier
 struct PhoneConfigView: View {
 
     // MARK: - Properties
@@ -159,6 +167,12 @@ struct PhoneConfigView: View {
 
     var onContinue: () -> Void
     var onBack: () -> Void
+
+    /// Respect the user's Reduce Motion preference.
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// Tracks the previous phone entry count for VoiceOver add/remove announcements.
+    @State private var previousEntryCount: Int = 0
 
     // MARK: - Body
 
@@ -227,6 +241,19 @@ struct PhoneConfigView: View {
 
             navigationButtons
         }
+        .onChange(of: viewModel.errorMessage) { newValue in
+            if let error = newValue {
+                announceToVoiceOver("Error: \(error)")
+            }
+        }
+        .onChange(of: viewModel.phoneEntries.count) { newCount in
+            if newCount > previousEntryCount {
+                announceToVoiceOver("Phone number added. \(newCount) number\(newCount == 1 ? "" : "s") configured.")
+            } else if newCount < previousEntryCount {
+                announceToVoiceOver("Phone number removed. \(newCount) number\(newCount == 1 ? "" : "s") configured.")
+            }
+            previousEntryCount = newCount
+        }
     }
 
     // MARK: - Phone Number Input
@@ -248,7 +275,7 @@ struct PhoneConfigView: View {
                         .font(.body)
                         .accessibilityLabel("Phone number")
                         .accessibilityHint("Enter the phone number you'll text Ember from. Use format like 555-123-4567.")
-                        .accessibilityIdentifier("phoneNumberTextField")
+                        .accessibilityIdentifier("onboarding_phone_numberField")
                         .onSubmit {
                             viewModel.addPhoneNumber()
                         }
@@ -263,7 +290,7 @@ struct PhoneConfigView: View {
                 .disabled(!viewModel.canAddNumber)
                 .accessibilityLabel("Add phone number")
                 .accessibilityHint("Adds the entered phone number to the list of numbers Ember will respond to")
-                .accessibilityIdentifier("addPhoneNumberButton")
+                .accessibilityIdentifier("onboarding_phone_addButton")
             }
         }
     }
@@ -311,7 +338,7 @@ struct PhoneConfigView: View {
                 .accessibilityHidden(true)
 
             Button {
-                withAnimation {
+                withAnimation(reduceMotion ? nil : .default) {
                     viewModel.removePhoneNumber(entry)
                 }
             } label: {
@@ -322,7 +349,7 @@ struct PhoneConfigView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("Remove phone number \(viewModel.formatForDisplay(entry.normalized))")
             .accessibilityHint("Removes this phone number from the list")
-            .accessibilityIdentifier("removePhoneNumber_\(entry.normalized)")
+            .accessibilityIdentifier("onboarding_phone_removeButton_\(entry.normalized)")
         }
         .padding(12)
         .background(
@@ -332,6 +359,17 @@ struct PhoneConfigView: View {
         .overlay(
             RoundedRectangle(cornerRadius: 10)
                 .strokeBorder(Color.green.opacity(0.15), lineWidth: 1)
+        )
+    }
+
+    // MARK: - VoiceOver
+
+    /// Posts a VoiceOver announcement.
+    private func announceToVoiceOver(_ message: String) {
+        NSAccessibility.post(
+            element: NSApp.mainWindow as Any,
+            notification: .announcementRequested,
+            userInfo: [.announcement: message, .priority: NSAccessibilityPriorityLevel.high]
         )
     }
 
@@ -345,6 +383,7 @@ struct PhoneConfigView: View {
             .keyboardShortcut(.cancelAction)
             .accessibilityLabel("Go back")
             .accessibilityHint("Returns to the API key setup step")
+            .accessibilityIdentifier("onboarding_phone_backButton")
 
             Spacer()
 
@@ -361,7 +400,7 @@ struct PhoneConfigView: View {
                 ? "Saves your phone numbers and proceeds to test Ember"
                 : "Add at least one phone number to continue"
             )
-            .accessibilityIdentifier("phoneConfigContinueButton")
+            .accessibilityIdentifier("onboarding_phone_continueButton")
         }
         .padding(16)
     }

@@ -47,10 +47,13 @@ enum OnboardingStep: Int, CaseIterable, Comparable {
 /// Displays a progress bar at the top, manages navigation between steps,
 /// and stores onboarding completion state in UserDefaults.
 ///
-/// Accessibility:
-/// - Progress bar has a VoiceOver label announcing "Step X of 5"
-/// - All navigation uses keyboard-accessible controls
-/// - Back navigation is available via a button or Escape key
+/// Accessibility Compliance (Task 0604):
+/// - [x] VoiceOver: Progress bar labeled "Onboarding progress", value "Step X of 5"
+/// - [x] Dynamic Type: All text uses semantic font styles, layout adapts
+/// - [x] Keyboard: Escape key navigates back via onExitCommand
+/// - [x] Color: System colors used, progress bar uses accentColor
+/// - [x] Reduce Motion: Step transitions and progress bar animation respect reduceMotion
+/// - [x] UI Testing: Progress bar has accessibilityIdentifier
 struct OnboardingContainerView: View {
 
     // MARK: - State
@@ -63,6 +66,9 @@ struct OnboardingContainerView: View {
 
     /// The permission manager shared across onboarding views.
     @StateObject private var permissionManager = PermissionManager()
+
+    /// Respect the user's Reduce Motion preference.
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// Callback invoked when onboarding is finished.
     var onComplete: (() -> Void)?
@@ -147,13 +153,14 @@ struct OnboardingContainerView: View {
                             width: geometry.size.width * currentStep.progressFraction,
                             height: 6
                         )
-                        .animation(.easeInOut(duration: 0.3), value: currentStep)
+                        .animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: currentStep)
                 }
             }
             .frame(height: 6)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Onboarding progress")
             .accessibilityValue("Step \(currentStep.rawValue + 1) of \(OnboardingStep.totalSteps)")
+            .accessibilityIdentifier("onboarding_progressBar")
         }
     }
 
@@ -161,8 +168,12 @@ struct OnboardingContainerView: View {
 
     /// Advances to a specific onboarding step.
     private func advanceToStep(_ step: OnboardingStep) {
-        withAnimation(.easeInOut(duration: 0.3)) {
+        if reduceMotion {
             currentStep = step
+        } else {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                currentStep = step
+            }
         }
     }
 
@@ -177,8 +188,12 @@ struct OnboardingContainerView: View {
 
     /// Goes back to a specific step.
     private func goBackToStep(_ step: OnboardingStep) {
-        withAnimation(.easeInOut(duration: 0.3)) {
+        if reduceMotion {
             currentStep = step
+        } else {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                currentStep = step
+            }
         }
     }
 

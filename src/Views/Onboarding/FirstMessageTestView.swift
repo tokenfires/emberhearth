@@ -288,11 +288,13 @@ final class FirstMessageTestViewModel: ObservableObject {
 /// 3. Waiting for Ember to respond
 /// 4. Celebrating success (or troubleshooting failure)
 ///
-/// Accessibility:
-/// - All status changes are announced to VoiceOver
-/// - Step-by-step instructions are readable
-/// - Buttons have descriptive labels and hints
-/// - Dynamic Type support throughout
+/// Accessibility Compliance (Task 0604):
+/// - [x] VoiceOver: Heading has .isHeader, instruction steps labeled with number+completion, status changes announced
+/// - [x] Dynamic Type: All text uses semantic font styles, ScrollView for overflow, troubleshooting tips use .fixedSize
+/// - [x] Keyboard: Back has .cancelAction, Finish/Skip has .defaultAction when final state reached
+/// - [x] Color: Status conveyed via description text+icon not color alone; troubleshooting uses text+icon
+/// - [x] Reduce Motion: reduceMotion read; success display respects preference
+/// - [x] UI Testing: All interactive elements have accessibilityIdentifier
 struct FirstMessageTestView: View {
 
     // MARK: - Properties
@@ -467,7 +469,7 @@ struct FirstMessageTestView: View {
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel(viewModel.testStatus.description)
-        .accessibilityIdentifier("testStatusIndicator")
+        .accessibilityIdentifier("onboarding_test_statusIndicator")
     }
 
     // MARK: - Success Display
@@ -588,6 +590,7 @@ struct FirstMessageTestView: View {
             .keyboardShortcut(.cancelAction)
             .accessibilityLabel("Go back")
             .accessibilityHint("Returns to phone number configuration")
+            .accessibilityIdentifier("onboarding_test_backButton")
 
             Spacer()
 
@@ -598,7 +601,7 @@ struct FirstMessageTestView: View {
                 .buttonStyle(.bordered)
                 .accessibilityLabel("Retry the test")
                 .accessibilityHint("Restarts the first message test from the beginning")
-                .accessibilityIdentifier("retryTestButton")
+                .accessibilityIdentifier("onboarding_test_retryButton")
             }
 
             if viewModel.testStatus.isFinal {
@@ -615,7 +618,7 @@ struct FirstMessageTestView: View {
                     ? "Completes onboarding and opens the EmberHearth app"
                     : "Skips the test and completes onboarding. You can test later."
                 )
-                .accessibilityIdentifier("finishSetupButton")
+                .accessibilityIdentifier("onboarding_test_finishButton")
             } else {
                 Button("Skip Test") {
                     UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
@@ -625,7 +628,7 @@ struct FirstMessageTestView: View {
                 .foregroundStyle(.secondary)
                 .accessibilityLabel("Skip test")
                 .accessibilityHint("Skips the first message test. You can test Ember later by sending a message.")
-                .accessibilityIdentifier("skipTestButton")
+                .accessibilityIdentifier("onboarding_test_skipButton")
             }
         }
         .padding(16)

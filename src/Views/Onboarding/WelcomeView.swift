@@ -14,11 +14,13 @@ import SwiftUI
 /// - Three-layer security explanation (Layer 1: one-sentence reassurance)
 /// - The "grandmother test": keep it simple enough for anyone
 ///
-/// Accessibility:
-/// - VoiceOver reads the heading, description, security points, and button
-/// - Dynamic Type scales all text with semantic font styles
-/// - Keyboard: Tab to the button, Enter/Space to activate
-/// - Supports both light and dark mode
+/// Accessibility Compliance (Task 0604):
+/// - [x] VoiceOver: Flame icon labeled, heading has .isHeader trait, security bullets grouped, button has label+hint
+/// - [x] Dynamic Type: All text uses semantic font styles (.largeTitle, .title3, .body, .callout, .headline)
+/// - [x] Keyboard: Primary action has .keyboardShortcut(.defaultAction), Tab navigates to button
+/// - [x] Color: System colors used (.primary, .secondary, .accentColor), no information-only color
+/// - [x] Reduce Motion: No animations in this view; reduceMotion read for container transitions
+/// - [x] UI Testing: Get Started button has accessibilityIdentifier
 struct WelcomeView: View {
 
     // MARK: - Properties
@@ -99,7 +101,7 @@ struct WelcomeView: View {
             .keyboardShortcut(.defaultAction)
             .accessibilityLabel("Get Started")
             .accessibilityHint("Begins the EmberHearth setup process")
-            .accessibilityIdentifier("welcomeGetStartedButton")
+            .accessibilityIdentifier("onboarding_welcome_getStartedButton")
 
             Spacer()
         }

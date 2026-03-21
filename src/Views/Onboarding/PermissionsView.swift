@@ -17,11 +17,13 @@ import SwiftUI
 /// The user cannot proceed until Full Disk Access and Automation are granted.
 /// Notifications permission is optional and can be skipped.
 ///
-/// Accessibility:
-/// - VoiceOver announces permission status changes
-/// - All buttons have descriptive labels and hints
-/// - Dynamic Type scales all text
-/// - Keyboard navigation through all interactive elements
+/// Accessibility Compliance (Task 0604):
+/// - [x] VoiceOver: Heading has .isHeader, cards combined with labels, status changes announced, buttons have hints
+/// - [x] Dynamic Type: All text uses semantic font styles, explanations use .fixedSize for wrapping
+/// - [x] Keyboard: Continue has .defaultAction, Back has .cancelAction, all buttons focusable
+/// - [x] Color: Status shown via icon+text not color alone; "Required"/"Optional" use text badges
+/// - [x] Reduce Motion: No animations in this view beyond system-default layout updates
+/// - [x] UI Testing: All interactive elements have accessibilityIdentifier
 struct PermissionsView: View {
 
     // MARK: - Properties
@@ -85,6 +87,7 @@ struct PermissionsView: View {
                 .keyboardShortcut(.cancelAction)
                 .accessibilityLabel("Go back")
                 .accessibilityHint("Returns to the welcome screen")
+                .accessibilityIdentifier("onboarding_permissions_backButton")
 
                 Spacer()
 
@@ -106,7 +109,7 @@ struct PermissionsView: View {
                     ? "Proceeds to API key setup"
                     : "Grant Full Disk Access and Automation permissions to continue"
                 )
-                .accessibilityIdentifier("permissionsContinueButton")
+                .accessibilityIdentifier("onboarding_permissions_continueButton")
             }
             .padding(16)
         }
@@ -196,7 +199,7 @@ struct PermissionsView: View {
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(permission.displayName): \(isGranted ? "granted" : "not granted"). \(permission.explanation)")
-        .accessibilityIdentifier("permissionCard_\(permission.rawValue)")
+        .accessibilityIdentifier("onboarding_permissions_\(permission.rawValue)Card")
     }
 
     // MARK: - Notification Card
@@ -235,6 +238,8 @@ struct PermissionsView: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Notifications: \(permissionManager.currentStatus.notifications ? "granted" : notificationHandled ? "skipped" : "not configured"). Optional. \(PermissionType.notifications.explanation)")
 
             Spacer()
 
@@ -258,6 +263,7 @@ struct PermissionsView: View {
                     .buttonStyle(.bordered)
                     .accessibilityLabel("Enable notifications")
                     .accessibilityHint("Requests permission to send you notifications")
+                    .accessibilityIdentifier("onboarding_permissions_enableNotificationsButton")
 
                     Button("Skip") {
                         notificationHandled = true
@@ -266,6 +272,7 @@ struct PermissionsView: View {
                     .foregroundStyle(.secondary)
                     .accessibilityLabel("Skip notifications")
                     .accessibilityHint("Continues without notification permission. You can enable this later in Settings.")
+                    .accessibilityIdentifier("onboarding_permissions_skipNotificationsButton")
                 }
             }
         }
@@ -278,9 +285,8 @@ struct PermissionsView: View {
             RoundedRectangle(cornerRadius: 12)
                 .strokeBorder(Color.secondary.opacity(0.15), lineWidth: 1)
         )
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Notifications: \(permissionManager.currentStatus.notifications ? "granted" : notificationHandled ? "skipped" : "not configured"). Optional. \(PermissionType.notifications.explanation)")
-        .accessibilityIdentifier("permissionCard_notifications")
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("onboarding_permissions_notificationsCard")
     }
 
     // MARK: - Timer Management
