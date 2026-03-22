@@ -25,10 +25,10 @@ Before you begin, make sure you have:
 |-------------|---------|
 | **macOS** | 14.0+ (Sonoma) for development |
 | **Xcode** | 15.0+ (latest stable recommended) |
-| **Swift** | 5.9+ |
+| **Swift** | 6.2+ |
 | **Command Line Tools** | Installed (`xcode-select --install`) |
 
-**Note:** You need Xcode 15 or later on macOS 14.0+ (Sonoma) for development. The development requirement is higher than the deployment target (macOS 13.0+) — you develop on Sonoma or later, but the app runs on Ventura or later.
+**Note:** You need Xcode 15 or later on macOS 14.0+ (Sonoma) for development. The app’s minimum deployment target is macOS 26.0+; use an Xcode / SDK that supports building for that target.
 
 ---
 

@@ -39,7 +39,7 @@ IMPORTANT RULES (from CLAUDE.md):
 - All source files go under src/
 - All test files go under tests/
 - Every Swift file must have the filename as its first comment line
-- macOS 13.0+ deployment target
+- macOS 26.0+ deployment target
 - No third-party dependencies — use only Apple frameworks
 
 PROJECT CONTEXT:

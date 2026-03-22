@@ -30,7 +30,7 @@ WeatherKit is Apple's official weather API, replacing the discontinued Dark Sky 
 
 | Platform | Minimum Version |
 |----------|-----------------|
-| macOS | 13 (Ventura) |
+| macOS | 26.0 |
 | iOS | 16 |
 | watchOS | 9 |
 | tvOS | 16 |

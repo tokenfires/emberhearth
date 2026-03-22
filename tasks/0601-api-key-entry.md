@@ -41,7 +41,7 @@ IMPORTANT RULES (from CLAUDE.md):
 
 PROJECT CONTEXT:
 - This is a Swift Package Manager project with main target at path "src" and test target at path "tests"
-- macOS 14.0+ deployment target
+- macOS 26.0+ deployment target
 - No third-party dependencies — use only Apple frameworks
 - KeychainManager is at src/Security/KeychainManager.swift with methods:
   - `store(apiKey: String, for: LLMProvider) throws` — stores key in Keychain
@@ -804,7 +804,7 @@ swift test
 
 Both must succeed. If the build fails, debug the issue. Common problems:
 - SecureField: Available in SwiftUI on macOS. Import SwiftUI.
-- URLSession.shared.data(for:): Available in macOS 12.0+. Ensure deployment target is macOS 13.0 or higher.
+- URLSession.shared.data(for:): Available in macOS 12.0+. Ensure deployment target is macOS 26.0 or higher.
 - @MainActor on tests: XCTestCase methods marked @MainActor must use the async test pattern. If the compiler complains, remove @MainActor from individual test methods and keep it only on the class.
 - NSWorkspace: Available via AppKit. In macOS SwiftUI, AppKit is implicitly available.
 - The OnboardingContainerView update: Make sure you only change the `.apiKey` case, nothing else.

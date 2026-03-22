@@ -39,7 +39,7 @@ HomeKit is Apple's framework for smart home control, with Matter support for cro
 
 Apple added Matter support in:
 - iOS 16.1
-- macOS Ventura
+- macOS 13 and later (Matter on Mac)
 - watchOS 9.1
 - tvOS 16.1
 

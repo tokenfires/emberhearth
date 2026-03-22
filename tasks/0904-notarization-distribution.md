@@ -38,7 +38,7 @@ You are creating the notarization, DMG packaging, and release verification scrip
 - **HOWEVER:** Shell scripts for developer build tooling (scripts/, build.sh, Makefile) ARE allowed — that is exactly what this task creates
 - All source files go under src/
 - All test files go under tests/
-- macOS 13.0+ deployment target
+- macOS 26.0+ deployment target
 - Use `os.Logger` for logging (subsystem: "com.emberhearth.app") — in Swift code only
 - Store credentials ONLY in Keychain — never hardcoded in scripts or source
 - PascalCase for Swift files, lowercase-with-hyphens for docs
@@ -1148,7 +1148,7 @@ Follow every step in order. Do not skip steps.
 
 ### Release Notes
 - [ ] Include: What's new / Changed / Fixed / Known issues
-- [ ] Include: System requirements (macOS 13.0+)
+- [ ] Include: System requirements (macOS 26.0+)
 - [ ] Include: Installation instructions
 - [ ] Include: Required permissions (Full Disk Access, Automation)
 

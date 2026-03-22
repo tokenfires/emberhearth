@@ -880,8 +880,8 @@ swift test
 Both must succeed. Common issues:
 - The MockLLMProvider must conform to `LLMProviderProtocol` which requires both `sendMessage` and `streamMessage`. Even though FactExtractor doesn't use streaming, the mock must implement both methods.
 - The `@unchecked Sendable` conformance on MockLLMProvider is needed because it has mutable state (var properties). This is safe for tests since they are single-threaded.
-- If `Logger` is not available (it requires macOS 11+), the import `os` should work since the target is macOS 13+.
-- The async test methods use `async throws` — this requires Xcode 14+ / Swift 5.7+ which is available since the project targets macOS 13+.
+- If `Logger` is not available (it requires macOS 11+), the import `os` should work since the target is macOS 26+.
+- The async test methods use `async throws` — this requires a recent Xcode / Swift toolchain; Swift 6.2 and macOS 26+ satisfy this.
 
 IMPORTANT NOTES:
 - Do NOT modify Package.swift.

@@ -39,7 +39,7 @@ IMPORTANT RULES (from CLAUDE.md):
 - All source files go under src/
 - All test files go under tests/
 - Every Swift file must have the filename as its first comment line
-- macOS 13.0+ deployment target
+- macOS 26.0+ deployment target
 
 DEPENDENCY CONTEXT:
 - Task 0200 created these files in src/Security/:

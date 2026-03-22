@@ -40,18 +40,18 @@ IMPORTANT RULES (from CLAUDE.md):
 - Follow Apple Human Interface Guidelines
 
 PROJECT REQUIREMENTS:
-- macOS 13.0+ (Ventura) deployment target
+- macOS 26.0+ deployment target
 - Support both Apple Silicon (arm64) and Intel (x86_64) via universal binary
-- Swift 5.9+
+- Swift 6.2+
 - SwiftUI App lifecycle
 
 STEP 1: Create Package.swift at the project root (/Users/robault/Documents/GitHub/emberhearth/Package.swift)
 
 The Package.swift should:
-- Set swift-tools-version to 5.9
+- Set swift-tools-version to 6.2
 - Package name: "EmberHearth"
 - Define a single executable product named "EmberHearth"
-- Set the macOS platform to .macOS(.v13)
+- Set the macOS platform to .macOS(.v26)
 - Set the target's path to "src"
 - Exclude any .entitlements and .plist files from the target sources using `exclude`
 - Add a dependency on swift-argument-parser or similar ONLY if needed (for now, no external dependencies)
@@ -59,14 +59,14 @@ The Package.swift should:
 Here is the exact content for Package.swift:
 
 ```swift
-// swift-tools-version: 5.9
+// swift-tools-version: 6.2
 
 import PackageDescription
 
 let package = Package(
     name: "EmberHearth",
     platforms: [
-        .macOS(.v13)
+        .macOS(.v26)
     ],
     products: [
         .executable(
@@ -329,7 +329,7 @@ File: src/Info.plist
     <string>EmberHearth</string>
 
     <key>LSMinimumSystemVersion</key>
-    <string>13.0</string>
+    <string>26.0</string>
 
     <!-- Run as menu bar app (no Dock icon) -->
     <key>LSUIElement</key>
@@ -507,8 +507,8 @@ swift test 2>&1
 Review the EmberHearth project setup created in task 0001. Check for these common Sonnet failure modes:
 
 1. PACKAGE.SWIFT CORRECTNESS:
-   - Open Package.swift and verify swift-tools-version is 5.9
-   - Verify the platform is .macOS(.v13) (not .v14 or something else)
+   - Open Package.swift and verify swift-tools-version is 6.2
+   - Verify the platform is .macOS(.v26) (not .v14 or something else)
    - Verify the executable target path is "src" (not "Sources")
    - Verify the test target path is "tests" (not "Tests")
    - Verify the entitlements and Info.plist are in the exclude array
@@ -530,7 +530,7 @@ Review the EmberHearth project setup created in task 0001. Check for these commo
 4. INFO.PLIST:
    - Verify LSUIElement is set to true (menu bar app)
    - Verify CFBundleIdentifier is com.emberhearth.app
-   - Verify LSMinimumSystemVersion is 13.0
+   - Verify LSMinimumSystemVersion is 26.0
    - Verify NSAppleEventsUsageDescription is present
 
 5. NAMING CONVENTIONS:

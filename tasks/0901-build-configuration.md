@@ -67,8 +67,8 @@ Adapt all commands and configurations to match the actual build system.
 If an Xcode project exists, verify these settings:
 ```
 PRODUCT_BUNDLE_IDENTIFIER = com.emberhearth.app
-MACOSX_DEPLOYMENT_TARGET = 13.0
-SWIFT_VERSION = 5.9
+MACOSX_DEPLOYMENT_TARGET = 26.0
+SWIFT_VERSION = 6.2
 ENABLE_HARDENED_RUNTIME = YES
 CODE_SIGN_STYLE = Manual (for distribution) or Automatic (for development)
 CODE_SIGN_IDENTITY = "Developer ID Application" (for distribution)
@@ -77,7 +77,7 @@ INFOPLIST_KEY_LSUIElement = YES (menu bar app, no Dock icon)
 
 If using Package.swift, verify:
 ```swift
-platforms: [.macOS(.v13)]
+platforms: [.macOS(.v26)]
 ```
 
 ### 2. Verify Entitlements
@@ -494,7 +494,7 @@ Before finishing, verify:
 
 ## Acceptance Criteria
 
-- [ ] Build settings verified (deployment target 13.0, Swift 5.9, hardened runtime)
+- [ ] Build settings verified (deployment target 26.0, Swift 6.2, hardened runtime)
 - [ ] Entitlements file exists with automation, file access, and network entitlements
 - [ ] `build.sh` exists and is executable with targets: build, test, clean, release, security-check, all
 - [ ] `Makefile` exists with targets: build, test, clean, release, security-check, all
@@ -570,7 +570,7 @@ If they exist, also check:
 1. **BUILD CORRECTNESS (Critical):**
    - Does `swift build` (or xcodebuild) succeed with zero warnings?
    - Does `swift test` (or xcodebuild test) pass all tests?
-   - Is the deployment target set to macOS 13.0?
+   - Is the deployment target set to macOS 26.0?
    - Is hardened runtime enabled (required for notarization)?
 
 2. **SECURITY (Critical):**

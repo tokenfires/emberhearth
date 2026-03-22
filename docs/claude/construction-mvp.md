@@ -157,7 +157,7 @@ final class MessageOrchestrator {
 
 ### SwiftUI Patterns
 
-- Use `@Observable` (macOS 14+) or `@ObservableObject` (macOS 13 compat) for view models.
+- Use `@Observable` for view models.
 - Keep views thin — business logic belongs in services/managers, not views.
 - Every interactive element needs an `.accessibilityLabel()`.
 - Support Dynamic Type — avoid hardcoded font sizes.

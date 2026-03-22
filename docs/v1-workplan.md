@@ -15,12 +15,12 @@
 ### M1: Foundation
 
 - [ ] **M1.1 — Xcode project scaffolding**
-  Create the Xcode project with proper bundle ID, signing configuration, minimum deployment target (macOS 13), and basic directory structure matching `architecture-overview.md`. Set up the Swift package structure. No UI yet — just a buildable, signable app that launches.
+  Create the Xcode project with proper bundle ID, signing configuration, minimum deployment target (macOS 26), and basic directory structure matching `architecture-overview.md`. Set up the Swift package structure. No UI yet — just a buildable, signable app that launches.
   - Files: Xcode project, Package.swift (if SPM), Info.plist, entitlements
-  - Verify: App builds, signs, and launches on macOS 13+
+  - Verify: App builds, signs, and launches on macOS 26+
 
 - [x] **M1.2 — Menu bar app + Launch at Login**
-  Convert to a menu bar app (NSStatusItem). Add "Launch at Login" via SMAppService (macOS 13+). Menu bar icon with basic dropdown: status label, quit button.
+  Convert to a menu bar app (NSStatusItem). Add "Launch at Login" via SMAppService (macOS 26+). Menu bar icon with basic dropdown: status label, quit button.
   - Files: AppDelegate or App entry point, MenuBarView, Assets (icon)
   - Verify: App appears in menu bar, persists across restarts if launch-at-login enabled
 
@@ -32,7 +32,7 @@
 ### M2: iMessage Integration
 
 - [ ] **M2.1 — chat.db reader**
-  Implement read-only SQLite access to `~/Library/Messages/chat.db`. Parse the schema (handle, message, chat tables). Decode `attributedBody` for macOS 13+ format. Return structured `Message` objects. Handle Full Disk Access permission check gracefully.
+  Implement read-only SQLite access to `~/Library/Messages/chat.db`. Parse the schema (handle, message, chat tables). Decode `attributedBody` for macOS 26+ format. Return structured `Message` objects. Handle Full Disk Access permission check gracefully.
   - Files: MessageReader.swift, Message model, ChatDatabase.swift
   - Verify: Can read recent messages from chat.db in a test harness
   - Reference: `docs/research/imessage.md`

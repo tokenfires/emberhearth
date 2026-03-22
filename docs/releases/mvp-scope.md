@@ -226,7 +226,7 @@ Explicitly deferred to later versions:
 ## Technical Requirements
 
 ### Minimum System Requirements
-- macOS 13.0 (Ventura) or later
+- macOS 26.0 or later
 - Apple Silicon or Intel Mac
 - 4GB RAM minimum
 - Internet connection (for Claude API)

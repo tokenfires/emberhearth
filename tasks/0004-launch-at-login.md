@@ -28,7 +28,7 @@ Open these files in Cursor using `@file` references before starting:
 ```
 You are implementing Launch at Login functionality for EmberHearth, a native macOS personal AI assistant that runs as a menu bar app. Tasks 0001-0003 have set up the project structure, SwiftUI app shell, and menu bar integration.
 
-Your job is to create a LaunchAtLoginManager that uses Apple's SMAppService API (macOS 13+) and integrate a toggle into the menu bar dropdown.
+Your job is to create a LaunchAtLoginManager that uses Apple's SMAppService API (macOS 26+) and integrate a toggle into the menu bar dropdown.
 
 IMPORTANT RULES (from CLAUDE.md):
 - Product display name: "EmberHearth"
@@ -61,7 +61,7 @@ File: src/App/LaunchAtLoginManager.swift
 // LaunchAtLoginManager.swift
 // EmberHearth
 //
-// Manages Launch at Login registration using SMAppService (macOS 13+).
+// Manages Launch at Login registration using SMAppService (macOS 26+).
 // Provides a simple API for toggling and querying the launch-at-login state.
 
 import Foundation
@@ -70,7 +70,7 @@ import ServiceManagement
 
 /// Manages whether EmberHearth launches automatically when the user logs in.
 ///
-/// Uses Apple's SMAppService API (available macOS 13.0+) for proper
+/// Uses Apple's SMAppService API (available macOS 26.0+) for proper
 /// system integration. Falls back gracefully if registration fails.
 ///
 /// Usage:
@@ -376,8 +376,8 @@ swift test
 ```
 
 Both must succeed. Common issues:
-- `import ServiceManagement` may fail if the deployment target is wrong — verify Package.swift has .macOS(.v13)
-- SMAppService.mainApp is available on macOS 13.0+ which matches our target
+- `import ServiceManagement` may fail if the deployment target is wrong — verify Package.swift has .macOS(.v26)
+- SMAppService.mainApp is available on macOS 26.0+ which matches our target
 - The test file must be in tests/ directory
 - LaunchAtLoginManager.shared is a singleton — tests that modify state need proper setUp/tearDown cleanup
 

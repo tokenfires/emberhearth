@@ -67,7 +67,7 @@ From docs/specs/autonomous-operation.md:
 - All source files go under src/
 - All test files go under tests/
 - Every Swift file must have the filename as its first comment line
-- macOS 13.0+ deployment target
+- macOS 26.0+ deployment target
 - No third-party dependencies — use only Apple frameworks (Foundation, Network, Combine, os, XCTest)
 - Use `os.Logger` for logging (subsystem: "com.emberhearth.app")
 - All public types and methods must have documentation comments (///)

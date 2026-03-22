@@ -165,7 +165,7 @@ Messages.app → imagent → identityservicesd → apsd
    datetime(message.date / 1000000000 + strftime("%s", "2001-01-01"), "unixepoch", "localtime")
    ```
 
-2. **Message text** changed in macOS Ventura — now stored as hex blob in `attributedBody` column, not plain text in `text` column
+2. **Message text** is often stored as a hex blob in `attributedBody` rather than plain text in `text` (Apple moved to this schema in macOS 13)
 
 3. **Database is locked** during writes — always open in read-only mode:
    ```swift
@@ -218,7 +218,7 @@ SMS messages appear in the same database with different `service` value.
 │  ├── MessageSender (AppleScript via NSAppleScript)          │
 │  │   └── Sends via Messages.app automation                  │
 │  └── MessageParser                                          │
-│       └── Handles attributedBody decoding (Ventura+)        │
+│       └── Handles attributedBody decoding                    │
 ├─────────────────────────────────────────────────────────────┤
 │  Permissions                                                 │
 │  ├── Full Disk Access (required)                            │
@@ -465,7 +465,7 @@ Since EmberHearth requires sensitive permissions, the onboarding must be clear a
 | 10.15 Catalina | Same | `text` column | |
 | 11 Big Sur | Same | `text` column | |
 | 12 Monterey | Same | `text` column | |
-| 13 Ventura | Same | `attributedBody` (hex blob) | Schema change |
+| 13 | Same | `attributedBody` (hex blob) | Schema change |
 | 14 Sonoma | Same | `attributedBody` | |
 | 15 Sequoia | Same | `attributedBody` | Current |
 
@@ -499,7 +499,7 @@ This approach:
 - Uses only public, documented APIs
 - Provides full send/receive capability
 - Aligns with EmberHearth's security-first principles
-- Is stable across macOS versions (with minor adjustments for Ventura+)
+- Is stable across macOS versions (with minor adjustments for `attributedBody` handling)
 - Can be distributed outside the Mac App Store without issues
 
 **Do NOT use:**
@@ -511,4 +511,4 @@ This approach:
 1. Prototype `MessageReader` with SQLite + FSEvents
 2. Prototype `MessageSender` with AppleScript
 3. Design permission onboarding flow
-4. Test on macOS Ventura+ for `attributedBody` handling
+4. Test on macOS 26.0+ for `attributedBody` handling
