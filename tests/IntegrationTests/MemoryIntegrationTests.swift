@@ -4,7 +4,7 @@
 // Integration tests for the memory system: fact extraction, storage, and retrieval.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 /// Integration tests for the memory system.
 ///

@@ -272,7 +272,8 @@ final class FirstMessageTestViewModel: ObservableObject {
     }
 
     deinit {
-        timeoutTimer?.invalidate()
+        // Timer cleanup is handled by stopTest() called from onDisappear.
+        // deinit cannot access @MainActor-isolated properties in Swift 6.
     }
 }
 
@@ -364,7 +365,7 @@ struct FirstMessageTestView: View {
         .onDisappear {
             viewModel.stopTest()
         }
-        .onChange(of: viewModel.testStatus) { newValue in
+        .onChange(of: viewModel.testStatus) { _, newValue in
             announceStatusChange(newValue)
         }
     }

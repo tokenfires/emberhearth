@@ -1,0 +1,99 @@
+name: EmberHearth
+
+options:
+  bundleIdPrefix: com.emberhearth
+  deploymentTarget:
+    macOS: "26.0"
+  xcodeVersion: "26.3"
+  generateEmptyDirectories: false
+
+settings:
+  base:
+    SWIFT_VERSION: "6"
+    MACOSX_DEPLOYMENT_TARGET: "26.0"
+
+targets:
+
+  # Framework containing all app logic — testable without launching the app
+  EmberHearthCore:
+    type: framework
+    platform: macOS
+    sources:
+      - path: ../src
+        excludes:
+          - "EmberHearth.entitlements"
+          - "Info.plist"
+          - "App/EmberHearthApp.swift"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.emberhearth.core
+        PRODUCT_MODULE_NAME: EmberHearthCore
+        DEFINES_MODULE: true
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS:
+          - DEBUG
+      configs:
+        Release:
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: []
+
+  # Thin app target — just the @main entry point
+  EmberHearth:
+    type: application
+    platform: macOS
+    sources:
+      - path: ../src/App/EmberHearthApp.swift
+    dependencies:
+      - target: EmberHearthCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.emberhearth.app
+        CODE_SIGN_ENTITLEMENTS: ../EmberHearth/EmberHearth.entitlements
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS:
+          - DEBUG
+        ENABLE_HARDENED_RUNTIME: true
+      configs:
+        Release:
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: []
+    info:
+      path: Info.plist
+      properties:
+        CFBundleName: EmberHearth
+        CFBundleDisplayName: EmberHearth
+        CFBundleIdentifier: com.emberhearth.app
+        CFBundleVersion: "1"
+        CFBundleShortVersionString: "1.0.0"
+        CFBundlePackageType: APPL
+        CFBundleExecutable: EmberHearth
+        LSMinimumSystemVersion: "26.0"
+        LSUIElement: true
+        NSHumanReadableCopyright: "Copyright 2026 EmberHearth. All rights reserved."
+        NSAppleEventsUsageDescription: "EmberHearth needs permission to send messages through the Messages app on your behalf."
+        NSSupportsAutomaticTermination: false
+        NSSupportsSuddenTermination: false
+    entitlements:
+      path: EmberHearth.entitlements
+      properties:
+        com.apple.security.automation.apple-events: true
+        com.apple.security.files.user-selected.read-write: true
+        com.apple.security.temporary-exception.files.absolute-path.read-only:
+          - "/Users/"
+        com.apple.security.network.client: true
+        com.apple.security.keychain-access-groups:
+          - "$(AppIdentifierPrefix)com.emberhearth.app"
+    scheme:
+      testTargets:
+        - EmberHearthTests
+
+  # Tests import EmberHearthCore directly — no app host, no app launch
+  EmberHearthTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: ../tests
+    dependencies:
+      - target: EmberHearthCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.emberhearth.tests
+        GENERATE_INFOPLIST_FILE: true
+        TEST_HOST: ""
+        BUNDLE_LOADER: ""

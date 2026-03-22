@@ -6,7 +6,7 @@
 // Reference: docs/testing/security-penetration-protocol.md, Section 2 (CD-*)
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 /// Penetration tests for the credential detection layer of the Tron security pipeline.
 ///

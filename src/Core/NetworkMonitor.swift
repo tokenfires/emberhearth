@@ -62,7 +62,7 @@ enum ConnectionType: String, Sendable, Equatable {
 ///   (optimistic assumption to avoid false offline detection on launch).
 /// - Call `stop()` when the monitor is no longer needed to release system resources.
 /// - NWPathMonitor is an Apple framework — no third-party dependencies.
-final class NetworkMonitor: ObservableObject {
+final class NetworkMonitor: ObservableObject, @unchecked Sendable {
 
     // MARK: - Published Properties
 

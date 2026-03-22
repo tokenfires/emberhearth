@@ -11,7 +11,7 @@
 import XCTest
 import Network
 import Combine
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class NetworkMonitorTests: XCTestCase {
 

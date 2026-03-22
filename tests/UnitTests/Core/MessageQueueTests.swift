@@ -5,7 +5,7 @@
 // Tests FIFO ordering, persistence, capacity limits, thread safety, and edge cases.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class MessageQueueTests: XCTestCase {
 

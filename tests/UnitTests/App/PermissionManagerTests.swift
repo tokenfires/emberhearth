@@ -4,7 +4,7 @@
 // Unit tests for PermissionManager data structures and logic.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class PermissionManagerTests: XCTestCase {
 

@@ -4,7 +4,7 @@
 // Unit tests for TokenCounter, ContextBudget, TokenEstimates, and budget enforcement.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class TokenCounterTests: XCTestCase {
 

@@ -22,7 +22,7 @@ import os.log
 /// filter.shouldRespond(to: "+15551234567")     // true
 /// filter.shouldRespond(to: "+15559999999")     // false
 /// ```
-final class PhoneNumberFilter {
+final class PhoneNumberFilter: @unchecked Sendable {
 
     // MARK: - Properties
 

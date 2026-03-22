@@ -4,7 +4,7 @@
 // Unit tests for SecurityLogger and AppLogger.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class SecurityLoggerTests: XCTestCase {
 

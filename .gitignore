@@ -58,3 +58,5 @@ TestResults.xcresult
 
 # Archives
 *.xcarchive
+
+.claude

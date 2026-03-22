@@ -6,7 +6,7 @@
 
 import XCTest
 import SwiftUI
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class OnboardingAccessibilityTests: XCTestCase {
 

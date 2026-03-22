@@ -4,7 +4,7 @@
 // Integration tests for the full message processing pipeline.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 /// Integration tests for the complete message processing pipeline.
 ///

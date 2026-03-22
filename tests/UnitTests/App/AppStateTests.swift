@@ -4,7 +4,7 @@
 // Unit tests for AppState and AppStatus.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 @MainActor
 final class AppStateTests: XCTestCase {

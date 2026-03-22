@@ -39,7 +39,23 @@
       "mcp__paper-search__read_arxiv_paper",
       "Bash(node --check docs/research/papers/save-papers.mjs)",
       "Bash(node docs/research/papers/save-papers.mjs)",
-      "mcp__paper-search__download_arxiv"
+      "mcp__paper-search__download_arxiv",
+      "WebSearch",
+      "Bash(swift package:*)",
+      "Bash(swift build:*)",
+      "Bash(swift test:*)",
+      "Bash(xcodegen --version)",
+      "Bash(xcodebuild -version)",
+      "Bash(brew install:*)",
+      "Bash(xcodegen generate:*)",
+      "Bash(xcodebuild -project /Users/robault/Documents/GitHub/emberhearth/EmberHearth/EmberHearth.xcodeproj -scheme EmberHearth -configuration Debug build)",
+      "Bash(xcodebuild -project /Users/robault/Documents/GitHub/emberhearth/EmberHearth/EmberHearth.xcodeproj -scheme EmberHearth test)",
+      "Bash(xcodebuild -project /Users/robault/Documents/GitHub/emberhearth/EmberHearth/EmberHearth.xcodeproj -scheme EmberHearth -showBuildSettings)",
+      "Bash(xcodebuild -project /Users/robault/Documents/GitHub/emberhearth/EmberHearth/EmberHearth.xcodeproj -target EmberHearthTests -showBuildSettings)",
+      "Bash(find /Users/robault/Documents/GitHub/emberhearth/tests -name \"*.swift\" -exec grep -l \"@testable import EmberHearth\" {})",
+      "Bash(xargs sed:*)",
+      "Bash(xcodebuild -project EmberHearth/EmberHearth.xcodeproj -scheme EmberHearth -configuration Debug build)",
+      "Bash(xcodebuild -project EmberHearth/EmberHearth.xcodeproj -scheme EmberHearth -configuration Debug test)"
     ]
   }
 }

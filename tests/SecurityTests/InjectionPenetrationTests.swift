@@ -7,7 +7,7 @@
 // Reference: docs/testing/security-penetration-protocol.md
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 /// Penetration tests for the injection detection layer of the Tron security pipeline.
 ///

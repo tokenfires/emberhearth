@@ -1,7 +1,7 @@
 import XCTest
 import Combine
 import SQLite3
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class MessageWatcherTests: XCTestCase {
 

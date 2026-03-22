@@ -4,7 +4,7 @@
 // Unit tests for InjectionScanner.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class InjectionScannerTests: XCTestCase {
 

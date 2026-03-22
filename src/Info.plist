@@ -24,7 +24,7 @@
     <string>EmberHearth</string>
 
     <key>LSMinimumSystemVersion</key>
-    <string>13.0</string>
+    <string>26.0</string>
 
     <!-- Run as menu bar app (no Dock icon) -->
     <key>LSUIElement</key>

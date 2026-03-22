@@ -4,7 +4,7 @@
 // Unit tests for Settings view models and logic.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class SettingsViewTests: XCTestCase {
 

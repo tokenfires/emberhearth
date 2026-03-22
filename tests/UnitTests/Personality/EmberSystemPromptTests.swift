@@ -4,7 +4,7 @@
 // Unit tests for EmberSystemPrompt and SystemPromptBuilder.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class EmberSystemPromptTests: XCTestCase {
 

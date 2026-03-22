@@ -4,7 +4,7 @@
 // Unit tests for URLValidator.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class URLValidatorTests: XCTestCase {
 

@@ -8,7 +8,7 @@
 // - Response template verification
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class CrisisDetectorTests: XCTestCase {
 

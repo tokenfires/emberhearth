@@ -42,9 +42,9 @@ final class SSEParser: Sendable {
     ///
     /// - Parameter lines: An async sequence of text lines from the HTTP response.
     /// - Returns: An async stream of parsed SSE events.
-    static func parse<S: AsyncSequence>(lines: S) -> AsyncThrowingStream<SSEEvent, Error> where S.Element == String {
+    static func parse<S: AsyncSequence & Sendable>(lines: S) -> AsyncThrowingStream<SSEEvent, Error> where S.Element == String {
         return AsyncThrowingStream { continuation in
-            let task = Task {
+            let task = Task { @Sendable in
                 var currentEventType: String? = nil
                 var currentData: String? = nil
 

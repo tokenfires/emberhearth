@@ -4,7 +4,7 @@
 // Unit tests for FirstMessageTestViewModel.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 @MainActor
 final class FirstMessageTestViewModelTests: XCTestCase {

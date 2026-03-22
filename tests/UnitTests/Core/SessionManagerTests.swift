@@ -4,7 +4,7 @@
 // Unit tests for Session, SessionMessage, and SessionManager.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class SessionManagerTests: XCTestCase {
 

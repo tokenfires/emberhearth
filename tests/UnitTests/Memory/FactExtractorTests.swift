@@ -4,7 +4,7 @@
 // Unit tests for FactExtractor with mocked LLM responses.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 // MARK: - Mock LLM Provider
 

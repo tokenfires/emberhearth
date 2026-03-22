@@ -6,7 +6,7 @@
 // Reference: docs/testing/security-penetration-protocol.md, Appendix
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 /// Tests that the InjectionScanner and TronPipeline do not block legitimate user messages.
 ///

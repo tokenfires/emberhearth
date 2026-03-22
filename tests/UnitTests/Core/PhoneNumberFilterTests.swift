@@ -1,5 +1,5 @@
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class PhoneNumberFilterTests: XCTestCase {
 

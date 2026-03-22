@@ -4,7 +4,7 @@
 // Unit tests for DatabaseManager.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class DatabaseManagerTests: XCTestCase {
 

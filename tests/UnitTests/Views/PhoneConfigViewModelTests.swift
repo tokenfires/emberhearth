@@ -4,7 +4,7 @@
 // Unit tests for PhoneConfigViewModel.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 @MainActor
 final class PhoneConfigViewModelTests: XCTestCase {

@@ -4,7 +4,7 @@
 // Unit tests for FactRetriever.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class FactRetrieverTests: XCTestCase {
 

@@ -4,7 +4,7 @@
 // Integration tests for the Tron security pipeline with realistic attack scenarios.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 /// Integration tests for the Tron security pipeline.
 ///

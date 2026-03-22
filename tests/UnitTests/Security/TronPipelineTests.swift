@@ -4,7 +4,7 @@
 // Integration tests for the Tron security pipeline.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class TronPipelineTests: XCTestCase {
 

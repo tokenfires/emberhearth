@@ -6,6 +6,7 @@
 // for system-level integration (menu bar, launch agent, etc.).
 
 import SwiftUI
+import EmberHearthCore
 
 @main
 struct EmberHearthApp: App {

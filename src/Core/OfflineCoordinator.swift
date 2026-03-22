@@ -54,7 +54,7 @@ import os
 /// )
 /// coordinator.start()
 /// ```
-final class OfflineCoordinator {
+final class OfflineCoordinator: @unchecked Sendable {
 
     // MARK: - Properties
 

@@ -4,7 +4,7 @@
 // Tests for SSEParser — SSE parsing and Claude event extraction.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class SSEParserTests: XCTestCase {
 
@@ -306,7 +306,7 @@ extension Array where Element == String {
     var async: AsyncArray<String> { AsyncArray(self) }
 }
 
-struct AsyncArray<T>: AsyncSequence {
+struct AsyncArray<T: Sendable>: AsyncSequence, Sendable {
     typealias Element = T
     let items: [T]
 

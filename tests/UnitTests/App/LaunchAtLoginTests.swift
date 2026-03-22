@@ -4,7 +4,7 @@
 // Unit tests for LaunchAtLoginManager state management.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class LaunchAtLoginTests: XCTestCase {
 

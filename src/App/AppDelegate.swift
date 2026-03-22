@@ -14,7 +14,7 @@ import os
 /// - Running: Manages the menu bar status item and settings window
 /// - Shutdown: Performs clean teardown of all services
 @MainActor
-class AppDelegate: NSObject, NSApplicationDelegate {
+public class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Properties
 
@@ -36,7 +36,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Application Lifecycle
 
-    func applicationDidFinishLaunching(_ notification: Notification) {
+    public func applicationDidFinishLaunching(_ notification: Notification) {
         logger.info("EmberHearth starting — version \(AppVersion.displayString, privacy: .public)")
 
         // Configure as an accessory app (menu bar only, no Dock icon).
@@ -67,7 +67,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         startServices(apiKey: apiKey)
     }
 
-    func applicationWillTerminate(_ notification: Notification) {
+    public func applicationWillTerminate(_ notification: Notification) {
         logger.info("EmberHearth shutting down...")
 
         services?.shutdown()
@@ -78,12 +78,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         logger.info("Shutdown complete.")
     }
 
-    func applicationShouldTerminateAfterLastWindowClosed(_ application: NSApplication) -> Bool {
+    public func applicationShouldTerminateAfterLastWindowClosed(_ application: NSApplication) -> Bool {
         // Menu bar app — do NOT quit when the window is closed.
         return false
     }
 
-    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+    public func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         // When the user clicks the app icon in Finder or Spotlight, show the main window.
         if !flag {
             for window in sender.windows {
@@ -271,7 +271,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     ///
     /// Marks onboarding as complete, then attempts to start all services
     /// using the newly-stored API key.
-    func onboardingCompleted() {
+    public func onboardingCompleted() {
         logger.info("Onboarding completed — starting services")
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
 

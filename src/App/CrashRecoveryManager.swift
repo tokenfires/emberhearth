@@ -27,7 +27,7 @@ import os
 ///     await recovery.performRecovery(appState: appState)
 /// }
 /// ```
-final class CrashRecoveryManager {
+final class CrashRecoveryManager: Sendable {
 
     // MARK: - Constants
 

@@ -4,7 +4,7 @@
 // Unit tests for WebFetcher, URLValidator, and HTMLContentExtractor.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class WebFetcherTests: XCTestCase {
 

@@ -4,7 +4,7 @@
 // Unit tests for VerbosityAdapter.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class VerbosityAdapterTests: XCTestCase {
 

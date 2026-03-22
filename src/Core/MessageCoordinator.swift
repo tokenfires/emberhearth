@@ -35,7 +35,7 @@ import Combine
 /// - LLM error → "Having trouble connecting" message, status bar updated to .degraded
 /// - Send failure → Retry once, then give up (log only)
 /// - Memory/session errors → Logged and skipped; conversation continues
-final class MessageCoordinator {
+final class MessageCoordinator: @unchecked Sendable {
 
     // MARK: - Properties
 

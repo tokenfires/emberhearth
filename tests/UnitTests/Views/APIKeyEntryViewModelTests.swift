@@ -4,7 +4,7 @@
 // Unit tests for APIKeyEntryViewModel validation logic.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 @MainActor
 final class APIKeyEntryViewModelTests: XCTestCase {

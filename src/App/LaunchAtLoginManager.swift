@@ -21,12 +21,12 @@ import ServiceManagement
 /// // Toggle
 /// LaunchAtLoginManager.shared.setEnabled(true)
 /// ```
-final class LaunchAtLoginManager {
+final class LaunchAtLoginManager: @unchecked Sendable {
 
     // MARK: - Singleton
 
     /// Shared instance for app-wide access.
-    static let shared = LaunchAtLoginManager()
+    nonisolated(unsafe) static let shared = LaunchAtLoginManager()
 
     // MARK: - Properties
 

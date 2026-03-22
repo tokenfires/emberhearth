@@ -7,11 +7,13 @@
 
 import SwiftUI
 
-struct ContentView: View {
+public struct ContentView: View {
 
     @Environment(\.colorScheme) private var colorScheme
 
-    var body: some View {
+    public init() {}
+
+    public var body: some View {
         VStack(spacing: 20) {
             Image(systemName: "flame.fill")
                 .font(.system(size: 64))

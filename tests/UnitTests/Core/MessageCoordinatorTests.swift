@@ -5,7 +5,7 @@
 
 import XCTest
 import Combine
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 // MARK: - Mock Delegate
 

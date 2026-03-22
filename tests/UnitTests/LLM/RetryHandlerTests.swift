@@ -4,7 +4,25 @@
 // Unit tests for RetryHandler.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
+
+/// Thread-safe counter for use in async test closures.
+private final class CallCounter: @unchecked Sendable {
+    private var _count = 0
+    private let lock = NSLock()
+
+    var count: Int {
+        lock.withLock { _count }
+    }
+
+    @discardableResult
+    func increment() -> Int {
+        lock.withLock {
+            _count += 1
+            return _count
+        }
+    }
+}
 
 final class RetryHandlerTests: XCTestCase {
 
@@ -26,47 +44,47 @@ final class RetryHandlerTests: XCTestCase {
     }
 
     func testExecuteSuccessOnFirstAttempt() async throws {
-        var callCount = 0
+        let counter = CallCounter()
         let result = try await handler.execute {
-            callCount += 1
+            counter.increment()
             return "success"
         }
         XCTAssertEqual(result, "success")
-        XCTAssertEqual(callCount, 1)
+        XCTAssertEqual(counter.count, 1)
     }
 
     func testExecuteSuccessOnSecondAttempt() async throws {
-        var callCount = 0
+        let counter = CallCounter()
         let result: String = try await handler.execute {
-            callCount += 1
-            if callCount == 1 { throw ClaudeAPIError.timeout }
+            let current = counter.increment()
+            if current == 1 { throw ClaudeAPIError.timeout }
             return "success"
         }
         XCTAssertEqual(result, "success")
-        XCTAssertEqual(callCount, 2)
+        XCTAssertEqual(counter.count, 2)
     }
 
     func testExecuteSuccessOnLastAttempt() async throws {
-        var callCount = 0
+        let counter = CallCounter()
         let result: String = try await handler.execute {
-            callCount += 1
-            if callCount <= 3 { throw ClaudeAPIError.serverError(statusCode: 500) }
+            let current = counter.increment()
+            if current <= 3 { throw ClaudeAPIError.serverError(statusCode: 500) }
             return "success"
         }
         XCTAssertEqual(result, "success")
-        XCTAssertEqual(callCount, 4)
+        XCTAssertEqual(counter.count, 4)
     }
 
     func testExecuteExhaustsAllRetries() async {
-        var callCount = 0
+        let counter = CallCounter()
         do {
             let _: String = try await handler.execute {
-                callCount += 1
+                counter.increment()
                 throw ClaudeAPIError.serverError(statusCode: 500)
             }
             XCTFail("Should have thrown after exhausting retries.")
         } catch let error as ClaudeAPIError {
-            XCTAssertEqual(callCount, 4)
+            XCTAssertEqual(counter.count, 4)
             if case .serverError(let code) = error {
                 XCTAssertEqual(code, 500)
             } else {
@@ -78,44 +96,44 @@ final class RetryHandlerTests: XCTestCase {
     }
 
     func testNonRetryableErrorDoesNotRetry() async {
-        var callCount = 0
+        let counter = CallCounter()
         do {
             let _: String = try await handler.execute {
-                callCount += 1
+                counter.increment()
                 throw ClaudeAPIError.unauthorized
             }
             XCTFail("Should have thrown unauthorized error.")
         } catch let error as ClaudeAPIError {
             XCTAssertEqual(error, .unauthorized)
-            XCTAssertEqual(callCount, 1)
+            XCTAssertEqual(counter.count, 1)
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
     }
 
     func testBadRequestDoesNotRetry() async {
-        var callCount = 0
+        let counter = CallCounter()
         do {
             let _: String = try await handler.execute {
-                callCount += 1
+                counter.increment()
                 throw ClaudeAPIError.badRequest("Invalid model")
             }
             XCTFail("Should have thrown.")
         } catch {
-            XCTAssertEqual(callCount, 1)
+            XCTAssertEqual(counter.count, 1)
         }
     }
 
     func testNoAPIKeyDoesNotRetry() async {
-        var callCount = 0
+        let counter = CallCounter()
         do {
             let _: String = try await handler.execute {
-                callCount += 1
+                counter.increment()
                 throw ClaudeAPIError.noAPIKey
             }
             XCTFail("Should have thrown.")
         } catch {
-            XCTAssertEqual(callCount, 1)
+            XCTAssertEqual(counter.count, 1)
         }
     }
 

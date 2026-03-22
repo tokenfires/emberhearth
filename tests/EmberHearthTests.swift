@@ -4,7 +4,7 @@
 // Basic test suite for EmberHearth.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class EmberHearthTests: XCTestCase {
 

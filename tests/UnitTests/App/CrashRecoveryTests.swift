@@ -4,7 +4,7 @@
 // Unit tests for CrashRecoveryManager and HealthCheckService.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class CrashRecoveryTests: XCTestCase {
 

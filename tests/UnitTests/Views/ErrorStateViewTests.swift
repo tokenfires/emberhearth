@@ -4,7 +4,7 @@
 // Unit tests for AppError, ErrorStateView, StatusBanner, and ErrorMessageProvider.
 
 import XCTest
-@testable import EmberHearth
+@testable import EmberHearthCore
 
 final class ErrorStateViewTests: XCTestCase {
 

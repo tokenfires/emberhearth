@@ -22,7 +22,7 @@ public enum KeychainError: Error, Equatable {
 
 /// Manages reading and writing API keys in the system Keychain.
 /// Each instance is scoped to a specific service name for test isolation.
-public final class KeychainManager {
+public final class KeychainManager: Sendable {
 
     // MARK: - Constants
 
