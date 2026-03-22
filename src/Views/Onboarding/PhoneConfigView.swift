@@ -53,6 +53,16 @@ final class PhoneConfigViewModel: ObservableObject {
         self.phoneNumberFilter = phoneNumberFilter
     }
 
+    /// Loads previously saved phone numbers from PhoneNumberFilter.
+    func loadExistingNumbers() {
+        let existing = phoneNumberFilter.getAllowedNumbers()
+        guard !existing.isEmpty, phoneEntries.isEmpty else { return }
+        for number in existing {
+            phoneEntries.append(PhoneEntry(rawInput: number, normalized: number))
+        }
+        Self.logger.info("Loaded \(existing.count) existing phone number(s)")
+    }
+
     // MARK: - Computed Properties
 
     /// Whether the user can proceed (at least one phone number added).
@@ -240,6 +250,9 @@ struct PhoneConfigView: View {
             Divider()
 
             navigationButtons
+        }
+        .onAppear {
+            viewModel.loadExistingNumbers()
         }
         .onChange(of: viewModel.errorMessage) { newValue in
             if let error = newValue {

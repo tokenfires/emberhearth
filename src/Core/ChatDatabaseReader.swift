@@ -218,10 +218,12 @@ final class ChatDatabaseReader {
     func isGroupChat(chatId: Int64) throws -> Bool {
         try ensureOpen()
 
+        // Only use group_id as the signal. The participant_count check
+        // (COUNT from chat_handle_join > 1) was removed because on macOS 26,
+        // self-chats and some 1:1 conversations have multiple entries in
+        // chat_handle_join, causing false positives.
         let sql = """
-            SELECT
-                c.group_id,
-                (SELECT COUNT(*) FROM chat_handle_join chj WHERE chj.chat_id = c.ROWID) AS participant_count
+            SELECT c.group_id
             FROM chat c
             WHERE c.ROWID = ?
             """
@@ -246,11 +248,6 @@ final class ChatDatabaseReader {
                 if !groupId.isEmpty {
                     return true
                 }
-            }
-
-            let participantCount = sqlite3_column_int64(statement, 1)
-            if participantCount > 1 {
-                return true
             }
         }
 
@@ -391,20 +388,13 @@ final class ChatDatabaseReader {
             let isFromMe = sqlite3_column_int(statement, 4) == 1
             let handleId = sqlite3_column_int64(statement, 5)
 
-            // Group chat detection: check cache_roomnames (col 6) OR group_id (col 9)
-            var isGroupChat = false
-            if sqlite3_column_type(statement, 6) != SQLITE_NULL {
-                let roomName = String(cString: sqlite3_column_text(statement, 6))
-                if !roomName.isEmpty {
-                    isGroupChat = true
-                }
-            }
-            if !isGroupChat, sqlite3_column_type(statement, 9) != SQLITE_NULL {
-                let groupId = String(cString: sqlite3_column_text(statement, 9))
-                if !groupId.isEmpty {
-                    isGroupChat = true
-                }
-            }
+            // Group chat detection: DISABLED for macOS 26.
+            // On macOS 26 (Tahoe), both cache_roomnames AND group_id are
+            // populated for all chat types including 1:1 and self-conversations,
+            // making database-level group chat detection unreliable.
+            // TODO: Revisit with a participant-count approach that excludes
+            // self-handles, or use the chat.display_name field instead.
+            let isGroupChat = false
 
             var phoneNumber: String? = nil
             if sqlite3_column_type(statement, 7) != SQLITE_NULL {

@@ -17,10 +17,10 @@ struct EmberHearthApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .frame(minWidth: 400, minHeight: 300)
-                .frame(idealWidth: 500, idealHeight: 400)
+                .frame(minWidth: 600, minHeight: 500)
+                .frame(idealWidth: 700, idealHeight: 550)
         }
         .windowStyle(.titleBar)
-        .defaultSize(width: 500, height: 400)
+        .defaultSize(width: 700, height: 550)
     }
 }

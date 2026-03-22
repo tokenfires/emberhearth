@@ -5,6 +5,14 @@
 // onboarding steps and displays a progress bar.
 
 import SwiftUI
+import os
+
+extension Notification.Name {
+    /// Posted when the onboarding flow completes. AppDelegate observes this
+    /// to start services, since SwiftUI's @NSApplicationDelegateAdaptor wraps
+    /// the delegate in a proxy that can't be cast to AppDelegate directly.
+    static let emberHearthOnboardingCompleted = Notification.Name("emberHearthOnboardingCompleted")
+}
 
 // MARK: - Onboarding Step Enum
 
@@ -205,9 +213,15 @@ struct OnboardingContainerView: View {
         goBackToStep(previousStep)
     }
 
-    /// Marks onboarding as complete and invokes the completion callback.
+    /// Marks onboarding as complete and starts services.
     private func completeOnboarding() {
         hasCompletedOnboarding = true
+
+        // Post a notification that AppDelegate observes to start services.
+        // We can't cast NSApp.delegate to AppDelegate because SwiftUI's
+        // @NSApplicationDelegateAdaptor wraps it in an internal proxy type.
+        NotificationCenter.default.post(name: .emberHearthOnboardingCompleted, object: nil)
+
         onComplete?()
     }
 }

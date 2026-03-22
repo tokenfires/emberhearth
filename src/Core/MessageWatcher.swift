@@ -67,8 +67,15 @@ final class MessageWatcher {
     /// The file descriptor for the chat.db file (used by DispatchSource).
     private var fileDescriptor: Int32 = -1
 
+    /// The file descriptor for the chat.db-wal file. SQLite WAL mode writes
+    /// to this file instead of chat.db itself, so we watch both.
+    private var walFileDescriptor: Int32 = -1
+
     /// The DispatchSource watching the file descriptor for write events.
     private var dispatchSource: DispatchSourceFileSystemObject?
+
+    /// The DispatchSource watching the WAL file for write events.
+    private var walDispatchSource: DispatchSourceFileSystemObject?
 
     /// The PassthroughSubject backing the Combine publisher.
     private let messageSubject = PassthroughSubject<[ChatMessage], Never>()
@@ -199,6 +206,29 @@ final class MessageWatcher {
 
         dispatchSource = source
         source.resume()
+
+        // Also watch the WAL file. SQLite in WAL mode (used by Messages on
+        // macOS 26) writes to chat.db-wal, not chat.db directly. Without this,
+        // the DispatchSource on chat.db alone may never fire for new messages.
+        let walPath = chatDBPath + "-wal"
+        walFileDescriptor = Darwin.open(walPath, O_EVTONLY)
+        if walFileDescriptor >= 0 {
+            let walSource = DispatchSource.makeFileSystemObjectSource(
+                fileDescriptor: walFileDescriptor,
+                eventMask: [.write, .extend],
+                queue: watcherQueue
+            )
+            walSource.setEventHandler { [weak self] in
+                self?.handleFileChangeEvent()
+            }
+            walSource.setCancelHandler { }
+            walDispatchSource = walSource
+            walSource.resume()
+            logger.info("Also watching WAL file: \(walPath, privacy: .public)")
+        } else {
+            logger.warning("Could not open WAL file for monitoring: \(walPath, privacy: .public)")
+        }
+
         isRunning = true
 
         logger.info("MessageWatcher started monitoring: \(self.chatDBPath, privacy: .public)")
@@ -217,9 +247,17 @@ final class MessageWatcher {
         dispatchSource?.cancel()
         dispatchSource = nil
 
+        walDispatchSource?.cancel()
+        walDispatchSource = nil
+
         if fileDescriptor >= 0 {
             Darwin.close(fileDescriptor)
             fileDescriptor = -1
+        }
+
+        if walFileDescriptor >= 0 {
+            Darwin.close(walFileDescriptor)
+            walFileDescriptor = -1
         }
 
         databaseReader.close()

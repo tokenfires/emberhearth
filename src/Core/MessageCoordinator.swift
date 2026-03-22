@@ -91,6 +91,14 @@ final class MessageCoordinator: @unchecked Sendable {
     /// Whether the coordinator has been started.
     private(set) var isRunning = false
 
+    /// Recently sent response texts, used to prevent self-loop when
+    /// AppleScript-sent messages echo back through iCloud sync with
+    /// is_from_me = 0. Entries expire after 30 seconds.
+    private var recentlySentTexts: [(text: String, timestamp: Date)] = []
+
+    /// Maximum age in seconds for entries in recentlySentTexts.
+    private static let selfLoopWindowSeconds: TimeInterval = 30
+
     // MARK: - Initialization
 
     /// Creates a MessageCoordinator with all required dependencies.
@@ -153,7 +161,7 @@ final class MessageCoordinator: @unchecked Sendable {
             return
         }
 
-        logger.info("Starting MessageCoordinator")
+        logger.notice("Starting MessageCoordinator")
 
         try messageWatcher.start()
 
@@ -167,7 +175,7 @@ final class MessageCoordinator: @unchecked Sendable {
         Task { @MainActor [weak self] in self?.appState?.transition(to: .ready) }
         delegate?.coordinatorReadinessChanged(isReady: true)
 
-        logger.info("MessageCoordinator started successfully")
+        logger.notice("MessageCoordinator started successfully")
     }
 
     /// Stops the message coordinator.
@@ -215,6 +223,15 @@ final class MessageCoordinator: @unchecked Sendable {
 
         guard let phoneNumber = message.phoneNumber else {
             logger.warning("Skipping message with no phone number (id: \(message.id, privacy: .public))")
+            return
+        }
+
+        // Self-loop prevention: skip messages that match a recently sent response.
+        // This happens when AppleScript-sent messages echo back through iCloud
+        // sync with is_from_me = 0, causing an infinite response loop.
+        pruneExpiredSentTexts()
+        if recentlySentTexts.contains(where: { $0.text == messageText }) {
+            logger.info("Skipping self-loop echo (id: \(message.id, privacy: .public))")
             return
         }
 
@@ -445,6 +462,10 @@ final class MessageCoordinator: @unchecked Sendable {
     ///
     /// Never throws — all errors are logged and swallowed after the retry attempt.
     private func sendSafeResponse(_ response: String, to phoneNumber: String) async {
+        // Record the response text before sending so the self-loop filter
+        // can catch the echo when it arrives back via iCloud sync.
+        recentlySentTexts.append((text: response, timestamp: Date()))
+
         do {
             try await messageSender.send(message: response, to: phoneNumber)
             logger.info("Response sent to: \(phoneNumber.suffix(4), privacy: .public)")
@@ -542,5 +563,13 @@ final class MessageCoordinator: @unchecked Sendable {
             await processAllowedMessage(originalMessage, phoneNumber: phoneNumber)
             return true
         }
+    }
+
+    // MARK: - Self-Loop Prevention
+
+    /// Removes entries from recentlySentTexts older than the loop window.
+    private func pruneExpiredSentTexts() {
+        let cutoff = Date().addingTimeInterval(-Self.selfLoopWindowSeconds)
+        recentlySentTexts.removeAll { $0.timestamp < cutoff }
     }
 }

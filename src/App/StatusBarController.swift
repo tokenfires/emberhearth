@@ -214,12 +214,18 @@ final class StatusBarController: NSObject {
 
         menu.addItem(NSMenuItem.separator())
 
-        // Onboarding prompt
+        // Onboarding prompt or restart option
         if !appState.isOnboardingComplete {
             let setupItem = NSMenuItem(title: "Setup Required\u{2026}", action: #selector(openOnboarding), keyEquivalent: "")
             setupItem.target = self
             setupItem.setAccessibilityLabel("EmberHearth setup is required")
             menu.addItem(setupItem)
+            menu.addItem(NSMenuItem.separator())
+        } else {
+            let restartItem = NSMenuItem(title: "Restart Setup\u{2026}", action: #selector(openOnboarding), keyEquivalent: "")
+            restartItem.target = self
+            restartItem.setAccessibilityLabel("Restart EmberHearth setup wizard")
+            menu.addItem(restartItem)
             menu.addItem(NSMenuItem.separator())
         }
 
@@ -284,11 +290,16 @@ final class StatusBarController: NSObject {
 
     // MARK: - Menu Actions
 
-    /// Opens the onboarding flow.
+    /// Resets onboarding state and brings the main window forward so
+    /// ContentView re-evaluates and shows the onboarding flow.
     @objc private func openOnboarding() {
         logger.info("Opening onboarding from menu bar")
+        UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
+        appState.isOnboardingComplete = false
         NSApp.activate(ignoringOtherApps: true)
-        // Wire to onboarding window during integration
+        for window in NSApp.windows {
+            window.makeKeyAndOrderFront(nil)
+        }
     }
 
     /// Opens the Settings window.

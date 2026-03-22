@@ -59,6 +59,28 @@ enum PermissionType: String, CaseIterable, Sendable {
     }
 }
 
+// MARK: - Notification Authorization State
+
+/// The three possible states for notification authorization.
+/// Maps directly to `UNAuthorizationStatus` but simplified for our use.
+enum NotificationAuthState: Equatable, Sendable, CustomStringConvertible {
+    /// The app has never requested notification permission.
+    /// It does not appear in the Notifications list in System Settings.
+    case notDetermined
+    /// The app appears in the Notifications list but is toggled off.
+    case denied
+    /// The app appears in the Notifications list and is toggled on.
+    case authorized
+
+    var description: String {
+        switch self {
+        case .notDetermined: return "notDetermined"
+        case .denied: return "denied"
+        case .authorized: return "authorized"
+        }
+    }
+}
+
 // MARK: - Permission Status
 
 /// Represents the current status of all required permissions.
@@ -67,8 +89,13 @@ struct PermissionStatus: Equatable, Sendable {
     var fullDiskAccess: Bool
     /// Whether Automation permission is granted (can control Messages.app via AppleScript).
     var automation: Bool
-    /// Whether Notification permission is granted.
-    var notifications: Bool
+    /// The notification authorization state (notDetermined / denied / authorized).
+    var notificationAuth: NotificationAuthState
+
+    /// Convenience: whether notifications are authorized.
+    var notifications: Bool {
+        notificationAuth == .authorized
+    }
 
     /// Returns true if all required permissions (Full Disk Access and Automation) are granted.
     var allRequiredGranted: Bool {
@@ -80,24 +107,15 @@ struct PermissionStatus: Equatable, Sendable {
         return fullDiskAccess && automation && notifications
     }
 
-    /// Returns a fresh status with all permissions set to false.
+    /// Returns a fresh status with all permissions in their initial state.
     static var allDenied: PermissionStatus {
-        return PermissionStatus(fullDiskAccess: false, automation: false, notifications: false)
+        return PermissionStatus(fullDiskAccess: false, automation: false, notificationAuth: .notDetermined)
     }
 }
 
 // MARK: - PermissionManager
 
 /// Manages checking and requesting macOS permissions for EmberHearth.
-///
-/// Usage:
-/// ```swift
-/// let manager = PermissionManager()
-/// let status = await manager.checkAllPermissions()
-/// if !status.allRequiredGranted {
-///     manager.openSystemPreferences(for: .fullDiskAccess)
-/// }
-/// ```
 ///
 /// Note: macOS does not allow programmatic granting of Full Disk Access or
 /// Automation permissions. The user must manually toggle them in System Settings.
@@ -115,17 +133,17 @@ final class PermissionManager: ObservableObject {
 
     // MARK: - Private Properties
 
-    /// Logger for permission-related events.
     private static let logger = Logger(
         subsystem: "com.emberhearth.app",
         category: "PermissionManager"
     )
 
+    /// Observer for System Settings deactivation (to bring our window back).
+    private var workspaceObserver: NSObjectProtocol?
+
     // MARK: - Public API
 
     /// Checks the status of all permissions and updates `currentStatus`.
-    ///
-    /// - Returns: The current `PermissionStatus`.
     @discardableResult
     func checkAllPermissions() async -> PermissionStatus {
         isChecking = true
@@ -133,26 +151,25 @@ final class PermissionManager: ObservableObject {
 
         let fdaStatus = checkFullDiskAccess()
         let automationStatus = checkAutomation()
-        let notificationStatus = await checkNotifications()
+        let notifAuth = await checkNotificationAuthState()
 
         let status = PermissionStatus(
             fullDiskAccess: fdaStatus,
             automation: automationStatus,
-            notifications: notificationStatus
+            notificationAuth: notifAuth
         )
 
         currentStatus = status
 
         Self.logger.info(
-            "Permission check: FDA=\(fdaStatus), Automation=\(automationStatus), Notifications=\(notificationStatus)"
+            "Permission check: FDA=\(fdaStatus), Automation=\(automationStatus), Notifications=\(notifAuth)"
         )
 
         return status
     }
 
-    /// Opens System Settings to the appropriate pane for the given permission.
-    ///
-    /// - Parameter permission: The permission type to open settings for.
+    /// Opens System Settings to the appropriate pane for the given permission,
+    /// then watches for System Settings to lose focus so we can bring our window back.
     func openSystemPreferences(for permission: PermissionType) {
         let urlString: String
         switch permission {
@@ -164,35 +181,117 @@ final class PermissionManager: ObservableObject {
             urlString = "x-apple.systempreferences:com.apple.preference.notifications"
         }
 
-        if let url = URL(string: urlString) {
-            NSWorkspace.shared.open(url)
-            Self.logger.info("Opened System Settings for: \(permission.rawValue)")
-        } else {
+        guard let url = URL(string: urlString) else {
             Self.logger.error("Failed to create URL for System Settings pane: \(permission.rawValue)")
+            return
+        }
+
+        NSWorkspace.shared.open(url)
+        Self.logger.info("Opened System Settings for: \(permission.rawValue)")
+
+        // Watch for System Settings to lose focus — when it does, bring EmberHearth back.
+        startWatchingForSystemSettingsDeactivation()
+    }
+
+    /// Registers the app for notifications (adds it to the system list) then opens
+    /// Notification settings so the user can toggle it on.
+    ///
+    /// This is the correct flow for `.notDetermined` state:
+    /// 1. `requestAuthorization()` adds the app to the Notifications list in System Settings
+    /// 2. Opening the settings pane lets the user toggle it on
+    func registerAndOpenNotificationSettings() async {
+        // Request authorization to register the app in the notifications list.
+        // The user may grant directly from the system prompt, or they may deny
+        // and toggle it on manually in Settings.
+        do {
+            let granted = try await UNUserNotificationCenter.current()
+                .requestAuthorization(options: [.alert, .sound, .badge])
+            Self.logger.info("Notification registration result: \(granted ? "granted" : "denied/dismissed")")
+        } catch {
+            Self.logger.error("Notification registration failed: \(error.localizedDescription)")
+        }
+
+        // Re-check to pick up whatever the user chose in the system prompt.
+        await checkAllPermissions()
+
+        // If not yet authorized, open Settings so they can toggle it on.
+        if currentStatus.notificationAuth != .authorized {
+            openSystemPreferences(for: .notifications)
+        }
+    }
+
+    // MARK: - System Settings Watcher
+
+    /// Observes NSWorkspace for System Settings being deactivated.
+    /// When detected, activates EmberHearth and re-checks permissions.
+    private func startWatchingForSystemSettingsDeactivation() {
+        stopWatchingForSystemSettingsDeactivation()
+
+        let workspace = NSWorkspace.shared
+        workspaceObserver = workspace.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let activatedApp = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication else {
+                return
+            }
+
+            let systemSettingsBundleIDs = [
+                "com.apple.systempreferences",
+                "com.apple.Preferences"
+            ]
+
+            let activatedBundleID = activatedApp.bundleIdentifier ?? ""
+            if !systemSettingsBundleIDs.contains(activatedBundleID) {
+                self?.bringWindowToFront()
+                self?.stopWatchingForSystemSettingsDeactivation()
+
+                Task { @MainActor [weak self] in
+                    await self?.checkAllPermissions()
+                }
+            }
+        }
+    }
+
+    private func stopWatchingForSystemSettingsDeactivation() {
+        if let observer = workspaceObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(observer)
+            workspaceObserver = nil
+        }
+    }
+
+    /// Brings the EmberHearth window to front.
+    private func bringWindowToFront() {
+        NSApp.activate(ignoringOtherApps: true)
+        for window in NSApp.windows where window.isVisible {
+            window.makeKeyAndOrderFront(nil)
         }
     }
 
     // MARK: - Individual Permission Checks
 
-    /// Checks whether Full Disk Access is granted by attempting to read
-    /// ~/Library/Messages/chat.db. This file is only readable with FDA.
-    ///
-    /// - Returns: true if the file is readable (FDA granted), false otherwise.
+    /// Checks whether Full Disk Access is granted by attempting to open
+    /// ~/Library/Messages/chat.db. Using FileHandle triggers TCC registration,
+    /// which causes the app to appear in the Full Disk Access list in System Settings.
     func checkFullDiskAccess() -> Bool {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         let chatDBPath = "\(home)/Library/Messages/chat.db"
-        let isReadable = FileManager.default.isReadableFile(atPath: chatDBPath)
-        Self.logger.debug("Full Disk Access check: \(isReadable ? "granted" : "denied")")
-        return isReadable
+        let chatDBURL = URL(fileURLWithPath: chatDBPath)
+
+        do {
+            let handle = try FileHandle(forReadingFrom: chatDBURL)
+            handle.closeFile()
+            Self.logger.debug("Full Disk Access check: granted")
+            return true
+        } catch {
+            Self.logger.debug("Full Disk Access check: denied (\(error.localizedDescription))")
+            return false
+        }
     }
 
     /// Checks whether Automation permission is granted by running a harmless
     /// AppleScript against the Messages app.
-    ///
-    /// Note: This uses NSAppleScript, which is allowed per the security model
-    /// because it is a structured Apple API — not shell execution.
-    ///
-    /// - Returns: true if Automation is granted, false otherwise.
     func checkAutomation() -> Bool {
         let script = NSAppleScript(source: "tell application \"Messages\" to get name")
         var errorInfo: NSDictionary?
@@ -203,28 +302,27 @@ final class PermissionManager: ObservableObject {
         return isGranted
     }
 
-    /// Checks whether Notification permission is granted.
-    ///
-    /// - Returns: true if notifications are authorized, false otherwise.
-    func checkNotifications() async -> Bool {
+    /// Checks the notification authorization state, distinguishing between
+    /// notDetermined (not in list), denied (in list but off), and authorized (in list and on).
+    func checkNotificationAuthState() async -> NotificationAuthState {
         let settings = await UNUserNotificationCenter.current().notificationSettings()
-        let isAuthorized = settings.authorizationStatus == .authorized
-        Self.logger.debug("Notification check: \(isAuthorized ? "granted" : "denied")")
-        return isAuthorized
+        let state: NotificationAuthState
+        switch settings.authorizationStatus {
+        case .authorized, .provisional, .ephemeral:
+            state = .authorized
+        case .denied:
+            state = .denied
+        case .notDetermined:
+            state = .notDetermined
+        @unknown default:
+            state = .notDetermined
+        }
+        Self.logger.debug("Notification check: \(String(describing: state))")
+        return state
     }
 
-    /// Requests notification permission from the user.
-    ///
-    /// - Returns: true if the user granted permission, false otherwise.
-    func requestNotificationPermission() async -> Bool {
-        do {
-            let granted = try await UNUserNotificationCenter.current()
-                .requestAuthorization(options: [.alert, .sound, .badge])
-            Self.logger.info("Notification permission request result: \(granted ? "granted" : "denied")")
-            return granted
-        } catch {
-            Self.logger.error("Notification permission request failed: \(error.localizedDescription)")
-            return false
-        }
+    /// Removes the workspace observer. Call when the manager is no longer needed.
+    func cleanup() {
+        stopWatchingForSystemSettingsDeactivation()
     }
 }

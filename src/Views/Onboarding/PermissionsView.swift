@@ -12,7 +12,7 @@ import SwiftUI
 /// - A plain-language explanation of why it's needed
 /// - Current status (granted / not granted)
 /// - A button to open the relevant System Settings pane
-/// - Auto-refresh of status every 2 seconds
+/// - Automatic re-check and window reactivation when returning from System Settings
 ///
 /// The user cannot proceed until Full Disk Access and Automation are granted.
 /// Notifications permission is optional and can be skipped.
@@ -37,11 +37,9 @@ struct PermissionsView: View {
     /// Callback invoked when the user wants to go back.
     var onBack: () -> Void
 
-    /// Timer that triggers permission re-checks every 2 seconds.
-    @State private var refreshTimer: Timer?
-
-    /// Whether the notification permission has been explicitly handled (granted or skipped).
-    @State private var notificationHandled: Bool = false
+    /// Whether the user has clicked "Open Settings" for notifications.
+    /// Used to determine if a denied state means "Skipped" (user saw Settings and chose not to enable).
+    @State private var userVisitedNotificationSettings: Bool = false
 
     /// Tracks the previous permission status for VoiceOver announcements.
     @State private var previousStatus: PermissionStatus = .allDenied
@@ -114,13 +112,9 @@ struct PermissionsView: View {
             .padding(16)
         }
         .onAppear {
-            startRefreshTimer()
             Task {
                 await permissionManager.checkAllPermissions()
             }
-        }
-        .onDisappear {
-            stopRefreshTimer()
         }
         .onChange(of: permissionManager.currentStatus) { newValue in
             announcePermissionChanges(from: previousStatus, to: newValue)
@@ -205,13 +199,20 @@ struct PermissionsView: View {
     // MARK: - Notification Card
 
     /// A specialized card for the optional notification permission.
+    ///
+    /// Three states:
+    /// - `.notDetermined`: App not in Notifications list yet. "Open Settings" registers
+    ///   the app (adds to list) then opens Settings for the user to toggle on.
+    /// - `.denied`: App is in list but toggled off. "Open Settings" lets user toggle on.
+    ///   If user returns without toggling, shows "Skipped".
+    /// - `.authorized`: App is in list and toggled on. Shows "Granted".
     private var notificationCard: some View {
-        let isGranted = permissionManager.currentStatus.notifications
+        let authState = permissionManager.currentStatus.notificationAuth
         return HStack(spacing: 16) {
             // Status icon
-            Image(systemName: isGranted ? "checkmark.circle.fill" : "bell.badge")
+            Image(systemName: notificationStatusIcon(for: authState))
                 .font(.title2)
-                .foregroundStyle(isGranted ? Color.green : Color.secondary)
+                .foregroundStyle(notificationStatusColor(for: authState))
                 .frame(width: 32)
                 .accessibilityHidden(true)
 
@@ -239,74 +240,111 @@ struct PermissionsView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             .accessibilityElement(children: .combine)
-            .accessibilityLabel("Notifications: \(permissionManager.currentStatus.notifications ? "granted" : notificationHandled ? "skipped" : "not configured"). Optional. \(PermissionType.notifications.explanation)")
+            .accessibilityLabel("Notifications: \(notificationAccessibilityStatus). Optional. \(PermissionType.notifications.explanation)")
 
             Spacer()
 
-            // Action buttons
-            if isGranted || notificationHandled {
-                Text(isGranted ? "Granted" : "Skipped")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundStyle(isGranted ? .green : .secondary)
-            } else {
-                VStack(spacing: 4) {
-                    Button("Enable") {
-                        Task {
-                            let granted = await permissionManager.requestNotificationPermission()
-                            if granted {
-                                await permissionManager.checkAllPermissions()
-                            }
-                            notificationHandled = true
-                        }
-                    }
-                    .buttonStyle(.bordered)
-                    .accessibilityLabel("Enable notifications")
-                    .accessibilityHint("Requests permission to send you notifications")
-                    .accessibilityIdentifier("onboarding_permissions_enableNotificationsButton")
-
-                    Button("Skip") {
-                        notificationHandled = true
-                    }
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .accessibilityLabel("Skip notifications")
-                    .accessibilityHint("Continues without notification permission. You can enable this later in Settings.")
-                    .accessibilityIdentifier("onboarding_permissions_skipNotificationsButton")
-                }
-            }
+            // Action area — depends on auth state and whether user has visited Settings
+            notificationActionView(for: authState)
         }
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.secondary.opacity(0.03))
+                .fill(notificationCardBackground(for: authState))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(Color.secondary.opacity(0.15), lineWidth: 1)
+                .strokeBorder(notificationCardBorder(for: authState), lineWidth: 1)
         )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("onboarding_permissions_notificationsCard")
     }
 
-    // MARK: - Timer Management
+    /// The action button/label for the notification card.
+    ///
+    /// Flow:
+    /// - authorized → "Granted"
+    /// - notDetermined → "Open Settings" (registers app first, then opens Settings)
+    /// - denied + user hasn't visited Settings yet → "Open Settings"
+    /// - denied + user visited Settings and came back without enabling → "Skipped"
+    @ViewBuilder
+    private func notificationActionView(for authState: NotificationAuthState) -> some View {
+        switch authState {
+        case .authorized:
+            Text("Granted")
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundStyle(.green)
 
-    /// Starts a timer that re-checks permissions every 2 seconds.
-    /// This allows the UI to update when the user grants permission in System Settings
-    /// and switches back to EmberHearth.
-    private func startRefreshTimer() {
-        refreshTimer?.invalidate()
-        refreshTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
-            Task { @MainActor in
-                await permissionManager.checkAllPermissions()
+        case .notDetermined:
+            Button("Open Settings") {
+                userVisitedNotificationSettings = true
+                Task {
+                    await permissionManager.registerAndOpenNotificationSettings()
+                }
+            }
+            .accessibilityLabel("Set up notifications")
+            .accessibilityHint("Registers EmberHearth for notifications and opens System Settings")
+            .accessibilityIdentifier("onboarding_permissions_notificationOpenSettingsButton")
+
+        case .denied:
+            if userVisitedNotificationSettings {
+                // User opened Settings and came back without toggling on → intentional skip.
+                Text("Skipped")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.secondary)
+            } else {
+                // App is in the list but off. User hasn't tried yet — let them open Settings.
+                Button("Open Settings") {
+                    userVisitedNotificationSettings = true
+                    permissionManager.openSystemPreferences(for: .notifications)
+                }
+                .accessibilityLabel("Open notification settings")
+                .accessibilityHint("Opens System Settings where you can enable notifications for EmberHearth")
+                .accessibilityIdentifier("onboarding_permissions_notificationOpenSettingsButton")
             }
         }
     }
 
-    /// Stops the permission refresh timer.
-    private func stopRefreshTimer() {
-        refreshTimer?.invalidate()
-        refreshTimer = nil
+    // MARK: - Notification Card Styling Helpers
+
+    private func notificationStatusIcon(for state: NotificationAuthState) -> String {
+        switch state {
+        case .authorized: return "checkmark.circle.fill"
+        case .denied where userVisitedNotificationSettings: return "bell.slash"
+        default: return "bell.badge"
+        }
+    }
+
+    private func notificationStatusColor(for state: NotificationAuthState) -> Color {
+        switch state {
+        case .authorized: return .green
+        default: return .secondary
+        }
+    }
+
+    private func notificationCardBackground(for state: NotificationAuthState) -> Color {
+        switch state {
+        case .authorized: return Color.green.opacity(0.05)
+        default: return Color.secondary.opacity(0.03)
+        }
+    }
+
+    private func notificationCardBorder(for state: NotificationAuthState) -> Color {
+        switch state {
+        case .authorized: return Color.green.opacity(0.2)
+        default: return Color.secondary.opacity(0.15)
+        }
+    }
+
+    private var notificationAccessibilityStatus: String {
+        switch permissionManager.currentStatus.notificationAuth {
+        case .authorized: return "granted"
+        case .denied where userVisitedNotificationSettings: return "skipped"
+        case .denied: return "not enabled"
+        case .notDetermined: return "not configured"
+        }
     }
 
     // MARK: - VoiceOver Announcements
@@ -319,7 +357,7 @@ struct PermissionsView: View {
         if !oldStatus.automation && newStatus.automation {
             announceToVoiceOver("Automation permission granted")
         }
-        if !oldStatus.notifications && newStatus.notifications {
+        if oldStatus.notificationAuth != .authorized && newStatus.notificationAuth == .authorized {
             announceToVoiceOver("Notification permission granted")
         }
         if newStatus.allRequiredGranted && !oldStatus.allRequiredGranted {

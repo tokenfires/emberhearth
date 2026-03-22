@@ -55,7 +55,17 @@
       "Bash(find /Users/robault/Documents/GitHub/emberhearth/tests -name \"*.swift\" -exec grep -l \"@testable import EmberHearth\" {})",
       "Bash(xargs sed:*)",
       "Bash(xcodebuild -project EmberHearth/EmberHearth.xcodeproj -scheme EmberHearth -configuration Debug build)",
-      "Bash(xcodebuild -project EmberHearth/EmberHearth.xcodeproj -scheme EmberHearth -configuration Debug test)"
+      "Bash(xcodebuild -project EmberHearth/EmberHearth.xcodeproj -scheme EmberHearth -configuration Debug test)",
+      "Bash(xcodebuild -project EmberHearth/EmberHearth.xcodeproj -scheme EmberHearth build)",
+      "Bash(xcodebuild -project EmberHearth/EmberHearth.xcodeproj -scheme EmberHearth test)",
+      "Bash(xcodebuild -project EmberHearth/EmberHearth.xcodeproj -scheme EmberHearth clean build)",
+      "Bash(osascript -e 'tell application \"\"Messages\"\" to get name of every service')",
+      "Bash(osascript -e 'tell application \"\"Messages\"\" to get every service')",
+      "Bash(osascript -e 'tell application \"\"Messages\"\":*)",
+      "Bash(swift -e ':*)",
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "mcp__plugin_context7_context7__query-docs",
+      "WebFetch(domain:docs.anthropic.com)"
     ]
   }
 }

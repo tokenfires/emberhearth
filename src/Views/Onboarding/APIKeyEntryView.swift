@@ -82,6 +82,20 @@ final class APIKeyEntryViewModel: ObservableObject {
         self.keychainManager = keychainManager
     }
 
+    /// Checks whether an API key already exists in Keychain.
+    /// If so, marks validation as passed so the user can skip re-entry.
+    func checkForExistingKey() {
+        do {
+            if let key = try keychainManager.retrieve(for: .claude), !key.isEmpty {
+                apiKeyText = key
+                validationState = .valid
+                Self.logger.info("Existing API key found in Keychain — skipping re-entry")
+            }
+        } catch {
+            Self.logger.debug("No existing API key found")
+        }
+    }
+
     // MARK: - Validation
 
     /// Validates the entered API key.
@@ -323,6 +337,9 @@ struct APIKeyEntryView: View {
 
             // Navigation buttons
             navigationButtons
+        }
+        .onAppear {
+            viewModel.checkForExistingKey()
         }
         .onChange(of: viewModel.validationState) { newValue in
             if case .valid = newValue {

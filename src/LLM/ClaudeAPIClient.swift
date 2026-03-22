@@ -16,7 +16,7 @@ final class ClaudeAPIClient: LLMProviderProtocol, Sendable {
     // MARK: - Constants
 
     private static let messagesPath = "/v1/messages"
-    private static let defaultModel = "claude-sonnet-4-5"
+    private static let defaultModel = "claude-sonnet-4-6"
     private static let defaultMaxTokens = 1024
     private static let anthropicVersion = "2023-06-01"
 
@@ -107,8 +107,11 @@ final class ClaudeAPIClient: LLMProviderProtocol, Sendable {
 
                     try Self.validateStatus(httpResponse)
 
-                    let lines = asyncBytes.lines
-                    let events = SSEParser.parse(lines: lines)
+                    // Read bytes into lines manually instead of using
+                    // asyncBytes.lines, which skips empty lines on macOS 26.
+                    // SSE requires empty lines as event delimiters.
+                    let sseLines = Self.linesPreservingEmpty(from: asyncBytes)
+                    let events = SSEParser.parse(lines: sseLines)
 
                     for try await event in events {
                         if let chunk = SSEParser.extractChunk(from: event) {
@@ -116,7 +119,6 @@ final class ClaudeAPIClient: LLMProviderProtocol, Sendable {
                                 continuation.yield(chunk.deltaText)
                             }
                             if chunk.stopReason != nil {
-                                // Stream is complete
                                 break
                             }
                         }
@@ -135,6 +137,45 @@ final class ClaudeAPIClient: LLMProviderProtocol, Sendable {
     }
 
     // MARK: - Private Helpers
+
+    /// Reads bytes from a URLSession async stream and yields lines as strings,
+    /// **including empty lines**. This replaces `asyncBytes.lines` which skips
+    /// empty lines — a problem for SSE parsing where empty lines delimit events.
+    private static func linesPreservingEmpty(
+        from asyncBytes: URLSession.AsyncBytes
+    ) -> AsyncThrowingStream<String, Error> {
+        AsyncThrowingStream { continuation in
+            let task = Task {
+                var buffer = Data()
+                let newline = UInt8(ascii: "\n")
+                let cr = UInt8(ascii: "\r")
+                do {
+                    for try await byte in asyncBytes {
+                        if byte == newline {
+                            // Yield the line (strip trailing \r if present)
+                            if buffer.last == cr {
+                                buffer.removeLast()
+                            }
+                            let line = String(data: buffer, encoding: .utf8) ?? ""
+                            continuation.yield(line)
+                            buffer.removeAll(keepingCapacity: true)
+                        } else {
+                            buffer.append(byte)
+                        }
+                    }
+                    // Flush remaining bytes
+                    if !buffer.isEmpty {
+                        let line = String(data: buffer, encoding: .utf8) ?? ""
+                        continuation.yield(line)
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
 
     /// Builds the HTTP request for the Messages API.
     private func buildRequest(

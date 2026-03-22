@@ -25,6 +25,10 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
     /// The status bar controller for the menu bar icon.
     private var statusBarController: StatusBarController?
 
+    /// Shared app state, created at launch so the status bar icon can
+    /// appear immediately — before services finish initializing.
+    private let appState = AppState()
+
     /// Logger for startup and lifecycle events.
     private let logger = Logger(
         subsystem: "com.emberhearth.app",
@@ -37,33 +41,47 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Application Lifecycle
 
     public func applicationDidFinishLaunching(_ notification: Notification) {
-        logger.info("EmberHearth starting — version \(AppVersion.displayString, privacy: .public)")
+        logger.notice("EmberHearth starting — version \(AppVersion.displayString, privacy: .public)")
 
         // Configure as an accessory app (menu bar only, no Dock icon).
         NSApp.setActivationPolicy(.accessory)
 
-        // Step 1: Check for crash recovery before touching any state.
+        // Listen for onboarding completion from the SwiftUI layer.
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleOnboardingCompleted),
+            name: .emberHearthOnboardingCompleted,
+            object: nil
+        )
+
+        // Step 1: Set up the menu bar icon immediately so the user always
+        // has a way to interact with EmberHearth (even during onboarding).
+        let controller = StatusBarController(appState: appState)
+        statusBarController = controller
+        controller.setup()
+
+        // Step 2: Check for crash recovery before touching any state.
         checkForCrashRecovery()
 
-        // Step 2: Synchronize launch-at-login with user preference.
+        // Step 3: Synchronize launch-at-login with user preference.
         LaunchAtLoginManager.shared.synchronize()
 
-        // Step 3: Check if onboarding has been completed.
+        // Step 4: Check if onboarding has been completed.
         let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
         guard hasCompletedOnboarding else {
-            logger.info("Onboarding not complete — showing onboarding window")
+            logger.notice("Onboarding not complete — showing onboarding window")
             showOnboardingWindow()
             return
         }
 
-        // Step 4: Load API key from Keychain.
+        // Step 5: Load API key from Keychain.
         guard let apiKey = loadAPIKey() else {
             logger.warning("No API key in Keychain — showing onboarding")
             showOnboardingWindow()
             return
         }
 
-        // Step 5: Initialize all services and start the coordinator.
+        // Step 6: Initialize all services and start the coordinator.
         startServices(apiKey: apiKey)
     }
 
@@ -104,7 +122,7 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
         // Initialize the service container (all components in dependency order).
         let container: ServiceContainer
         do {
-            container = try ServiceContainer.initialize(apiKey: apiKey)
+            container = try ServiceContainer.initialize(apiKey: apiKey, appState: appState)
         } catch let error as AppStartupError {
             logger.error("Service initialization failed: \(error.localizedDescription, privacy: .public)")
             handleStartupError(error)
@@ -116,11 +134,6 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         self.services = container
-
-        // Set up the menu bar status item.
-        let controller = StatusBarController(appState: container.appState)
-        statusBarController = controller
-        controller.setup()
 
         // Start the message coordinator (begins watching chat.db).
         do {
@@ -136,7 +149,7 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let elapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
-        logger.info("EmberHearth ready in \(String(format: "%.0f", elapsed), privacy: .public)ms")
+        logger.notice("EmberHearth ready in \(String(format: "%.0f", elapsed), privacy: .public)ms")
 
         if elapsed > 3_000 {
             logger.warning("Startup exceeded target: \(String(format: "%.0f", elapsed), privacy: .public)ms (target: <3000ms)")
@@ -271,9 +284,20 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
     ///
     /// Marks onboarding as complete, then attempts to start all services
     /// using the newly-stored API key.
+    /// Called via NotificationCenter when the onboarding UI finishes.
+    @objc private func handleOnboardingCompleted() {
+        onboardingCompleted()
+    }
+
     public func onboardingCompleted() {
-        logger.info("Onboarding completed — starting services")
+        guard services == nil else {
+            logger.notice("Services already running — skipping duplicate start")
+            return
+        }
+
+        logger.notice("Onboarding completed — starting services")
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+        appState.isOnboardingComplete = true
 
         guard let apiKey = loadAPIKey() else {
             logger.error("Onboarding completed but no API key found")

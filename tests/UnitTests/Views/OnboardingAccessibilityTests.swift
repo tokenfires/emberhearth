@@ -164,20 +164,20 @@ final class OnboardingAccessibilityTests: XCTestCase {
     }
 
     func testPermissionStatusAllGranted() {
-        let status = PermissionStatus(fullDiskAccess: true, automation: true, notifications: true)
+        let status = PermissionStatus(fullDiskAccess: true, automation: true, notificationAuth: .authorized)
         XCTAssertTrue(status.allRequiredGranted)
         XCTAssertTrue(status.allGranted)
     }
 
     func testPermissionStatusRequiredWithoutOptional() {
-        let status = PermissionStatus(fullDiskAccess: true, automation: true, notifications: false)
+        let status = PermissionStatus(fullDiskAccess: true, automation: true, notificationAuth: .denied)
         XCTAssertTrue(status.allRequiredGranted, "Required permissions are sufficient to proceed")
         XCTAssertFalse(status.allGranted, "allGranted should be false without notifications")
     }
 
     func testPermissionStatusTransitionsAreAnnounceworthy() {
-        let before = PermissionStatus(fullDiskAccess: false, automation: false, notifications: false)
-        let after = PermissionStatus(fullDiskAccess: true, automation: false, notifications: false)
+        let before = PermissionStatus(fullDiskAccess: false, automation: false, notificationAuth: .notDetermined)
+        let after = PermissionStatus(fullDiskAccess: true, automation: false, notificationAuth: .notDetermined)
         XCTAssertNotEqual(before, after, "Status change should be detectable for VoiceOver announcements")
     }
 

@@ -227,9 +227,13 @@ final class MessageSender: MessageSendingProtocol, @unchecked Sendable {
         let sanitizedPhoneNumber = Self.sanitizeForAppleScript(phoneNumber)
 
         // HARDCODED AppleScript template — DO NOT make this dynamic.
+        // Uses "1st service whose service type = iMessage" instead of
+        // `service "iMessage"` because macOS 26 no longer supports
+        // addressing services by name string.
         let scriptSource = """
             tell application "Messages"
-                set targetBuddy to buddy "\(sanitizedPhoneNumber)" of service "iMessage"
+                set targetService to 1st service whose service type = iMessage
+                set targetBuddy to buddy "\(sanitizedPhoneNumber)" of targetService
                 send "\(sanitizedMessage)" to targetBuddy
             end tell
             """

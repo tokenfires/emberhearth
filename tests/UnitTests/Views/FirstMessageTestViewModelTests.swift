@@ -17,7 +17,11 @@ final class FirstMessageTestViewModelTests: XCTestCase {
         phoneNumberFilter = PhoneNumberFilter()
         phoneNumberFilter.removeAllAllowedNumbers()
         phoneNumberFilter.addAllowedNumber("+15551234567")
-        viewModel = FirstMessageTestViewModel(phoneNumberFilter: phoneNumberFilter)
+        // STOP-GAP: skipMessageWatcher is true because the test runner doesn't
+        // have Full Disk Access, so MessageWatcher can't open chat.db. Once a
+        // mock MessageWatcher or test fixture database exists, these tests
+        // should exercise the real watcher pipeline.
+        viewModel = FirstMessageTestViewModel(phoneNumberFilter: phoneNumberFilter, skipMessageWatcher: true)
     }
 
     override func tearDown() {

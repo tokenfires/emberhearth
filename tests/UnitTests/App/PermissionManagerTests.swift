@@ -15,6 +15,7 @@ final class PermissionManagerTests: XCTestCase {
         XCTAssertFalse(status.fullDiskAccess)
         XCTAssertFalse(status.automation)
         XCTAssertFalse(status.notifications)
+        XCTAssertEqual(status.notificationAuth, .notDetermined)
         XCTAssertFalse(status.allRequiredGranted)
         XCTAssertFalse(status.allGranted)
     }
@@ -23,7 +24,7 @@ final class PermissionManagerTests: XCTestCase {
         let status = PermissionStatus(
             fullDiskAccess: true,
             automation: true,
-            notifications: false
+            notificationAuth: .denied
         )
         XCTAssertTrue(status.allRequiredGranted, "Should be true when FDA and Automation are granted")
         XCTAssertFalse(status.allGranted, "Should be false when notifications are not granted")
@@ -33,30 +34,49 @@ final class PermissionManagerTests: XCTestCase {
         let status = PermissionStatus(
             fullDiskAccess: true,
             automation: true,
-            notifications: true
+            notificationAuth: .authorized
         )
         XCTAssertTrue(status.allRequiredGranted)
         XCTAssertTrue(status.allGranted)
     }
 
     func testPartialRequiredPermissions() {
-        let fdaOnly = PermissionStatus(fullDiskAccess: true, automation: false, notifications: false)
+        let fdaOnly = PermissionStatus(fullDiskAccess: true, automation: false, notificationAuth: .notDetermined)
         XCTAssertFalse(fdaOnly.allRequiredGranted, "Should be false with only FDA granted")
 
-        let automationOnly = PermissionStatus(fullDiskAccess: false, automation: true, notifications: false)
+        let automationOnly = PermissionStatus(fullDiskAccess: false, automation: true, notificationAuth: .notDetermined)
         XCTAssertFalse(automationOnly.allRequiredGranted, "Should be false with only Automation granted")
     }
 
     func testPermissionStatusEquality() {
-        let status1 = PermissionStatus(fullDiskAccess: true, automation: true, notifications: false)
-        let status2 = PermissionStatus(fullDiskAccess: true, automation: true, notifications: false)
+        let status1 = PermissionStatus(fullDiskAccess: true, automation: true, notificationAuth: .denied)
+        let status2 = PermissionStatus(fullDiskAccess: true, automation: true, notificationAuth: .denied)
         XCTAssertEqual(status1, status2)
     }
 
     func testPermissionStatusInequality() {
-        let status1 = PermissionStatus(fullDiskAccess: true, automation: true, notifications: false)
-        let status2 = PermissionStatus(fullDiskAccess: true, automation: true, notifications: true)
+        let status1 = PermissionStatus(fullDiskAccess: true, automation: true, notificationAuth: .denied)
+        let status2 = PermissionStatus(fullDiskAccess: true, automation: true, notificationAuth: .authorized)
         XCTAssertNotEqual(status1, status2)
+    }
+
+    // MARK: - NotificationAuthState Tests
+
+    func testNotificationAuthStateDistinct() {
+        XCTAssertNotEqual(NotificationAuthState.notDetermined, NotificationAuthState.denied)
+        XCTAssertNotEqual(NotificationAuthState.denied, NotificationAuthState.authorized)
+        XCTAssertNotEqual(NotificationAuthState.notDetermined, NotificationAuthState.authorized)
+    }
+
+    func testNotificationsComputedProperty() {
+        let authorized = PermissionStatus(fullDiskAccess: true, automation: true, notificationAuth: .authorized)
+        XCTAssertTrue(authorized.notifications)
+
+        let denied = PermissionStatus(fullDiskAccess: true, automation: true, notificationAuth: .denied)
+        XCTAssertFalse(denied.notifications)
+
+        let notDetermined = PermissionStatus(fullDiskAccess: true, automation: true, notificationAuth: .notDetermined)
+        XCTAssertFalse(notDetermined.notifications)
     }
 
     // MARK: - PermissionType Tests

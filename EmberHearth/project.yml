@@ -72,10 +72,8 @@ targets:
     entitlements:
       path: EmberHearth.entitlements
       properties:
+        com.apple.security.get-task-allow: true
         com.apple.security.automation.apple-events: true
-        com.apple.security.files.user-selected.read-write: true
-        com.apple.security.temporary-exception.files.absolute-path.read-only:
-          - "/Users/"
         com.apple.security.network.client: true
         com.apple.security.keychain-access-groups:
           - "$(AppIdentifierPrefix)com.emberhearth.app"
@@ -96,4 +94,5 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.emberhearth.tests
         GENERATE_INFOPLIST_FILE: true
         TEST_HOST: ""
+        CODE_SIGN_IDENTITY: "-"
         BUNDLE_LOADER: ""

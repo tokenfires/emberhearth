@@ -6,6 +6,7 @@
 // displays real-time pipeline status to verify end-to-end functionality.
 
 import SwiftUI
+import Combine
 import os
 
 // MARK: - Test Status
@@ -110,6 +111,12 @@ final class FirstMessageTestViewModel: ObservableObject {
     /// Whether the test has been started.
     private var isRunning: Bool = false
 
+    /// Watches chat.db for new messages during the test.
+    private var messageWatcher: MessageWatcher?
+
+    /// Combine subscription for incoming messages.
+    private var cancellables = Set<AnyCancellable>()
+
     /// Logger for test events.
     private static let logger = Logger(
         subsystem: "com.emberhearth.app",
@@ -124,10 +131,15 @@ final class FirstMessageTestViewModel: ObservableObject {
     /// Phone number filter for reading configured numbers.
     private let phoneNumberFilter: PhoneNumberFilter
 
+    /// When true, skips creating a real MessageWatcher (used by unit tests
+    /// that don't have Full Disk Access).
+    private let skipMessageWatcher: Bool
+
     // MARK: - Initialization
 
-    init(phoneNumberFilter: PhoneNumberFilter = PhoneNumberFilter()) {
+    init(phoneNumberFilter: PhoneNumberFilter = PhoneNumberFilter(), skipMessageWatcher: Bool = false) {
         self.phoneNumberFilter = phoneNumberFilter
+        self.skipMessageWatcher = skipMessageWatcher
     }
 
     /// The configured phone numbers from the previous step.
@@ -159,10 +171,13 @@ final class FirstMessageTestViewModel: ObservableObject {
         startTimeoutTimer()
     }
 
-    /// Stops the test and cleans up timers.
+    /// Stops the test and cleans up timers and watcher.
     func stopTest() {
         isRunning = false
         stopTimeoutTimer()
+        cancellables.removeAll()
+        messageWatcher?.stop()
+        messageWatcher = nil
         Self.logger.info("First message test stopped")
     }
 
@@ -176,25 +191,57 @@ final class FirstMessageTestViewModel: ObservableObject {
 
     // MARK: - Message Pipeline
 
-    /// Starts the message watching pipeline.
+    /// Starts a lightweight message watcher for the onboarding test.
     ///
-    /// In the full implementation, this connects to MessageCoordinator.
-    /// For now, this sets up the pipeline and subscribes to status updates.
+    /// Creates its own `MessageWatcher` and subscribes to incoming messages,
+    /// filtering for the user's configured phone number. The full service
+    /// container isn't running during onboarding, so this only tests message
+    /// detection (FDA + chat.db + phone number matching).
+    ///
+    // STOP-GAP: This standalone watcher was added post-MVP because the full
+    // service layer (MessageCoordinator, LLM pipeline, response sender) isn't
+    // wired up yet. Once those services exist, this should be replaced with a
+    // real end-to-end test that starts the full pipeline and verifies Ember
+    // actually responds — not just that we can detect a message.
     private func startMessagePipeline() {
-        // TODO(v1.1): Connect directly to MessageCoordinator.start() and statusPublisher
-        // for richer first-message test visibility.
-        //
-        // The test relies on the message pipeline already being initialized by prior
-        // onboarding steps. The pipeline automatically processes incoming messages and
-        // this view observes the status.
+        guard !skipMessageWatcher else {
+            Self.logger.info("Message watcher skipped (test mode)")
+            return
+        }
 
-        Self.logger.info("Message pipeline started for first message test")
+        let watcher = MessageWatcher()
+        self.messageWatcher = watcher
+
+        watcher.newMessagesPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] messages in
+                guard let self, self.isRunning else { return }
+                for message in messages {
+                    guard let phone = message.phoneNumber,
+                          self.phoneNumberFilter.shouldRespond(to: phone) else {
+                        continue
+                    }
+                    let text = message.text ?? "(attachment)"
+                    self.onMessageReceived(text)
+                    return
+                }
+            }
+            .store(in: &cancellables)
+
+        do {
+            try watcher.start()
+            Self.logger.info("Message watcher started for onboarding test")
+        } catch {
+            Self.logger.error("Failed to start message watcher: \(error.localizedDescription)")
+            onPipelineError("Could not watch for messages: \(error.localizedDescription)")
+        }
     }
 
-    /// Called when a message is received from the user.
+    /// Called when a message is detected from the user's configured phone number.
     ///
-    /// This method should be called by the MessageCoordinator delegate
-    /// or a Combine subscriber when a new message arrives.
+    /// During onboarding, the full LLM pipeline isn't running, so detecting
+    /// the message is the success condition. This proves FDA, chat.db access,
+    /// and phone number matching all work.
     ///
     /// - Parameter message: The text of the received message.
     func onMessageReceived(_ message: String) {
@@ -203,9 +250,10 @@ final class FirstMessageTestViewModel: ObservableObject {
         testStatus = .messageReceived
         Self.logger.info("First message received")
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            guard let self = self, self.isRunning else { return }
-            self.testStatus = .processing
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            guard let self, self.isRunning else { return }
+            self.emberResponse = "Message detected! Ember will respond to messages like this once setup is complete."
+            self.onResponseSent(self.emberResponse!)
         }
     }
 

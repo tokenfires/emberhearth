@@ -161,7 +161,10 @@ final class SSEParser: Sendable {
 
         guard let jsonData = event.data.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
-            Self.logger.warning("Failed to parse JSON for event: \(event.eventType)")
+            // message_stop often has no JSON body — only warn for events that should have one
+            if event.eventType != "message_stop" {
+                Self.logger.warning("Failed to parse JSON for event: \(event.eventType)")
+            }
             return nil
         }
 
