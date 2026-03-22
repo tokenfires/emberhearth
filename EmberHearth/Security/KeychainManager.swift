@@ -37,7 +37,7 @@ public final class KeychainManager {
     /// Creates a KeychainManager scoped to the given service name.
     /// - Parameter serviceName: The Keychain service identifier.
     ///   Defaults to the production service name.
-    public init(serviceName: String = "com.emberhearth.api-keys") {
+    public nonisolated init(serviceName: String = "com.emberhearth.api-keys") {
         self.serviceName = serviceName
     }
 

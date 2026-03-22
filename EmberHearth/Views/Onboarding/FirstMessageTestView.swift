@@ -365,7 +365,7 @@ struct FirstMessageTestView: View {
         .onDisappear {
             viewModel.stopTest()
         }
-        .onChange(of: viewModel.testStatus) { newValue in
+        .onChange(of: viewModel.testStatus) { _, newValue in
             announceStatusChange(newValue)
         }
     }

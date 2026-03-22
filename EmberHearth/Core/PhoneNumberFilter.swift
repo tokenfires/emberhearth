@@ -27,7 +27,7 @@ final class PhoneNumberFilter {
     // MARK: - Properties
 
     /// The UserDefaults key for persisting allowed phone numbers.
-    static let allowedNumbersKey = "com.emberhearth.phonenumberfilter.allowedNumbers"
+    nonisolated static let allowedNumbersKey = "com.emberhearth.phonenumberfilter.allowedNumbers"
 
     /// Logger for phone number filtering operations.
     private let logger = Logger(subsystem: "com.emberhearth.core", category: "PhoneNumberFilter")
@@ -45,7 +45,7 @@ final class PhoneNumberFilter {
     ///
     /// Persisted numbers are re-validated on load; any that no longer pass E.164
     /// validation are silently discarded.
-    init() {
+    nonisolated init() {
         if let saved = UserDefaults.standard.stringArray(forKey: Self.allowedNumbersKey) {
             self._allowedNumbers = Set(saved.filter { Self.isValidE164($0) })
         } else {
@@ -225,7 +225,7 @@ final class PhoneNumberFilter {
     ///
     /// - Parameter number: The number to validate.
     /// - Returns: True if it matches E.164 format.
-    static func isValidE164(_ number: String) -> Bool {
+    nonisolated static func isValidE164(_ number: String) -> Bool {
         let pattern = #"^\+[1-9]\d{1,14}$"#
         return number.range(of: pattern, options: .regularExpression) != nil
     }

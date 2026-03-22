@@ -124,7 +124,7 @@ struct PermissionsView: View {
         .onDisappear {
             stopRefreshTimer()
         }
-        .onChange(of: permissionManager.currentStatus) { newValue in
+        .onChange(of: permissionManager.currentStatus) { _, newValue in
             announcePermissionChanges(from: previousStatus, to: newValue)
             // Bring the onboarding window back to front when a permission is granted.
             // macOS shifts focus away from LSUIElement apps when system TCC dialogs close.
@@ -287,7 +287,7 @@ struct PermissionsView: View {
                 VStack(spacing: 4) {
                     Button("Enable") {
                         Task {
-                            await permissionManager.requestNotificationPermission()
+                            _ = await permissionManager.requestNotificationPermission()
                             // Brief delay — TCC may not have committed the decision yet
                             // when requestAuthorization returns, especially on macOS 26.
                             try? await Task.sleep(for: .milliseconds(500))

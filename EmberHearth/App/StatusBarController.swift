@@ -183,8 +183,8 @@ final class StatusBarController: NSObject {
     /// Starts a subtle pulse animation for the processing state.
     private func startPulseAnimation() {
         pulseTimer = Timer.scheduledTimer(withTimeInterval: 0.8, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                guard let self else { return }
+            guard let self else { return }
+            MainActor.assumeIsolated {
                 self.isPulseBright.toggle()
                 self.statusItem?.button?.appearsDisabled = !self.isPulseBright
             }

@@ -325,7 +325,7 @@ struct APIKeyEntryView: View {
             // Navigation buttons
             navigationButtons
         }
-        .onChange(of: viewModel.validationState) { newValue in
+        .onChange(of: viewModel.validationState) { _, newValue in
             if case .valid = newValue {
                 announceToVoiceOver("API key validated successfully. Continuing to next step.")
                 DispatchQueue.main.asyncAfter(deadline: .now() + (reduceMotion ? 0.5 : 1.0)) {
@@ -429,7 +429,7 @@ struct APIKeyEntryView: View {
                             }
                         }
                     }
-                    .onChange(of: viewModel.apiKeyText) { _ in
+                    .onChange(of: viewModel.apiKeyText) { _, _ in
                         if viewModel.validationState != .idle && !viewModel.validationState.isValidating {
                             viewModel.resetValidation()
                         }

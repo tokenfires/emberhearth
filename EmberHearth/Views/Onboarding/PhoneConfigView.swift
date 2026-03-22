@@ -242,12 +242,12 @@ struct PhoneConfigView: View {
 
             navigationButtons
         }
-        .onChange(of: viewModel.errorMessage) { newValue in
+        .onChange(of: viewModel.errorMessage) { _, newValue in
             if let error = newValue {
                 announceToVoiceOver("Error: \(error)")
             }
         }
-        .onChange(of: viewModel.phoneEntries.count) { newCount in
+        .onChange(of: viewModel.phoneEntries.count) { _, newCount in
             if newCount > previousEntryCount {
                 announceToVoiceOver("Phone number added. \(newCount) number\(newCount == 1 ? "" : "s") configured.")
             } else if newCount < previousEntryCount {

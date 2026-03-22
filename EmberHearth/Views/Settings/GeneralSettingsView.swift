@@ -54,7 +54,7 @@ struct GeneralSettingsView: View {
                 Toggle("Launch EmberHearth at login", isOn: $launchAtLogin)
                     .accessibilityLabel("Launch at login")
                     .accessibilityHint("When enabled, EmberHearth starts automatically when you log into your Mac")
-                    .onChange(of: launchAtLogin) { newValue in
+                    .onChange(of: launchAtLogin) { _, newValue in
                         LaunchAtLoginManager.shared.setEnabled(newValue)
                         logger.info("Launch at login changed to \(newValue)")
                     }
