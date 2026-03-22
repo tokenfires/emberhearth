@@ -356,7 +356,7 @@ final class ChatDatabaseReader {
             switch binding {
             case .text(let value, let index):
                 value.withCString { cString in
-                    _ = sqlite3_bind_text(statement, index, cString, -1, Self.sqliteTransient)
+                    sqlite3_bind_text(statement, index, cString, -1, Self.sqliteTransient)
                 }
             case .int64(let value, let index):
                 sqlite3_bind_int64(statement, index, value)

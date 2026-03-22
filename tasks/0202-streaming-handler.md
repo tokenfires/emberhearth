@@ -39,7 +39,7 @@ IMPORTANT RULES (from CLAUDE.md):
 - All source files go under src/
 - All test files go under tests/
 - Every Swift file must have the filename as its first comment line
-- macOS 26.0+ deployment target
+- macOS 13.0+ deployment target
 
 EXISTING CODE CONTEXT:
 - src/LLM/ClaudeAPIClient.swift — Has a `buildRequest(messages:systemPrompt:apiKey:stream:)` method. Has a stub `streamMessage()` that throws "not implemented". You will REPLACE the stub.
@@ -939,4 +939,4 @@ feat(m3): add SSE streaming support for Claude API
 - Task 0204 (RetryHandler) should handle streaming errors the same way as non-streaming errors. The circuit breaker should track failures from both paths.
 - The `LLMStreamChunk.usage` field in `message_delta` events only contains `output_tokens`. Input tokens are reported in the `message_start` event. For full usage tracking, the caller should accumulate both.
 - For future reference, the streaming implementation yields ALL event types as chunks (except ping). The consumer (e.g., the message coordinator in M2) should filter for `content_block_delta` chunks to get the text, and `message_delta` for the final usage/stop reason.
-- `URLSession.bytes(for:)` is available on macOS 12+, so it works with our macOS 26.0+ deployment target.
+- `URLSession.bytes(for:)` is available on macOS 12+, so it works with our macOS 13.0+ deployment target.

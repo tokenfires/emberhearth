@@ -237,7 +237,7 @@ A secure, accessible, always-on personal AI assistant for macOS, using iMessage 
 
 ## Requirements
 
-- macOS 26.0 or later
+- macOS 13.0 (Ventura) or later
 - Xcode 15.0+ (for building from source)
 - A Claude API key from [Anthropic](https://www.anthropic.com/)
 - Full Disk Access permission (for reading iMessage database)

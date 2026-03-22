@@ -50,7 +50,7 @@ EmberHearth is a personal AI assistant that lives in iMessage on your Mac. You t
 
 Before installing EmberHearth, make sure you have:
 
-1. **A Mac running macOS 26.0 or later**
+1. **A Mac running macOS 13.0 (Ventura) or later**
    - To check your version: Click the Apple menu in the top-left corner, then "About This Mac"
    - Both Apple Silicon (M1, M2, M3, M4) and Intel Macs are supported
 
@@ -419,5 +419,5 @@ A: Download the latest release from the [Releases page](https://github.com/robau
 **Q: How do I report a bug?**
 A: File an issue on [GitHub Issues](https://github.com/robault/emberhearth/issues). Include what you were doing, what happened, and what you expected to happen. Do NOT include your API key or message content in bug reports.
 
-**Q: Will EmberHearth work with macOS versions older than 26.0?**
-A: No. EmberHearth requires macOS 26.0 or later. This is because it relies on system APIs that aren't available in older versions.
+**Q: Will EmberHearth work with macOS versions older than 13.0?**
+A: No. EmberHearth requires macOS 13.0 (Ventura) or later. This is because it relies on system APIs that aren't available in older versions.

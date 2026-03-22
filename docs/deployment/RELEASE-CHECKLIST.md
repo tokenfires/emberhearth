@@ -130,7 +130,7 @@ Follow every step in order. Do not skip steps.
 
 ### Release Notes
 - [ ] Include: What's new / Changed / Fixed / Known issues
-- [ ] Include: System requirements (macOS 26.0+)
+- [ ] Include: System requirements (macOS 13.0+)
 - [ ] Include: Installation instructions
 - [ ] Include: Required permissions (Full Disk Access, Automation)
 

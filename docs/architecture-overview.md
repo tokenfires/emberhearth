@@ -140,7 +140,7 @@ MessageService.xpc
 ├── MessageReader
 │   ├── Opens chat.db (read-only)
 │   ├── Monitors via FSEvents for new messages
-│   ├── Handles attributedBody decoding (macOS 26+)
+│   ├── Handles attributedBody decoding (macOS 13+)
 │   └── Returns structured Message objects
 │
 ├── MessageSender

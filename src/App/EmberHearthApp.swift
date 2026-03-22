@@ -10,21 +10,16 @@ import SwiftUI
 @main
 struct EmberHearthApp: App {
 
+    /// Bridge to AppDelegate for system integration (menu bar, notifications, etc.)
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
 
     var body: some Scene {
         WindowGroup {
-            if hasCompletedOnboarding {
-                ContentView()
-                    .frame(minWidth: 400, minHeight: 300)
-            } else {
-                OnboardingContainerView(onComplete: {
-                    appDelegate.onboardingCompleted()
-                })
-            }
+            ContentView()
+                .frame(minWidth: 400, minHeight: 300)
+                .frame(idealWidth: 500, idealHeight: 400)
         }
         .windowStyle(.titleBar)
-        .defaultSize(width: 600, height: 500)
+        .defaultSize(width: 500, height: 400)
     }
 }

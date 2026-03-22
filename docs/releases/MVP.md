@@ -441,8 +441,8 @@ EmberHearth/
 |------|---------|
 | Xcode | 15.0+ |
 | macOS | 14.0+ (for development) |
-| Target | macOS 26.0+ |
-| Swift | 6.2+ |
+| Target | macOS 13.0+ (Ventura) |
+| Swift | 5.9+ |
 
 ### Signing & Notarization
 

@@ -48,8 +48,8 @@ kk, rest is generated...
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/platform-macOS%2026.0%2B-blue" alt="macOS 26.0+">
-  <img src="https://img.shields.io/badge/swift-6.2-orange" alt="Swift 6.2">
+  <img src="https://img.shields.io/badge/platform-macOS%2013.0%2B-blue" alt="macOS 13.0+">
+  <img src="https://img.shields.io/badge/swift-5.9-orange" alt="Swift 5.9">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License">
   <img src="https://img.shields.io/badge/interface-iMessage-brightgreen" alt="iMessage">
 </p>
@@ -77,7 +77,7 @@ No cloud sync. No data collection. No complicated setup. Just a helpful assistan
 
 | Requirement | Details |
 |-------------|---------|
-| **Operating System** | macOS 26.0 or later |
+| **Operating System** | macOS 13.0 (Ventura) or later |
 | **Processor** | Apple Silicon or Intel |
 | **iMessage** | Configured and signed in with an Apple ID |
 | **API Key** | Claude API key from [Anthropic](https://console.anthropic.com/) |

@@ -143,13 +143,11 @@ final class ServiceContainer {
     /// 6. Initializes iMessage integration
     /// 7. Wires everything into the MessageCoordinator
     ///
-    /// - Parameters:
-    ///   - apiKey: The Claude API key retrieved from Keychain by the caller.
-    ///   - appState: The shared app state created by the AppDelegate.
+    /// - Parameter apiKey: The Claude API key retrieved from Keychain by the caller.
     /// - Returns: A fully initialized `ServiceContainer`.
     /// - Throws: `AppStartupError` if any critical component fails to initialize.
     @MainActor
-    static func initialize(apiKey: String, appState: AppState) throws -> ServiceContainer {
+    static func initialize(apiKey: String) throws -> ServiceContainer {
         let startTime = CFAbsoluteTimeGetCurrent()
 
         // ── Step 1: Database ──
@@ -162,7 +160,8 @@ final class ServiceContainer {
         }
         logger.info("Database initialized in \(String(format: "%.0f", (CFAbsoluteTimeGetCurrent() - dbStepStart) * 1000))ms")
 
-        // ── Step 2: App State (provided by caller) ──
+        // ── Step 2: App State ──
+        let appState = AppState()
 
         // ── Step 3: Security Pipeline ──
         let secStepStart = CFAbsoluteTimeGetCurrent()

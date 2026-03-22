@@ -2,10 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- Allows the debugger to attach during development -->
-    <key>com.apple.security.get-task-allow</key>
-    <true/>
-
     <!-- Automation permission for controlling Messages.app via AppleScript -->
     <key>com.apple.security.automation.apple-events</key>
     <true/>

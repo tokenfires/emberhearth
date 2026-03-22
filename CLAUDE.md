@@ -32,7 +32,7 @@ EmberHearth is a secure, accessible, always-on personal AI assistant for macOS. 
 
 - **Product name:** EmberHearth (display) or `emberhearth` (code/paths)
 - **Language:** Swift + SwiftUI (native macOS)
-- **Deployment target:** macOS 26.0+
+- **Deployment target:** macOS 13.0 (Ventura)+
 - **Distribution:** Outside Mac App Store (Developer ID + notarization)
 
 ---

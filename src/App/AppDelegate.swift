@@ -25,10 +25,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// The status bar controller for the menu bar icon.
     private var statusBarController: StatusBarController?
 
-    /// Shared app state — created early so the menu bar icon can display
-    /// status before services are fully initialized.
-    let appState = AppState()
-
     /// Logger for startup and lifecycle events.
     private let logger = Logger(
         subsystem: "com.emberhearth.app",
@@ -38,9 +34,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// Manages crash detection and recovery across launches.
     private let crashRecoveryManager = CrashRecoveryManager()
 
-    /// Workspace observer token for bringing the window forward after System Settings closes.
-    private var systemSettingsObserver: NSObjectProtocol?
-
     // MARK: - Application Lifecycle
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -49,51 +42,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Configure as an accessory app (menu bar only, no Dock icon).
         NSApp.setActivationPolicy(.accessory)
 
-        // Step 1: Set up the menu bar icon immediately so it's always visible.
-        let controller = StatusBarController(appState: appState)
-        statusBarController = controller
-        controller.setup()
-
-        // Observe System Settings deactivation so we can reclaim focus after the
-        // user grants a permission and closes System Settings. For .accessory apps,
-        // applicationDidBecomeActive never fires on its own in this scenario.
-        systemSettingsObserver = NSWorkspace.shared.notificationCenter.addObserver(
-            forName: NSWorkspace.didDeactivateApplicationNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey]
-                    as? NSRunningApplication,
-                  app.bundleIdentifier == "com.apple.systempreferences" else { return }
-            NSApp.activate(ignoringOtherApps: true)
-            for window in NSApp.windows where window.canBecomeMain {
-                window.makeKeyAndOrderFront(nil)
-            }
-            self?.logger.debug("Reclaimed focus after System Settings closed")
-        }
-
-        // Step 2: Check for crash recovery before touching any state.
+        // Step 1: Check for crash recovery before touching any state.
         checkForCrashRecovery()
 
-        // Step 3: Synchronize launch-at-login with user preference.
+        // Step 2: Synchronize launch-at-login with user preference.
         LaunchAtLoginManager.shared.synchronize()
 
-        // Step 4: If onboarding isn't complete, let the SwiftUI view handle it.
+        // Step 3: Check if onboarding has been completed.
         let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
         guard hasCompletedOnboarding else {
-            logger.info("Onboarding not complete — SwiftUI will present onboarding flow")
-            NSApp.activate(ignoringOtherApps: true)
+            logger.info("Onboarding not complete — showing onboarding window")
+            showOnboardingWindow()
             return
         }
 
-        // Step 5: Load API key from Keychain.
+        // Step 4: Load API key from Keychain.
         guard let apiKey = loadAPIKey() else {
-            logger.warning("No API key in Keychain — SwiftUI will present onboarding flow")
-            NSApp.activate(ignoringOtherApps: true)
+            logger.warning("No API key in Keychain — showing onboarding")
+            showOnboardingWindow()
             return
         }
 
-        // Step 6: Initialize all services and start the coordinator.
+        // Step 5: Initialize all services and start the coordinator.
         startServices(apiKey: apiKey)
     }
 
@@ -102,10 +72,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         services?.shutdown()
         statusBarController?.teardown()
-
-        if let observer = systemSettingsObserver {
-            NSWorkspace.shared.notificationCenter.removeObserver(observer)
-        }
 
         crashRecoveryManager.markCleanShutdown()
 
@@ -135,9 +101,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func startServices(apiKey: String) {
         let startTime = CFAbsoluteTimeGetCurrent()
 
+        // Initialize the service container (all components in dependency order).
         let container: ServiceContainer
         do {
-            container = try ServiceContainer.initialize(apiKey: apiKey, appState: appState)
+            container = try ServiceContainer.initialize(apiKey: apiKey)
         } catch let error as AppStartupError {
             logger.error("Service initialization failed: \(error.localizedDescription, privacy: .public)")
             handleStartupError(error)
@@ -150,11 +117,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         self.services = container
 
+        // Set up the menu bar status item.
+        let controller = StatusBarController(appState: container.appState)
+        statusBarController = controller
+        controller.setup()
+
+        // Start the message coordinator (begins watching chat.db).
         do {
             try container.start()
         } catch let error as ChatDatabaseError {
             logger.warning("iMessage watcher failed to start: \(error.localizedDescription, privacy: .public)")
-            appState.addError(.chatDbInaccessible)
+            // Degrade gracefully — services are up but messages won't be received.
+            container.appState.addError(.chatDbInaccessible)
         } catch {
             logger.error("Unexpected error starting coordinator: \(error.localizedDescription, privacy: .public)")
             handleStartupError(.componentInitializationFailed(component: "message coordinator", underlying: error))
@@ -168,6 +142,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             logger.warning("Startup exceeded target: \(String(format: "%.0f", elapsed), privacy: .public)ms (target: <3000ms)")
         }
 
+        // Bring the main window to front on first launch.
         NSApp.activate(ignoringOtherApps: true)
     }
 
@@ -199,9 +174,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func checkForCrashRecovery() {
         if crashRecoveryManager.didCrashLastRun() {
             logger.warning("Previous shutdown was not clean — possible crash")
+            // Full recovery (database integrity check, stale session cleanup)
+            // runs asynchronously; it does not block the startup sequence.
             Task { [weak self] in
-                guard let self else { return }
-                let result = await self.crashRecoveryManager.performRecovery(appState: self.appState)
+                guard let self, let appState = self.services?.appState else { return }
+                let result = await self.crashRecoveryManager.performRecovery(appState: appState)
                 if result.shouldNotifyUser {
                     self.logger.warning("Multiple crashes detected today: \(result.crashCountToday)")
                 }
@@ -217,7 +194,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func handleStartupError(_ error: AppStartupError) {
         switch error {
         case .noAPIKey, .invalidAPIKey:
-            NSApp.activate(ignoringOtherApps: true)
+            showOnboardingWindow()
 
         case .databaseInitializationFailed:
             showErrorAlert(
@@ -267,6 +244,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     // MARK: - Window Management
+
+    /// Shows the onboarding window for first-time setup.
+    private func showOnboardingWindow() {
+        logger.info("Showing onboarding window")
+        // TODO: Present OnboardingContainerView via window controller (task 0600–0699)
+        NSApp.activate(ignoringOtherApps: true)
+        for window in NSApp.windows {
+            window.makeKeyAndOrderFront(nil)
+        }
+    }
 
     /// Shows the settings window.
     private func showSettingsWindow() {

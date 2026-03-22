@@ -39,7 +39,7 @@ You are performing the final documentation pass for EmberHearth, a native macOS 
 - Accessibility is a CORE PRINCIPLE — mention it in all user-facing documentation
 - Privacy is a CORE PRINCIPLE — all data stays local, no cloud sync, emphasize everywhere
 - Security first: No shell execution in the app, Keychain for secrets, sandboxed web access
-- macOS 26.0+ minimum system requirement
+- macOS 13.0+ (Ventura) minimum system requirement
 - The app is distributed outside the Mac App Store (direct download, Developer ID signed, notarized)
 
 ## What You Are Doing
@@ -76,8 +76,8 @@ The new README.md content (below the preserved Creator message section) should b
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/platform-macOS%2026.0%2B-blue" alt="macOS 26.0+">
-  <img src="https://img.shields.io/badge/swift-6.2-orange" alt="Swift 6.2">
+  <img src="https://img.shields.io/badge/platform-macOS%2013.0%2B-blue" alt="macOS 13.0+">
+  <img src="https://img.shields.io/badge/swift-5.9-orange" alt="Swift 5.9">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License">
   <img src="https://img.shields.io/badge/interface-iMessage-brightgreen" alt="iMessage">
 </p>
@@ -105,7 +105,7 @@ No cloud sync. No data collection. No complicated setup. Just a helpful assistan
 
 | Requirement | Details |
 |-------------|---------|
-| **Operating System** | macOS 26.0 or later |
+| **Operating System** | macOS 13.0 (Ventura) or later |
 | **Processor** | Apple Silicon or Intel |
 | **iMessage** | Configured and signed in with an Apple ID |
 | **API Key** | Claude API key from [Anthropic](https://console.anthropic.com/) |
@@ -271,7 +271,7 @@ EmberHearth is a personal AI assistant that lives in iMessage on your Mac. You t
 
 Before installing EmberHearth, make sure you have:
 
-1. **A Mac running macOS 26.0 or later**
+1. **A Mac running macOS 13.0 (Ventura) or later**
    - To check your version: Click the Apple menu () in the top-left corner, then "About This Mac"
    - Both Apple Silicon (M1, M2, M3, M4) and Intel Macs are supported
 
@@ -640,8 +640,8 @@ A: Download the latest release from the [Releases page](https://github.com/robau
 **Q: How do I report a bug?**
 A: File an issue on [GitHub Issues](https://github.com/robault/emberhearth/issues). Include what you were doing, what happened, and what you expected to happen. Do NOT include your API key or message content in bug reports.
 
-**Q: Will EmberHearth work with macOS versions older than 26.0?**
-A: No. EmberHearth requires macOS 26.0 or later. This is because it relies on system APIs that aren't available in older versions.
+**Q: Will EmberHearth work with macOS versions older than 13.0?**
+A: No. EmberHearth requires macOS 13.0 (Ventura) or later. This is because it relies on system APIs that aren't available in older versions.
 ```
 
 ## File 3: Create CONTRIBUTING.md
@@ -674,12 +674,12 @@ Before you begin, make sure you have:
 
 | Requirement | Version |
 |-------------|---------|
-| **macOS** | 26.0+ for development |
-| **Xcode** | 16.0+ (latest stable recommended; must support Swift 6.2) |
-| **Swift** | 6.2+ |
+| **macOS** | 14.0+ (Sonoma) for development |
+| **Xcode** | 15.0+ (latest stable recommended) |
+| **Swift** | 5.9+ |
 | **Command Line Tools** | Installed (`xcode-select --install`) |
 
-**Note:** Development and deployment both target macOS 26.0+. Use an Xcode version that includes the Swift 6.2 toolchain and the macOS 26 SDK.
+**Note:** The development requirement (macOS 14.0+) is higher than the deployment target (macOS 13.0+). You develop on Sonoma or later, but the app runs on Ventura or later.
 
 ---
 
@@ -1107,7 +1107,7 @@ Initial release of EmberHearth.
 5. All links should use relative paths within the repository.
 6. Verify every internal link points to a file that exists.
 7. Include accessibility and privacy messaging in ALL user-facing documentation.
-8. System requirement is macOS 26.0+. Development requirement is macOS 26.0+ with Xcode that supports Swift 6.2.
+8. System requirement is macOS 13.0+ (Ventura). Development requirement is macOS 14.0+ (Sonoma).
 9. The product display name is "EmberHearth" (not "Ember Hearth" or "emberhearth" in user-facing text).
 10. No emojis in documentation.
 
@@ -1135,7 +1135,7 @@ Before finishing, verify:
 - [ ] Content below Creator message is user-facing (not a developer documentation index)
 - [ ] Includes hero section explaining what EmberHearth is
 - [ ] Includes key features list (conversational AI, memory, privacy, accessibility, always-on, security)
-- [ ] Includes system requirements table (macOS 26.0+, Apple Silicon or Intel, iMessage, API key)
+- [ ] Includes system requirements table (macOS 13.0+, Apple Silicon or Intel, iMessage, API key)
 - [ ] Includes quick start guide (download, permissions, API key, phone number)
 - [ ] Includes privacy and security section with details on local-only data, encryption, Keychain, no shell execution
 - [ ] Includes accessibility section (VoiceOver, Dynamic Type, keyboard navigation)
@@ -1162,7 +1162,7 @@ Before finishing, verify:
 
 ### CONTRIBUTING.md
 - [ ] File exists at root: `CONTRIBUTING.md`
-- [ ] Includes prerequisites (Xcode 16+, macOS 26+, Swift 6.2+)
+- [ ] Includes prerequisites (Xcode 15+, macOS 14+, Swift 5.9+)
 - [ ] Includes clone/build/test instructions
 - [ ] Includes project structure description matching actual `src/` layout
 - [ ] Includes code style conventions (PascalCase files, camelCase properties, documentation comments)
@@ -1184,7 +1184,7 @@ Before finishing, verify:
 - [ ] Privacy mentioned in all user-facing documents
 - [ ] Accessibility mentioned in all user-facing documents
 - [ ] Product name consistently "EmberHearth" in user-facing text
-- [ ] System requirement consistently macOS 26.0+
+- [ ] System requirement consistently macOS 13.0+ (Ventura)
 - [ ] No emojis in any documentation file
 
 ---
@@ -1214,7 +1214,7 @@ grep -q "System Requirements" README.md && echo "PASS: System Requirements secti
 grep -q "Quick Start" README.md && echo "PASS: Quick Start section present" || echo "FAIL: Quick Start missing"
 grep -q "Privacy" README.md && echo "PASS: Privacy section present" || echo "FAIL: Privacy section missing"
 grep -q "Accessibility" README.md && echo "PASS: Accessibility section present" || echo "FAIL: Accessibility section missing"
-grep -q "macOS 26.0" README.md && echo "PASS: macOS 26.0 requirement stated" || echo "FAIL: macOS 26.0 requirement missing"
+grep -q "macOS 13.0" README.md && echo "PASS: macOS 13.0 requirement stated" || echo "FAIL: macOS 13.0 requirement missing"
 
 # ── USER-GUIDE.md Checks ──
 echo "=== USER-GUIDE.md ==="
@@ -1300,9 +1300,9 @@ Review each document thoroughly:
    - Is the FAQ comprehensive? Are there obvious questions that are missing?
 
 2. **ACCURACY OF SYSTEM REQUIREMENTS:**
-   - Is the deployment target consistently stated as macOS 26.0+?
-   - Is the development requirement stated as macOS 26.0+ in CONTRIBUTING.md?
-   - Are Xcode 16+ and Swift 6.2+ correctly listed as development prerequisites?
+   - Is the deployment target consistently stated as macOS 13.0+ (Ventura)?
+   - Is the development requirement stated as macOS 14.0+ (Sonoma) in CONTRIBUTING.md?
+   - Are Xcode 15+ and Swift 5.9+ correctly listed as development prerequisites?
    - Is the Claude API key requirement clearly explained?
    - Are the permission requirements correct (Full Disk Access, Automation, Notifications)?
 
@@ -1338,7 +1338,7 @@ Review each document thoroughly:
 
 8. **CONSISTENCY:**
    - Is the product name consistently "EmberHearth" in user-facing text?
-   - Is the system requirement consistently macOS 26.0+ across all documents?
+   - Is the system requirement consistently macOS 13.0+ across all documents?
    - Is the privacy messaging consistent across all documents?
    - Are the accessibility claims consistent?
 

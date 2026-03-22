@@ -41,7 +41,7 @@ IMPORTANT RULES (from CLAUDE.md):
 PROJECT CONTEXT:
 - This is a Swift Package Manager project (not Xcode project)
 - Package.swift has the main target at path "src" and test target at path "tests"
-- macOS 26.0+ deployment target
+- macOS 13.0+ deployment target
 - No third-party dependencies — use only Apple frameworks
 
 STEP 1: Create the LLMProvider enum

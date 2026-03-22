@@ -13,7 +13,7 @@
 
 Open these files in Cursor using `@file` references before starting:
 
-1. `docs/research/imessage.md` — Read the "Technical Deep Dive" section on chat.db schema, key tables, timestamp format, and the `attributedBody` change on modern macOS
+1. `docs/research/imessage.md` — Read the "Technical Deep Dive" section on chat.db schema, key tables, timestamp format, and the `attributedBody` change in macOS Ventura
 2. `docs/architecture/decisions/0004-no-shell-execution.md` — Understand the security constraint: no shell execution, no Process(), no /bin/bash
 3. `docs/architecture/decisions/0010-fsevents-data-monitoring.md` — See the change detection pattern using ROWID tracking
 4. `CLAUDE.md` — Project conventions (PascalCase for Swift files, src/ layout, security principles)
@@ -466,7 +466,7 @@ final class ChatDatabaseReader {
                 text = String(cString: sqlite3_column_text(statement, 1))
             }
 
-            // If text is nil or empty, try to extract from attributedBody (macOS 26+)
+            // If text is nil or empty, try to extract from attributedBody (macOS Ventura+)
             if (text == nil || text?.isEmpty == true), sqlite3_column_type(statement, 2) != SQLITE_NULL {
                 let blobPointer = sqlite3_column_blob(statement, 2)
                 let blobSize = sqlite3_column_bytes(statement, 2)
@@ -557,7 +557,7 @@ final class ChatDatabaseReader {
 
     /// Attempts to extract plain text from an attributedBody blob.
     ///
-    /// On supported macOS versions (including macOS 26+), Messages stores message text as a
+    /// Starting with macOS Ventura (13.0), Messages stores message text as a
     /// serialized NSAttributedString in the attributedBody column instead of
     /// the plain text column. This method attempts to deserialize it.
     ///
@@ -892,7 +892,7 @@ Before finishing, verify:
 - [ ] `getMaxRowId()` returns the highest ROWID in the message table
 - [ ] `isGroupChat(chatId:)` correctly detects group chats
 - [ ] Apple nanosecond timestamp conversion handles both nanosecond and second formats
-- [ ] `attributedBody` decoding handles macOS 26+ message format
+- [ ] `attributedBody` decoding handles macOS Ventura+ message format
 - [ ] All unit tests pass with a mock test database
 - [ ] `os.Logger` used for all logging (no `print()` statements)
 - [ ] All public types and methods have documentation comments
@@ -947,7 +947,7 @@ Check for these specific issues:
 
 2. **Correctness:**
    - Does the Apple timestamp conversion correctly handle both nanosecond (modern) and second (legacy) formats?
-   - Does the attributedBody decoding work for macOS 26+ NSAttributedString blobs?
+   - Does the attributedBody decoding work for macOS Ventura+ NSAttributedString blobs?
    - Is the group chat detection checking all three signals: cache_roomnames, group_id, and participant count?
    - Does fetchRecentMessages return results in chronological order (oldest first)?
    - Does fetchMessagesSince(rowId:) correctly use > (not >=) to avoid re-processing?

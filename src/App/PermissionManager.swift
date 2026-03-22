@@ -8,7 +8,6 @@ import AppKit
 import Foundation
 import UserNotifications
 import os
-import Carbon
 
 // MARK: - Permission Types
 
@@ -187,78 +186,27 @@ final class PermissionManager: ObservableObject {
         return isReadable
     }
 
-    /// Checks whether Automation permission is granted for the Messages app.
+    /// Checks whether Automation permission is granted by running a harmless
+    /// AppleScript against the Messages app.
     ///
-    /// Uses `AEDeterminePermissionToAutomateTarget` to query TCC without prompting.
-    /// If the app has never requested automation (not yet in TCC), this triggers
-    /// the system prompt via a harmless AppleScript to register the app in TCC.
+    /// Note: This uses NSAppleScript, which is allowed per the security model
+    /// because it is a structured Apple API — not shell execution.
     ///
-    /// - Returns: true if Automation for Messages is granted, false otherwise.
+    /// - Returns: true if Automation is granted, false otherwise.
     func checkAutomation() -> Bool {
-        let target = NSAppleEventDescriptor(bundleIdentifier: "com.apple.MobileSMS")
-        let status = AEDeterminePermissionToAutomateTarget(
-            target.aeDesc, typeWildCard, typeWildCard, false
-        )
+        let script = NSAppleScript(source: "tell application \"Messages\" to get name")
+        var errorInfo: NSDictionary?
+        script?.executeAndReturnError(&errorInfo)
 
-        switch status {
-        case noErr:
-            Self.logger.debug("Automation check: granted")
-            return true
-        case -1744: // errAEEventNotPermitted — explicitly denied
-            Self.logger.debug("Automation check: denied")
-            return false
-        default:
-            // Not yet registered in TCC (procNotFound or similar) — trigger the prompt
-            // so the app appears in System Settings > Privacy > Automation.
-            Self.logger.debug("Automation check: not registered (status=\(status)), triggering prompt")
-            triggerAutomationPrompt()
-            return false
-        }
-    }
-
-    /// Sends a harmless Apple Event to Messages to trigger the TCC permission prompt.
-    ///
-    /// TCC only shows the automation prompt when an Apple Event is sent to an
-    /// *already-running* process. If Messages isn't running, we launch it first
-    /// via NSWorkspace (which doesn't require automation permission), wait briefly
-    /// for it to start, then send the event so macOS can gate it through TCC.
-    private func triggerAutomationPrompt() {
-        let messagesURL = URL(fileURLWithPath: "/System/Applications/Messages.app")
-
-        // If Messages isn't already running, launch it then send the event after a short delay.
-        let isRunning = !NSRunningApplication.runningApplications(
-            withBundleIdentifier: "com.apple.MobileSMS"
-        ).isEmpty
-
-        let sendEvent = {
-            let script = NSAppleScript(source: "tell application \"Messages\" to get name")
-            var error: NSDictionary?
-            script?.executeAndReturnError(&error)
-            // Result and error are intentionally ignored — we only care about the TCC prompt.
-        }
-
-        if isRunning {
-            sendEvent()
-        } else {
-            let config = NSWorkspace.OpenConfiguration()
-            config.activates = false
-            NSWorkspace.shared.openApplication(at: messagesURL, configuration: config) { _, _ in
-                // Give Messages a moment to finish launching before sending the Apple Event.
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                    sendEvent()
-                }
-            }
-        }
+        let isGranted = (errorInfo == nil)
+        Self.logger.debug("Automation check: \(isGranted ? "granted" : "denied")")
+        return isGranted
     }
 
     /// Checks whether Notification permission is granted.
     ///
     /// - Returns: true if notifications are authorized, false otherwise.
     func checkNotifications() async -> Bool {
-        guard Bundle.main.bundleIdentifier != nil else {
-            Self.logger.warning("Skipping notification check: no bundle identifier")
-            return false
-        }
         let settings = await UNUserNotificationCenter.current().notificationSettings()
         let isAuthorized = settings.authorizationStatus == .authorized
         Self.logger.debug("Notification check: \(isAuthorized ? "granted" : "denied")")
@@ -269,10 +217,6 @@ final class PermissionManager: ObservableObject {
     ///
     /// - Returns: true if the user granted permission, false otherwise.
     func requestNotificationPermission() async -> Bool {
-        guard Bundle.main.bundleIdentifier != nil else {
-            Self.logger.warning("Skipping notification request: no bundle identifier")
-            return false
-        }
         do {
             let granted = try await UNUserNotificationCenter.current()
                 .requestAuthorization(options: [.alert, .sound, .badge])

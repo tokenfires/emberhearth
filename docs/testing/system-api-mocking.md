@@ -351,7 +351,7 @@ struct ChatDBFixtures {
         "chatId": "chat123",
         "date": "2026-02-05T16:00:00Z",
         "isFromMe": false,
-        "comment": "Message with attributedBody instead of text (macOS 26+)"
+        "comment": "Message with attributedBody instead of text (macOS 13+)"
     },
     {
         "id": 101,
