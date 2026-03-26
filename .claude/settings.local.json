@@ -65,7 +65,9 @@
       "Bash(swift -e ':*)",
       "mcp__plugin_context7_context7__resolve-library-id",
       "mcp__plugin_context7_context7__query-docs",
-      "WebFetch(domain:docs.anthropic.com)"
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:www.hotwireweekly.com)",
+      "WebFetch(domain:jetrockets.com)"
     ]
   }
 }

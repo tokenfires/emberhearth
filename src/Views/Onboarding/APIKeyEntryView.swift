@@ -577,7 +577,7 @@ struct APIKeyEntryView: View {
                 .buttonStyle(.borderedProminent)
                 .keyboardShortcut(.defaultAction)
                 .accessibilityLabel("Continue to next step")
-                .accessibilityHint("Proceeds to phone number configuration")
+                .accessibilityHint("Proceeds to agent email configuration")
                 .accessibilityIdentifier("onboarding_apiKey_continueButton")
             }
         }

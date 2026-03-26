@@ -21,8 +21,9 @@ enum OnboardingStep: Int, CaseIterable, Comparable {
     case welcome = 0
     case permissions = 1
     case apiKey = 2
-    case phoneConfig = 3
-    case test = 4
+    case agentEmail = 3
+    case phoneConfig = 4
+    case test = 5
 
     /// Human-readable title for each step.
     var title: String {
@@ -30,6 +31,7 @@ enum OnboardingStep: Int, CaseIterable, Comparable {
         case .welcome: return "Welcome"
         case .permissions: return "Permissions"
         case .apiKey: return "API Key"
+        case .agentEmail: return "Agent Email"
         case .phoneConfig: return "Phone Number"
         case .test: return "Test"
         }
@@ -108,14 +110,20 @@ struct OnboardingContainerView: View {
 
                 case .apiKey:
                     APIKeyEntryView(
-                        onContinue: { advanceToStep(.phoneConfig) },
+                        onContinue: { advanceToStep(.agentEmail) },
                         onBack: { goBackToStep(.permissions) }
+                    )
+
+                case .agentEmail:
+                    AgentEmailConfigView(
+                        onContinue: { advanceToStep(.phoneConfig) },
+                        onBack: { goBackToStep(.apiKey) }
                     )
 
                 case .phoneConfig:
                     PhoneConfigView(
                         onContinue: { advanceToStep(.test) },
-                        onBack: { goBackToStep(.apiKey) }
+                        onBack: { goBackToStep(.agentEmail) }
                     )
 
                 case .test:

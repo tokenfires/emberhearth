@@ -395,7 +395,7 @@ struct PhoneConfigView: View {
             }
             .keyboardShortcut(.cancelAction)
             .accessibilityLabel("Go back")
-            .accessibilityHint("Returns to the API key setup step")
+            .accessibilityHint("Returns to the agent email step")
             .accessibilityIdentifier("onboarding_phone_backButton")
 
             Spacer()
